@@ -73,7 +73,7 @@ export function SignUpPage() {
                         Criar Conta
                     </h1>
                     <p className="text-green-100 text-sm mt-2">
-                        Junte-se ao Koda Admin
+                        Junte-se à Koda Microcrédito
                     </p>
                 </div>
 
@@ -194,7 +194,7 @@ export function SignUpPage() {
                     </div>
 
                     <div className="mt-6 text-center text-xs text-gray-400">
-                        © 2024 Koda Admin Moçambique
+                        © 2024 Koda Microcrédito Moçambique
                     </div>
                 </div>
             </div>

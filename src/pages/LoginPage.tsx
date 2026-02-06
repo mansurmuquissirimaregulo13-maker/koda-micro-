@@ -58,7 +58,7 @@ export function LoginPage() {
             <CreditCard className="w-8 h-8 text-white" />
           </div>
           <h1 className="text-2xl font-bold text-white font-montserrat">
-            Koda Admin
+            Koda Microcrédito
           </h1>
           <p className="text-green-100 text-sm mt-2">
             Gestão de Microcrédito Simplificada
@@ -134,7 +134,7 @@ export function LoginPage() {
           </div>
 
           <div className="mt-6 text-center text-xs text-gray-400">
-            &copy; 2024 Koda Admin Moçambique
+            &copy; 2024 Koda Microcrédito Moçambique
           </div>
         </div>
       </div>
