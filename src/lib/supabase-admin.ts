@@ -135,7 +135,7 @@ export async function getAllCompanies(): Promise<any[]> {
         .from('companies')
         .select(`
             *,
-            owner:user_profiles!companies_owner_id_fkey (
+            owner:user_profiles (
                 email,
                 full_name
             )

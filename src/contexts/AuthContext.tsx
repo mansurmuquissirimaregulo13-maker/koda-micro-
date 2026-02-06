@@ -138,7 +138,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
             // Se for erro de limite de taxa de email, mas o usuário foi criado, ignoramos o erro
             if (error) {
-                if (error.message.includes('rate limit') || error.message.includes('taxa')) {
+                if (error.message.includes('rate limit') || error.message.includes('taxa') || error.message.includes('e-mail') || error.message.includes('confirmação')) {
                     console.warn('Email rate limit hit, but checking if user exists...');
                     if (!data?.user) {
                         // Se realmente não criou o usuário, aí sim lançamos o erro

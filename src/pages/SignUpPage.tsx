@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { CreditCard, Mail, Lock, UserPlus, Building2 } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
+import { toast } from 'sonner';
 
 export function SignUpPage() {
     const [fullName, setFullName] = useState('');
@@ -51,7 +52,7 @@ export function SignUpPage() {
             navigate('/pending-approval');
         } catch (err: any) {
             console.error('Detailed SignUp catch:', err);
-            if (err.message.includes('rate limit') || err.message.includes('taxa')) {
+            if (err.message.includes('rate limit') || err.message.includes('taxa') || err.message.includes('e-mail') || err.message.includes('confirmação')) {
                 toast.error('Conta criada, mas o limite de envio de emails foi atingido. Aguarde a aprovação do administrador.');
                 setTimeout(() => navigate('/pending-approval'), 2000);
             } else {
