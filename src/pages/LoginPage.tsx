@@ -27,17 +27,13 @@ export function LoginPage() {
         // Fetch profile to check role for redirection
         const { data: profile } = await supabase
           .from('user_profiles')
-          .select('role')
+          .select('role, status')
           .eq('id', user.id)
           .maybeSingle();
 
-        if (!profile) {
-          // Se não houver perfil, redireciona para dashboard padrão ou trata erro
-          navigate('/dashboard');
-          return;
-        }
-
-        if (profile?.role === 'admin' && user.email === 'mansurmuquissirimaregulo13@gmail.com') {
+        if (profile?.status === 'pending') {
+          navigate('/pending-approval');
+        } else if (profile?.email === 'mansurmuquissirimaregulo13@gmail.com' || profile?.role === 'super_admin') {
           navigate('/admin/dashboard');
         } else {
           navigate('/dashboard');

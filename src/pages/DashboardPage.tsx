@@ -5,8 +5,11 @@ import {
   Banknote,
   AlertCircle,
   Plus,
-  CheckCircle } from
-'lucide-react';
+  CheckCircle,
+  Shield,
+  ExternalLink
+} from
+  'lucide-react';
 import { StatCard } from '../components/StatCard';
 import { AlertsPanel } from '../components/AlertsPanel';
 import { DataTable } from '../components/DataTable';
@@ -20,8 +23,9 @@ import {
   YAxis,
   CartesianGrid,
   Tooltip,
-  ResponsiveContainer } from
-'recharts';
+  ResponsiveContainer
+} from
+  'recharts';
 interface DashboardPageProps {
   onNewClient: () => void;
   onNewCredit: () => void;
@@ -30,34 +34,34 @@ export function DashboardPage({
   onNewClient,
   onNewCredit
 }: DashboardPageProps) {
-  const { stats, credits, clients, getOverdueCreditsWithDetails } =
-  useAppState();
+  const { stats, credits, clients, getOverdueCreditsWithDetails, isSystemAdmin } =
+    useAppState();
   // Prepare chart data (mock monthly data)
   const chartData = [
-  {
-    name: 'Jan',
-    value: 25000
-  },
-  {
-    name: 'Fev',
-    value: 45000
-  },
-  {
-    name: 'Mar',
-    value: 35000
-  },
-  {
-    name: 'Abr',
-    value: 80000
-  },
-  {
-    name: 'Mai',
-    value: 60000
-  },
-  {
-    name: 'Jun',
-    value: 95000
-  }];
+    {
+      name: 'Jan',
+      value: 25000
+    },
+    {
+      name: 'Fev',
+      value: 45000
+    },
+    {
+      name: 'Mar',
+      value: 35000
+    },
+    {
+      name: 'Abr',
+      value: 80000
+    },
+    {
+      name: 'Mai',
+      value: 60000
+    },
+    {
+      name: 'Jun',
+      value: 95000
+    }];
 
   const recentCredits = credits.slice(0, 5);
   const overdueCredits = credits.filter((c) => c.status === 'overdue');
@@ -70,6 +74,63 @@ export function DashboardPage({
   });
   return (
     <div className="space-y-8 animate-in fade-in duration-500">
+      {/* Super Admin System Health Widget */}
+      {isSystemAdmin && (
+        <div className="bg-amber-50 border border-amber-200 rounded-xl p-6 shadow-sm">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+            <div className="flex items-start gap-4">
+              <div className="bg-amber-100 p-3 rounded-lg">
+                <Shield className="w-6 h-6 text-amber-700" />
+              </div>
+              <div>
+                <h3 className="text-lg font-bold text-amber-900 font-montserrat">
+                  Ativação de E-mail Pendente
+                </h3>
+                <p className="text-amber-800 text-sm mt-1 max-w-xl">
+                  O motor de e-mails está montado, mas o Resend exige que você autorize o seu e-mail
+                  <span className="font-bold"> mansurmuquissirimaregulo13@gmail.com </span>
+                  no painel deles para liberar o envio global.
+                </p>
+              </div>
+            </div>
+            <div className="flex flex-wrap gap-3">
+              <a
+                href="https://resend.com/senders"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 px-4 py-2 bg-amber-600 text-white text-sm font-semibold rounded-lg hover:bg-amber-700 transition-colors"
+              >
+                Autorizar no Resend <ExternalLink className="w-4 h-4" />
+              </a>
+              <button
+                onClick={() => window.open('https://mail.google.com/mail/u/0/#search/from%3Aresend+verification', '_blank')}
+                className="inline-flex items-center gap-2 px-4 py-2 bg-white text-amber-900 text-sm font-semibold border border-amber-300 rounded-lg hover:bg-amber-100 transition-colors"
+              >
+                Buscar E-mail de Verificação
+              </button>
+            </div>
+          </div>
+
+          <div className="mt-6 p-4 bg-white/50 rounded-lg border border-amber-100">
+            <h4 className="text-xs font-bold text-amber-900 uppercase tracking-wider mb-3">
+              Opção Profissional: Configurar Domínio (Opcional)
+            </h4>
+            <p className="text-xs text-amber-800 mb-4">
+              Se você preferir usar <span className="font-mono">@koda.com</span>, adicione estes registros ao seu provedor de domínio:
+            </p>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="bg-gray-50 p-3 rounded border border-gray-200">
+                <p className="text-[10px] text-gray-500 font-bold mb-1">DKIM (TXT)</p>
+                <p className="text-[9px] font-mono break-all text-gray-800">Host: resend._domainkey | Value: p=MIGfMA0GCSqGSI...</p>
+              </div>
+              <div className="bg-gray-50 p-3 rounded border border-gray-200">
+                <p className="text-[10px] text-gray-500 font-bold mb-1">SPF (TXT)</p>
+                <p className="text-[9px] font-mono break-all text-gray-800">Host: @ | Value: v=spf1 include:amazonses.com ~all</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
       {/* Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <StatCard
@@ -180,16 +241,16 @@ export function DashboardPage({
             </h3>
             <div className="flex flex-wrap gap-2">
               {paidClients.length > 0 ?
-              paidClients.map((client) =>
-              <span
-                key={client.id}
-                className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-green-50 text-green-700 border border-green-100">
+                paidClients.map((client) =>
+                  <span
+                    key={client.id}
+                    className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-green-50 text-green-700 border border-green-100">
 
                     {client.name}
                   </span>
-              ) :
+                ) :
 
-              <p className="text-sm text-gray-500">
+                <p className="text-sm text-gray-500">
                   Nenhum cliente com todos os créditos pagos.
                 </p>
               }
@@ -232,31 +293,31 @@ export function DashboardPage({
             data={recentCredits}
             searchable={false}
             columns={[
-            {
-              header: 'Cliente',
-              accessor: (credit) => {
-                const client = clients.find((c) => c.id === credit.clientId);
-                return (
-                  <span className="font-medium text-gray-900">
+              {
+                header: 'Cliente',
+                accessor: (credit) => {
+                  const client = clients.find((c) => c.id === credit.clientId);
+                  return (
+                    <span className="font-medium text-gray-900">
                       {client?.name || 'Desconhecido'}
                     </span>);
 
-              }
-            },
-            {
-              header: 'Valor',
-              accessor: (credit) => formatMZN(credit.amount)
-            },
-            {
-              header: 'Status',
-              accessor: (credit) =>
-              <CreditStatusBadge status={credit.status} />
+                }
+              },
+              {
+                header: 'Valor',
+                accessor: (credit) => formatMZN(credit.amount)
+              },
+              {
+                header: 'Status',
+                accessor: (credit) =>
+                  <CreditStatusBadge status={credit.status} />
 
-            },
-            {
-              header: 'Data Início',
-              accessor: (credit) => formatDate(credit.startDate)
-            }]
+              },
+              {
+                header: 'Data Início',
+                accessor: (credit) => formatDate(credit.startDate)
+              }]
             } />
 
         </div>

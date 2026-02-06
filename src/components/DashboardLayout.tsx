@@ -7,7 +7,7 @@ import { ClientsPage } from '../pages/ClientsPage';
 import { CreditsPage } from '../pages/CreditsPage';
 import { ReportsPage } from '../pages/ReportsPage';
 import { SettingsPage } from '../pages/SettingsPage';
-import { AdminDashboard } from '../pages/AdminDashboard';
+import SuperAdminDashboard from '../pages/SuperAdminDashboard';
 import { Modal } from './Modal';
 import { ClientForm } from './ClientForm';
 import { CreditForm } from './CreditForm';
@@ -72,7 +72,7 @@ export function DashboardLayout() {
             case 'settings':
                 return <SettingsPage />;
             case 'admin/dashboard':
-                return <AdminDashboard />;
+                return <SuperAdminDashboard />;
             default:
                 return (
                     <DashboardPage

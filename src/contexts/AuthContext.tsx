@@ -112,12 +112,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                             company_id: null
                         });
                     if (insertError) throw insertError;
-                } else {
-                    throw new Error('Perfil de usuário não encontrado. Por favor, entre em contato com o suporte.');
                 }
-            } else if (profileData.role !== 'admin' && profileData.status !== 'approved') {
-                await supabase.auth.signOut();
-                throw new Error('Sua conta ainda não foi aprovada pelo administrador.');
             }
         }
 
