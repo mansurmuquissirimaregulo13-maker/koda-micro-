@@ -15,7 +15,7 @@ export function AdminDashboard() {
         credits: 0,
         totalVolume: 0
     });
-    const [filter, setFilter] = useState<'all' | 'pending' | 'approved' | 'rejected'>('pending');
+    const [filter, setFilter] = useState<'all' | 'pending' | 'approved' | 'rejected'>('all');
     const [activeTab, setActiveTab] = useState<'companies' | 'users'>('companies');
     const [searchTerm, setSearchTerm] = useState('');
     const [loading, setLoading] = useState(true);

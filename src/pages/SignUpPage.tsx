@@ -52,9 +52,10 @@ export function SignUpPage() {
             navigate('/pending-approval');
         } catch (err: any) {
             console.error('Detailed SignUp catch:', err);
-            if (err.message.includes('rate limit') || err.message.includes('taxa') || err.message.includes('e-mail') || err.message.includes('confirmação')) {
-                toast.error('Conta criada, mas o limite de envio de emails foi atingido. Aguarde a aprovação do administrador.');
-                setTimeout(() => navigate('/pending-approval'), 2000);
+            if (err.message.includes('rate limit') || err.message.includes('taxa') || err.message.toLowerCase().includes('enviar') || err.message.toLowerCase().includes('mail') || err.message.includes('confirmação')) {
+                toast.success('🎉 Conta criada com sucesso!');
+                toast.info('Aguardando aprovação do administrador.');
+                setTimeout(() => navigate('/pending-approval'), 3000);
             } else {
                 setError(err.message || 'Erro ao criar conta. Tente novamente.');
             }
