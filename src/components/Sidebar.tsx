@@ -98,7 +98,7 @@ export function Sidebar({ currentPage, onNavigate, isOpen }: SidebarProps) {
             <CreditCard className="w-5 h-5 text-white" />
           </div>
           <span className="text-xl font-bold font-montserrat tracking-tight">
-            Koda Admin
+            Koda Microcrédito
           </span>
         </div>
 

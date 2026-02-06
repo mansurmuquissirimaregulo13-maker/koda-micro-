@@ -16,9 +16,8 @@ export function TopBar({ onMenuClick, title = 'Dashboard', onSearch, onNotificat
           <Menu className="w-6 h-6" />
         </button>
 
-        <div>
           <h1 className="text-xl font-bold text-[#1B1B1B] font-montserrat hidden sm:block">
-            Koda Admin
+            Koda Microcrédito
           </h1>
           <p className="text-sm text-gray-500 hidden sm:block">{title}</p>
         </div>
@@ -46,5 +45,5 @@ export function TopBar({ onMenuClick, title = 'Dashboard', onSearch, onNotificat
           AD
         </div>
       </div>
-    </header>);
+    </header >);
 }

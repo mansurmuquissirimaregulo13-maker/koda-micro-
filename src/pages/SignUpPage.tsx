@@ -196,7 +196,7 @@ export function SignUpPage() {
                     </div>
 
                     <div className="mt-6 text-center text-xs text-gray-400">
-                        © 2024 Koda Microcrédito Moçambique
+                        <p>&copy; 2026 Koda Microcrédito. Todos os direitos reservados.</p>
                     </div>
                 </div>
             </div>

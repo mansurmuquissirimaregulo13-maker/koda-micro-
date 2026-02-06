@@ -107,7 +107,7 @@ export function PendingApprovalPage() {
             </div>
 
             <div className="fixed bottom-6 left-1/2 -translate-x-1/2 text-[10px] font-black text-gray-300 uppercase tracking-[0.3em]">
-                Koda Admin • © 2024
+                Koda Microcrédito • © 2026
             </div>
         </div>
     );

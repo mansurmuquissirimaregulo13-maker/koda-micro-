@@ -152,8 +152,8 @@ export function AdminDashboard() {
                         <LayoutDashboard className="w-6 h-6 text-white" />
                     </div>
                     <div>
-                        <h1 className="text-2xl font-bold text-[#1B1B1B]">Painel de Gestão Admin</h1>
-                        <p className="text-sm text-gray-500">Comando Central Koda Admin</p>
+                        <h1 className="text-2xl font-bold text-[#1B1B1B]">Painel de Gestão Koda</h1>
+                        <p className="text-sm text-gray-500">Comando Central Koda Microcrédito</p>
                     </div>
                 </div>
                 <div className="flex gap-2">
