@@ -136,18 +136,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                 }
             });
 
-            // Se for erro de limite de taxa de email, mas o usuário foi criado, ignoramos o erro
-            if (error) {
-                const lowerMsg = error.message.toLowerCase();
-                if (lowerMsg.includes('rate limit') || lowerMsg.includes('taxa') || lowerMsg.includes('enviar') || lowerMsg.includes('mail') || lowerMsg.includes('e-mail') || lowerMsg.includes('confirmação')) {
-                    console.warn('Email issue detected, but checking if user exists...', error.message);
-                    if (!data?.user) {
-                        throw error;
-                    }
-                } else {
-                    throw error;
-                }
-            }
+            if (error) throw error;
 
             if (data.user && companyName) {
                 let companyId = null;
