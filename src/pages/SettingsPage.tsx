@@ -32,7 +32,7 @@ export function SettingsPage() {
               <label className="text-sm font-medium text-gray-700">Nome</label>
               <input
                 type="text"
-                defaultValue="Administrador Kopa"
+                defaultValue="Administrador Koda"
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#40916C] focus:border-transparent outline-none" />
 
             </div>
@@ -40,7 +40,7 @@ export function SettingsPage() {
               <label className="text-sm font-medium text-gray-700">Email</label>
               <input
                 type="email"
-                defaultValue="admin@kopa.co.mz"
+                defaultValue="admin@kodamicro.com"
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#40916C] focus:border-transparent outline-none" />
 
             </div>
