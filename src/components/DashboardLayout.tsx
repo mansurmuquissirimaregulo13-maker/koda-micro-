@@ -1,0 +1,167 @@
+import { useState } from 'react';
+import { useLocation } from 'react-router-dom';
+import { Sidebar } from './Sidebar';
+import { TopBar } from './TopBar';
+import { DashboardPage } from '../pages/DashboardPage';
+import { ClientsPage } from '../pages/ClientsPage';
+import { CreditsPage } from '../pages/CreditsPage';
+import { ReportsPage } from '../pages/ReportsPage';
+import { SettingsPage } from '../pages/SettingsPage';
+import { AdminDashboard } from '../pages/AdminDashboard';
+import { Modal } from './Modal';
+import { ClientForm } from './ClientForm';
+import { CreditForm } from './CreditForm';
+import { useAppState } from '../hooks/useAppState';
+import { toast } from 'sonner';
+
+export function DashboardLayout() {
+    const location = useLocation();
+    const { addClient, addCredit, clients, isSystemAdmin, loading } = useAppState();
+
+    // Determine current path
+    let currentPath = location.pathname.replace('/', '');
+    if (!currentPath && isSystemAdmin) {
+        currentPath = 'admin/dashboard';
+    } else if (!currentPath) {
+        currentPath = 'dashboard';
+    }
+
+    // Fallback para caminhos antigos
+    if (currentPath === 'admin/companies' || currentPath === 'admin/users') {
+        currentPath = 'admin/dashboard';
+    }
+
+    const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+    const [isClientModalOpen, setIsClientModalOpen] = useState(false);
+    const [isCreditModalOpen, setIsCreditModalOpen] = useState(false);
+    const [searchTerm, setSearchTerm] = useState('');
+
+    const handleNewClient = (data: any) => {
+        addClient(data);
+        setIsClientModalOpen(false);
+    };
+
+    const handleNewCredit = (data: any) => {
+        addCredit(data);
+        setIsCreditModalOpen(false);
+    };
+
+    const handleSearch = (term: string) => {
+        setSearchTerm(term);
+    };
+
+    const handleNotificationClick = () => {
+        toast.info('Nenhuma notificação nova no momento.');
+    };
+
+    const renderPage = () => {
+        switch (currentPath) {
+            case 'dashboard':
+                return (
+                    <DashboardPage
+                        onNewClient={() => setIsClientModalOpen(true)}
+                        onNewCredit={() => setIsCreditModalOpen(true)}
+                    />
+                );
+            case 'clients':
+                return <ClientsPage searchTerm={searchTerm} />;
+            case 'credits':
+                return <CreditsPage searchTerm={searchTerm} />;
+            case 'reports':
+                return <ReportsPage />;
+            case 'settings':
+                return <SettingsPage />;
+            case 'admin/dashboard':
+                return <AdminDashboard />;
+            default:
+                return (
+                    <DashboardPage
+                        onNewClient={() => setIsClientModalOpen(true)}
+                        onNewCredit={() => setIsCreditModalOpen(true)}
+                    />
+                );
+        }
+    };
+
+    const getPageTitle = () => {
+        switch (currentPath) {
+            case 'dashboard':
+                return 'Dashboard';
+            case 'clients':
+                return 'Clientes';
+            case 'credits':
+                return 'Créditos';
+            case 'reports':
+                return 'Relatórios';
+            case 'settings':
+                return 'Configurações';
+            case 'admin/dashboard':
+                return 'Painel de Gestão Admin';
+            default:
+                return 'Dashboard';
+        }
+    };
+
+    if (loading) {
+        return (
+            <div className="min-h-screen bg-[#F7F7F2] flex items-center justify-center">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#1B1B1B]"></div>
+            </div>
+        );
+    }
+
+    return (
+        <div className="min-h-screen bg-[#F7F7F2] flex font-sans text-[#1B1B1B]">
+            {/* Sidebar Overlay for Mobile */}
+            {isSidebarOpen && (
+                <div
+                    className="fixed inset-0 bg-black/50 z-40 lg:hidden"
+                    onClick={() => setIsSidebarOpen(false)}
+                />
+            )}
+
+            <Sidebar
+                currentPage={currentPath}
+                onNavigate={() => setIsSidebarOpen(false)}
+                isOpen={isSidebarOpen}
+            />
+
+            <div className="flex-1 flex flex-col min-w-0">
+                <TopBar
+                    onMenuClick={() => setIsSidebarOpen(true)}
+                    title={getPageTitle()}
+                    onSearch={handleSearch}
+                    onNotification={handleNotificationClick}
+                />
+
+                <main className="flex-1 p-4 lg:p-8 overflow-y-auto h-[calc(100vh-4rem)]">
+                    <div className="max-w-7xl mx-auto">{renderPage()}</div>
+                </main>
+            </div>
+
+            {/* Global Quick Action Modals */}
+            <Modal
+                isOpen={isClientModalOpen}
+                onClose={() => setIsClientModalOpen(false)}
+                title="Novo Cliente"
+            >
+                <ClientForm
+                    onSubmit={handleNewClient}
+                    onCancel={() => setIsClientModalOpen(false)}
+                />
+            </Modal>
+
+            <Modal
+                isOpen={isCreditModalOpen}
+                onClose={() => setIsCreditModalOpen(false)}
+                title="Novo Crédito"
+            >
+                <CreditForm
+                    clients={clients}
+                    onSubmit={handleNewCredit}
+                    onCancel={() => setIsCreditModalOpen(false)}
+                />
+            </Modal>
+        </div>
+    );
+}
