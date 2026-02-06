@@ -176,6 +176,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                     .eq('id', data.user.id);
 
                 if (updateError) throw updateError;
+
+                // 3. Notificar o Admin (Mansur) sobre o novo cadastro
+                try {
+                    await supabase.functions.invoke('send-notification-email', {
+                        body: {
+                            type: 'new_registration',
+                            email: email,
+                            full_name: fullName,
+                            company_name: companyName
+                        }
+                    });
+                } catch (notifyErr) {
+                    console.warn('Falha ao notificar admin, mas cadastro concluído:', notifyErr);
+                }
             }
         } catch (error: any) {
             console.error('SignUp Error:', error);
