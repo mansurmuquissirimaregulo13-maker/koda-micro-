@@ -1,4 +1,4 @@
-import React from 'react';
+
 import { AlertTriangle } from 'lucide-react';
 import { Credit, Client } from '../utils/mockData';
 import { formatMZN, getDaysOverdue } from '../utils/helpers';
@@ -9,15 +9,15 @@ interface AlertsPanelProps {
 export function AlertsPanel({ overdueCredits, clients }: AlertsPanelProps) {
   const getSeverity = (days: number) => {
     if (days <= 7)
-    return {
-      color: 'bg-yellow-50 border-yellow-200 text-yellow-700',
-      label: 'Leve'
-    };
+      return {
+        color: 'bg-yellow-50 border-yellow-200 text-yellow-700',
+        label: 'Leve'
+      };
     if (days <= 30)
-    return {
-      color: 'bg-orange-50 border-orange-200 text-orange-700',
-      label: 'Moderado'
-    };
+      return {
+        color: 'bg-orange-50 border-orange-200 text-orange-700',
+        label: 'Moderado'
+      };
     return {
       color: 'bg-red-50 border-red-200 text-red-700 font-semibold',
       label: 'Crítico'
@@ -37,14 +37,14 @@ export function AlertsPanel({ overdueCredits, clients }: AlertsPanelProps) {
 
       <div className="space-y-3 max-h-[300px] overflow-y-auto pr-2">
         {overdueCredits.length > 0 ?
-        overdueCredits.map((credit) => {
-          const client = clients.find((c) => c.id === credit.clientId);
-          const days = getDaysOverdue(credit.endDate);
-          const severity = getSeverity(days);
-          return (
-            <div
-              key={credit.id}
-              className={`flex items-center justify-between p-3 rounded-lg border ${severity.color}`}>
+          overdueCredits.map((credit) => {
+            const client = clients.find((c) => c.id === credit.clientId);
+            const days = getDaysOverdue(credit.endDate);
+            const severity = getSeverity(days);
+            return (
+              <div
+                key={credit.id}
+                className={`flex items-center justify-between p-3 rounded-lg border ${severity.color}`}>
 
                 <div>
                   <p className="font-semibold text-gray-900 text-sm">
@@ -67,9 +67,9 @@ export function AlertsPanel({ overdueCredits, clients }: AlertsPanelProps) {
                 </div>
               </div>);
 
-        }) :
+          }) :
 
-        <div className="text-center py-8 text-gray-500 text-sm bg-gray-50 rounded-lg border border-dashed border-gray-200">
+          <div className="text-center py-8 text-gray-500 text-sm bg-gray-50 rounded-lg border border-dashed border-gray-200">
             <p>Nenhum crédito em atraso.</p>
             <p className="text-xs mt-1">Ótimo trabalho!</p>
           </div>

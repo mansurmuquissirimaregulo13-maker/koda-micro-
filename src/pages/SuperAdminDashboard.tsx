@@ -1,15 +1,12 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import {
     Users,
     Building2,
     CheckCircle2,
     XCircle,
     Shield,
-    ArrowRight,
-    Search,
     Check,
     X,
-    AlertCircle
 } from 'lucide-react';
 import {
     getPendingUsers,
@@ -123,8 +120,8 @@ export default function SuperAdminDashboard() {
                 <button
                     onClick={() => setActiveTab('companies')}
                     className={`px-6 py-3 font-medium transition-colors border-b-2 ${activeTab === 'companies'
-                            ? 'border-[#1B3A2D] text-[#1B3A2D]'
-                            : 'border-transparent text-gray-500 hover:text-gray-700'
+                        ? 'border-[#1B3A2D] text-[#1B3A2D]'
+                        : 'border-transparent text-gray-500 hover:text-gray-700'
                         }`}
                 >
                     <div className="flex items-center gap-2">
@@ -139,8 +136,8 @@ export default function SuperAdminDashboard() {
                 <button
                     onClick={() => setActiveTab('users')}
                     className={`px-6 py-3 font-medium transition-colors border-b-2 ${activeTab === 'users'
-                            ? 'border-[#1B3A2D] text-[#1B3A2D]'
-                            : 'border-transparent text-gray-500 hover:text-gray-700'
+                        ? 'border-[#1B3A2D] text-[#1B3A2D]'
+                        : 'border-transparent text-gray-500 hover:text-gray-700'
                         }`}
                 >
                     <div className="flex items-center gap-2">
@@ -191,8 +188,8 @@ export default function SuperAdminDashboard() {
                                                 </td>
                                                 <td className="px-6 py-4">
                                                     <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${company.status === 'approved' ? 'bg-green-100 text-green-800' :
-                                                            company.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
-                                                                'bg-red-100 text-red-800'
+                                                        company.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
+                                                            'bg-red-100 text-red-800'
                                                         }`}>
                                                         {company.status === 'approved' ? 'Aprovada' :
                                                             company.status === 'pending' ? 'Pendente' : 'Rejeitada'}
@@ -258,8 +255,8 @@ export default function SuperAdminDashboard() {
                                                 <td className="px-6 py-4">
                                                     <div className="text-sm text-gray-900">{userProfile.company?.name || 'Sem Empresa'}</div>
                                                     <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium mt-1 ${userProfile.status === 'approved' ? 'bg-green-100 text-green-800' :
-                                                            userProfile.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
-                                                                'bg-red-100 text-red-800'
+                                                        userProfile.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
+                                                            'bg-red-100 text-red-800'
                                                         }`}>
                                                         {userProfile.status === 'approved' ? 'Aprovado' :
                                                             userProfile.status === 'pending' ? 'Pendente' : 'Rejeitado'}
