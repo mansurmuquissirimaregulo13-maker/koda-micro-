@@ -1,11 +1,12 @@
-
 import { AlertTriangle } from 'lucide-react';
-import { Credit, Client } from '../utils/mockData';
+import { Credit, Client } from '../types';
 import { formatMZN, getDaysOverdue } from '../utils/helpers';
+
 interface AlertsPanelProps {
   overdueCredits: Credit[];
   clients: Client[];
 }
+
 export function AlertsPanel({ overdueCredits, clients }: AlertsPanelProps) {
   const getSeverity = (days: number) => {
     if (days <= 7)
@@ -23,6 +24,7 @@ export function AlertsPanel({ overdueCredits, clients }: AlertsPanelProps) {
       label: 'Crítico'
     };
   };
+
   return (
     <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6 h-full">
       <div className="flex items-center justify-between mb-6">
@@ -36,7 +38,7 @@ export function AlertsPanel({ overdueCredits, clients }: AlertsPanelProps) {
       </div>
 
       <div className="space-y-3 max-h-[300px] overflow-y-auto pr-2">
-        {overdueCredits.length > 0 ?
+        {overdueCredits.length > 0 ? (
           overdueCredits.map((credit) => {
             const client = clients.find((c) => c.id === credit.clientId);
             const days = getDaysOverdue(credit.endDate);
@@ -44,8 +46,8 @@ export function AlertsPanel({ overdueCredits, clients }: AlertsPanelProps) {
             return (
               <div
                 key={credit.id}
-                className={`flex items-center justify-between p-3 rounded-lg border ${severity.color}`}>
-
+                className={`flex items-center justify-between p-3 rounded-lg border ${severity.color}`}
+              >
                 <div>
                   <p className="font-semibold text-gray-900 text-sm">
                     {client?.name || 'Cliente Desconhecido'}
@@ -65,16 +67,16 @@ export function AlertsPanel({ overdueCredits, clients }: AlertsPanelProps) {
                   </p>
                   <p className="text-xs opacity-75">Devido</p>
                 </div>
-              </div>);
-
-          }) :
-
+              </div>
+            );
+          })
+        ) : (
           <div className="text-center py-8 text-gray-500 text-sm bg-gray-50 rounded-lg border border-dashed border-gray-200">
             <p>Nenhum crédito em atraso.</p>
             <p className="text-xs mt-1">Ótimo trabalho!</p>
           </div>
-        }
+        )}
       </div>
-    </div>);
-
+    </div>
+  );
 }

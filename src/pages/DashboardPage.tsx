@@ -1,4 +1,3 @@
-
 import {
   Users,
   CreditCard,
@@ -8,8 +7,7 @@ import {
   CheckCircle,
   Shield,
   ExternalLink
-} from
-  'lucide-react';
+} from 'lucide-react';
 import { StatCard } from '../components/StatCard';
 import { AlertsPanel } from '../components/AlertsPanel';
 import { DataTable } from '../components/DataTable';
@@ -24,44 +22,27 @@ import {
   CartesianGrid,
   Tooltip,
   ResponsiveContainer
-} from
-  'recharts';
+} from 'recharts';
+
 interface DashboardPageProps {
   onNewClient: () => void;
   onNewCredit: () => void;
 }
+
 export function DashboardPage({
   onNewClient,
   onNewCredit
 }: DashboardPageProps) {
-  const { stats, credits, clients, getOverdueCreditsWithDetails, isSystemAdmin } =
-    useAppState();
-  // Prepare chart data (mock monthly data)
+  const { stats, credits, clients, isSystemAdmin } = useAppState();
+
   const chartData = [
-    {
-      name: 'Jan',
-      value: 25000
-    },
-    {
-      name: 'Fev',
-      value: 45000
-    },
-    {
-      name: 'Mar',
-      value: 35000
-    },
-    {
-      name: 'Abr',
-      value: 80000
-    },
-    {
-      name: 'Mai',
-      value: 60000
-    },
-    {
-      name: 'Jun',
-      value: 95000
-    }];
+    { name: 'Jan', value: 25000 },
+    { name: 'Fev', value: 45000 },
+    { name: 'Mar', value: 35000 },
+    { name: 'Abr', value: 80000 },
+    { name: 'Mai', value: 60000 },
+    { name: 'Jun', value: 95000 }
+  ];
 
   const recentCredits = credits.slice(0, 5);
   const overdueCredits = credits.filter((c) => c.status === 'overdue');
@@ -69,12 +50,12 @@ export function DashboardPage({
     const clientCredits = credits.filter((c) => c.clientId === client.id);
     return (
       clientCredits.length > 0 &&
-      clientCredits.every((c) => c.status === 'paid'));
-
+      clientCredits.every((c) => c.status === 'paid')
+    );
   });
+
   return (
     <div className="space-y-8 animate-in fade-in duration-500">
-      {/* Super Admin System Health Widget */}
       {isSystemAdmin && (
         <div className="bg-amber-50 border border-amber-200 rounded-xl p-6 shadow-sm">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
@@ -131,7 +112,7 @@ export function DashboardPage({
           </div>
         </div>
       )}
-      {/* Stats Grid */}
+
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <StatCard
           title="Total Clientes"
@@ -155,9 +136,7 @@ export function DashboardPage({
           icon={Banknote}
           color="bg-purple-500" />
 
-        <div
-          className={`${stats.overdueCredits > 0 ? 'animate-pulse-subtle ring-2 ring-red-100' : ''} rounded-xl`}>
-
+        <div className={`${stats.overdueCredits > 0 ? 'animate-pulse-subtle ring-2 ring-red-100' : ''} rounded-xl`}>
           <StatCard
             title="Créditos Atrasados"
             value={stats.overdueCredits.toString()}
@@ -165,12 +144,10 @@ export function DashboardPage({
             color="bg-red-500"
             trend="down"
             trendValue={`${stats.overdueCredits} críticos`} />
-
         </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* Main Chart */}
         <div className="lg:col-span-2 space-y-8">
           <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
             <div className="flex items-center justify-between mb-6">
@@ -189,30 +166,22 @@ export function DashboardPage({
                     strokeDasharray="3 3"
                     vertical={false}
                     stroke="#E5E7EB" />
-
                   <XAxis
                     dataKey="name"
                     axisLine={false}
                     tickLine={false}
-                    tick={{
-                      fill: '#9CA3AF'
-                    }}
+                    tick={{ fill: '#9CA3AF' }}
                     dy={10} />
-
                   <YAxis
                     axisLine={false}
                     tickLine={false}
-                    tick={{
-                      fill: '#9CA3AF'
-                    }} />
-
+                    tick={{ fill: '#9CA3AF' }} />
                   <Tooltip
                     contentStyle={{
                       borderRadius: '8px',
                       border: 'none',
                       boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)'
                     }} />
-
                   <Line
                     type="monotone"
                     dataKey="value"
@@ -224,47 +193,40 @@ export function DashboardPage({
                       strokeWidth: 2,
                       stroke: '#fff'
                     }}
-                    activeDot={{
-                      r: 6
-                    }} />
-
+                    activeDot={{ r: 6 }} />
                 </LineChart>
               </ResponsiveContainer>
             </div>
           </div>
 
-          {/* Em Dia Section */}
           <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
             <h3 className="text-lg font-bold text-[#1B1B1B] font-montserrat mb-4 flex items-center gap-2">
               <CheckCircle className="w-5 h-5 text-green-500" />
               Clientes em Dia (Sem Dívidas)
             </h3>
             <div className="flex flex-wrap gap-2">
-              {paidClients.length > 0 ?
-                paidClients.map((client) =>
+              {paidClients.length > 0 ? (
+                paidClients.map((client) => (
                   <span
                     key={client.id}
                     className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-green-50 text-green-700 border border-green-100">
-
                     {client.name}
                   </span>
-                ) :
-
+                ))
+              ) : (
                 <p className="text-sm text-gray-500">
                   Nenhum cliente com todos os créditos pagos.
                 </p>
-              }
+              )}
             </div>
           </div>
         </div>
 
-        {/* Alerts Panel */}
         <div className="lg:col-span-1 h-full">
           <AlertsPanel overdueCredits={overdueCredits} clients={clients} />
         </div>
       </div>
 
-      {/* Recent Credits & Quick Actions */}
       <div className="grid grid-cols-1 gap-8">
         <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
           <div className="p-6 border-b border-gray-100 flex items-center justify-between">
@@ -275,14 +237,12 @@ export function DashboardPage({
               <button
                 onClick={onNewClient}
                 className="px-3 py-2 text-sm font-medium text-[#1B3A2D] bg-[#D8F3DC] rounded-lg hover:bg-[#b7e4c0] transition-colors flex items-center gap-2">
-
                 <Plus className="w-4 h-4" />
                 Novo Cliente
               </button>
               <button
                 onClick={onNewCredit}
                 className="px-3 py-2 text-sm font-medium text-white bg-[#1B3A2D] rounded-lg hover:bg-[#2D6A4F] transition-colors flex items-center gap-2">
-
                 <Plus className="w-4 h-4" />
                 Novo Crédito
               </button>
@@ -300,8 +260,8 @@ export function DashboardPage({
                   return (
                     <span className="font-medium text-gray-900">
                       {client?.name || 'Desconhecido'}
-                    </span>);
-
+                    </span>
+                  );
                 }
               },
               {
@@ -310,18 +270,15 @@ export function DashboardPage({
               },
               {
                 header: 'Status',
-                accessor: (credit) =>
-                  <CreditStatusBadge status={credit.status} />
-
+                accessor: (credit) => <CreditStatusBadge status={credit.status} />
               },
               {
                 header: 'Data Início',
                 accessor: (credit) => formatDate(credit.startDate)
               }]
             } />
-
         </div>
       </div>
-    </div>);
-
+    </div>
+  );
 }

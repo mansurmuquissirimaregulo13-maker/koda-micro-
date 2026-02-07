@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import {
   Plus,
   Eye,
@@ -7,10 +7,8 @@ import {
   Calendar,
   TrendingUp,
   AlertTriangle,
-  CheckCircle,
-  Clock
-} from
-  'lucide-react';
+  CheckCircle
+} from 'lucide-react';
 import { DataTable } from '../components/DataTable';
 import { Modal } from '../components/Modal';
 import { CreditForm } from '../components/CreditForm';
@@ -22,10 +20,9 @@ import {
   formatDate,
   generateInstallmentSchedule,
   getDaysOverdue
-} from
-  '../utils/helpers';
-import { Credit } from '../utils/mockData';
-import { CreditStatus } from '../utils/helpers';
+} from '../utils/helpers';
+import { Credit, CreditStatus } from '../types';
+
 interface CreditsPageProps {
   searchTerm?: string;
 }
@@ -40,7 +37,6 @@ export function CreditsPage({ searchTerm = '' }: CreditsPageProps) {
     getCreditWithDetails
   } = useAppState();
 
-  // ... state ...
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
@@ -48,25 +44,26 @@ export function CreditsPage({ searchTerm = '' }: CreditsPageProps) {
   const [detailedCredit, setDetailedCredit] = useState<any>(null);
   const [statusFilter, setStatusFilter] = useState<CreditStatus | 'all'>('all');
 
-  // ... handlers ...
   const handleCreateCredit = (data: any) => {
     addCredit(data);
     setIsCreateModalOpen(false);
   };
+
   const handlePayment = (data: any) => {
     addPayment(data);
     setIsPaymentModalOpen(false);
     setSelectedCredit(null);
-    // Refresh detailed view if open
     if (detailedCredit) {
       const updated = getCreditWithDetails(detailedCredit.id);
       setDetailedCredit(updated);
     }
   };
+
   const openPaymentModal = (credit: Credit) => {
     setSelectedCredit(credit);
     setIsPaymentModalOpen(true);
   };
+
   const openDetailModal = (credit: Credit) => {
     const details = getCreditWithDetails(credit.id);
     setDetailedCredit(details);
@@ -83,6 +80,7 @@ export function CreditsPage({ searchTerm = '' }: CreditsPageProps) {
 
     return matchesSearch && matchesStatus;
   });
+
   return (
     <div className="space-y-6 animate-in fade-in duration-500">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -97,13 +95,11 @@ export function CreditsPage({ searchTerm = '' }: CreditsPageProps) {
         <button
           onClick={() => setIsCreateModalOpen(true)}
           className="px-4 py-2 bg-[#1B3A2D] text-white rounded-lg font-medium hover:bg-[#2D6A4F] transition-colors flex items-center gap-2 shadow-lg shadow-green-900/20">
-
           <Plus className="w-4 h-4" />
           Novo Crédito
         </button>
       </div>
 
-      {/* Filters */}
       <div className="bg-white p-4 rounded-xl border border-gray-200 shadow-sm flex items-center gap-4">
         <div className="flex items-center gap-2 text-gray-500">
           <Filter className="w-4 h-4" />
@@ -113,7 +109,6 @@ export function CreditsPage({ searchTerm = '' }: CreditsPageProps) {
           value={statusFilter}
           onChange={(e) => setStatusFilter(e.target.value as any)}
           className="px-3 py-1.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-[#40916C] outline-none">
-
           <option value="all">Todos</option>
           <option value="pending">Pendente</option>
           <option value="active">Aprovado / Ativo</option>
@@ -134,8 +129,8 @@ export function CreditsPage({ searchTerm = '' }: CreditsPageProps) {
               return (
                 <span className="font-medium text-gray-900">
                   {client?.name || 'Desconhecido'}
-                </span>);
-
+                </span>
+              );
             }
           },
           {
@@ -152,13 +147,12 @@ export function CreditsPage({ searchTerm = '' }: CreditsPageProps) {
           },
           {
             header: 'Restante',
-            accessor: (credit) =>
+            accessor: (credit) => (
               <span
                 className={`font-bold ${credit.status === 'overdue' ? 'text-red-600' : 'text-[#1B3A2D]'}`}>
-
                 {formatMZN(credit.remainingAmount)}
               </span>
-
+            )
           },
           {
             header: 'Status',
@@ -169,9 +163,8 @@ export function CreditsPage({ searchTerm = '' }: CreditsPageProps) {
             accessor: (credit) => formatDate(credit.endDate)
           }]
         }
-        actions={(credit) =>
+        actions={(credit) => (
           <div className="flex items-center justify-end gap-3">
-            {/* Inline Status Update */}
             <select
               value={credit.status}
               onChange={(e) =>
@@ -179,7 +172,6 @@ export function CreditsPage({ searchTerm = '' }: CreditsPageProps) {
               }
               onClick={(e) => e.stopPropagation()}
               className="text-xs border border-gray-200 rounded px-2 py-1 bg-gray-50 focus:ring-1 focus:ring-[#40916C] outline-none cursor-pointer">
-
               <option value="pending">Pendente</option>
               <option value="active">Aprovado</option>
               <option value="paid">Pago</option>
@@ -187,65 +179,53 @@ export function CreditsPage({ searchTerm = '' }: CreditsPageProps) {
               <option value="rejected">Rejeitado</option>
             </select>
 
-            {credit.status !== 'paid' &&
+            {credit.status !== 'paid' && (
               <button
                 onClick={() => openPaymentModal(credit)}
                 className="p-1.5 text-green-600 hover:bg-green-50 rounded-lg transition-colors flex items-center gap-1 text-xs font-medium"
                 title="Registrar Pagamento">
-
                 <DollarSign className="w-4 h-4" />
               </button>
-            }
+            )}
             <button
               onClick={() => openDetailModal(credit)}
               className="p-1.5 text-gray-500 hover:bg-gray-100 rounded-lg transition-colors"
               title="Ver Detalhes">
-
               <Eye className="w-4 h-4" />
             </button>
           </div>
-        } />
+        )} />
 
-
-      {/* Create Credit Modal */}
       <Modal
         isOpen={isCreateModalOpen}
         onClose={() => setIsCreateModalOpen(false)}
         title="Novo Crédito">
-
         <CreditForm
           clients={clients}
           onSubmit={handleCreateCredit}
           onCancel={() => setIsCreateModalOpen(false)} />
-
       </Modal>
 
-      {/* Payment Modal */}
       <Modal
         isOpen={isPaymentModalOpen}
         onClose={() => setIsPaymentModalOpen(false)}
         title="Registrar Pagamento">
-
-        {selectedCredit &&
+        {selectedCredit && (
           <PaymentForm
             credit={selectedCredit}
             client={clients.find((c) => c.id === selectedCredit.clientId)!}
             onSubmit={handlePayment}
             onCancel={() => setIsPaymentModalOpen(false)} />
-
-        }
+        )}
       </Modal>
 
-      {/* Detail Modal */}
       <Modal
         isOpen={isDetailModalOpen}
         onClose={() => setIsDetailModalOpen(false)}
         title="Detalhes do Crédito"
         size="lg">
-
-        {detailedCredit &&
+        {detailedCredit && (
           <div className="space-y-8">
-            {/* Top Summary */}
             <div className="flex flex-col md:flex-row justify-between items-start gap-4 pb-6 border-b border-gray-100">
               <div>
                 <h3 className="text-2xl font-bold text-gray-900">
@@ -267,7 +247,6 @@ export function CreditsPage({ searchTerm = '' }: CreditsPageProps) {
               </div>
             </div>
 
-            {/* Financial Breakdown Cards */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="p-5 rounded-xl bg-blue-50 border border-blue-100">
                 <p className="text-xs text-blue-600 font-bold uppercase tracking-wide mb-1">
@@ -295,7 +274,6 @@ export function CreditsPage({ searchTerm = '' }: CreditsPageProps) {
               </div>
             </div>
 
-            {/* Progress Bar */}
             <div>
               <div className="flex justify-between text-sm mb-2">
                 <span className="text-gray-600">
@@ -308,8 +286,8 @@ export function CreditsPage({ searchTerm = '' }: CreditsPageProps) {
                   Progresso:{' '}
                   <span className="font-semibold">
                     {Math.round(
-                      detailedCredit.debtInfo.totalPaid /
-                      detailedCredit.debtInfo.totalWithInterest *
+                      (detailedCredit.debtInfo.totalPaid /
+                        detailedCredit.debtInfo.totalWithInterest) *
                       100
                     )}
                     %
@@ -320,16 +298,14 @@ export function CreditsPage({ searchTerm = '' }: CreditsPageProps) {
                 <div
                   className="h-full bg-[#40916C] transition-all duration-500"
                   style={{
-                    width: `${detailedCredit.debtInfo.totalPaid / detailedCredit.debtInfo.totalWithInterest * 100}%`
+                    width: `${(detailedCredit.debtInfo.totalPaid / detailedCredit.debtInfo.totalWithInterest) * 100}%`
                   }}>
                 </div>
               </div>
             </div>
 
-            {/* Current Debt Status */}
             <div
               className={`p-6 rounded-xl border-2 ${detailedCredit.status === 'overdue' ? 'border-red-100 bg-red-50' : 'border-gray-100 bg-gray-50'}`}>
-
               <div className="flex justify-between items-center">
                 <div>
                   <h4 className="text-sm font-bold text-gray-500 uppercase tracking-wide">
@@ -337,27 +313,25 @@ export function CreditsPage({ searchTerm = '' }: CreditsPageProps) {
                   </h4>
                   <p
                     className={`text-4xl font-bold mt-1 ${detailedCredit.status === 'overdue' ? 'text-red-600' : 'text-[#1B3A2D]'}`}>
-
                     {formatMZN(detailedCredit.remainingAmount)}
                   </p>
                 </div>
-                {detailedCredit.status === 'overdue' &&
+                {detailedCredit.status === 'overdue' && (
                   <div className="flex items-center gap-2 px-4 py-2 bg-red-100 text-red-700 rounded-lg font-bold">
                     <AlertTriangle className="w-5 h-5" />
                     {getDaysOverdue(detailedCredit.endDate)} dias de atraso
                   </div>
-                }
-                {detailedCredit.status === 'paid' &&
+                )}
+                {detailedCredit.status === 'paid' && (
                   <div className="flex items-center gap-2 px-4 py-2 bg-green-100 text-green-700 rounded-lg font-bold">
                     <CheckCircle className="w-5 h-5" />
                     Crédito Quitado
                   </div>
-                }
+                )}
               </div>
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-              {/* Payment Timeline */}
               <div>
                 <h4 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
                   <TrendingUp className="w-5 h-5 text-gray-500" />
@@ -365,9 +339,8 @@ export function CreditsPage({ searchTerm = '' }: CreditsPageProps) {
                 </h4>
                 <div className="space-y-6 relative pl-2">
                   <div className="absolute left-[9px] top-2 bottom-2 w-0.5 bg-gray-100"></div>
-
-                  {detailedCredit.payments.length > 0 ?
-                    detailedCredit.payments.map((payment: any) =>
+                  {detailedCredit.payments.length > 0 ? (
+                    detailedCredit.payments.map((payment: any) => (
                       <div key={payment.id} className="relative pl-8">
                         <div className="absolute left-0 top-1.5 w-5 h-5 rounded-full bg-green-100 border-4 border-white ring-2 ring-green-500"></div>
                         <div className="flex justify-between items-start">
@@ -378,25 +351,24 @@ export function CreditsPage({ searchTerm = '' }: CreditsPageProps) {
                             <p className="text-xs text-gray-500">
                               {formatDate(payment.date)}
                             </p>
-                            {payment.description &&
+                            {payment.description && (
                               <p className="text-sm text-gray-600 mt-1 italic">
                                 "{payment.description}"
                               </p>
-                            }
+                            )}
                           </div>
                           <span className="px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded-md capitalize">
                             {payment.type === 'total' ? 'Quitação' : 'Parcial'}
                           </span>
                         </div>
                       </div>
-                    ) :
-
+                    ))
+                  ) : (
                     <div className="relative pl-8 text-gray-500 italic text-sm">
                       Nenhum pagamento registrado ainda.
                     </div>
-                  }
+                  )}
 
-                  {/* Start Node */}
                   <div className="relative pl-8">
                     <div className="absolute left-0 top-1.5 w-5 h-5 rounded-full bg-gray-200 border-4 border-white ring-2 ring-gray-400"></div>
                     <p className="font-medium text-gray-900">
@@ -409,7 +381,6 @@ export function CreditsPage({ searchTerm = '' }: CreditsPageProps) {
                 </div>
               </div>
 
-              {/* Installment Schedule */}
               <div>
                 <h4 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
                   <Calendar className="w-5 h-5 text-gray-500" />
@@ -419,15 +390,9 @@ export function CreditsPage({ searchTerm = '' }: CreditsPageProps) {
                   <table className="w-full text-sm text-left">
                     <thead className="bg-gray-50 border-b border-gray-100">
                       <tr>
-                        <th className="px-4 py-3 font-medium text-gray-600">
-                          #
-                        </th>
-                        <th className="px-4 py-3 font-medium text-gray-600">
-                          Vencimento
-                        </th>
-                        <th className="px-4 py-3 font-medium text-gray-600 text-right">
-                          Valor
-                        </th>
+                        <th className="px-4 py-3 font-medium text-gray-600">#</th>
+                        <th className="px-4 py-3 font-medium text-gray-600">Vencimento</th>
+                        <th className="px-4 py-3 font-medium text-gray-600 text-right">Valor</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-100">
@@ -436,7 +401,7 @@ export function CreditsPage({ searchTerm = '' }: CreditsPageProps) {
                         detailedCredit.numberOfInstallments ||
                         detailedCredit.termMonths,
                         detailedCredit.startDate
-                      ).map((inst: any) =>
+                      ).map((inst: any) => (
                         <tr key={inst.number} className="hover:bg-gray-50">
                           <td className="px-4 py-3 text-gray-500">
                             {inst.number}
@@ -448,37 +413,34 @@ export function CreditsPage({ searchTerm = '' }: CreditsPageProps) {
                             {formatMZN(inst.amount)}
                           </td>
                         </tr>
-                      )}
+                      ))}
                     </tbody>
                   </table>
                 </div>
               </div>
             </div>
 
-            {/* Actions */}
             <div className="flex justify-end gap-3 pt-6 border-t border-gray-100">
               <button
                 onClick={() => setIsDetailModalOpen(false)}
                 className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50">
-
                 Fechar
               </button>
-              {detailedCredit.status !== 'paid' &&
+              {detailedCredit.status !== 'paid' && (
                 <button
                   onClick={() => {
                     setIsDetailModalOpen(false);
                     openPaymentModal(detailedCredit);
                   }}
                   className="px-4 py-2 text-sm font-medium text-white bg-[#1B3A2D] rounded-lg hover:bg-[#2D6A4F] flex items-center gap-2">
-
                   <DollarSign className="w-4 h-4" />
                   Registrar Pagamento
                 </button>
-              }
+              )}
             </div>
           </div>
-        }
+        )}
       </Modal>
-    </div>);
-
+    </div>
+  );
 }

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import {
     Users,
     Building2,
@@ -36,6 +36,19 @@ export default function SuperAdminDashboard() {
     useEffect(() => {
         fetchData();
     }, [activeTab]);
+
+    const filteredUsers = useMemo(() => {
+        return allUsers.filter(u =>
+            u.full_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            u.email.toLowerCase().includes(searchTerm.toLowerCase())
+        );
+    }, [allUsers, searchTerm]);
+
+    const filteredCompanies = useMemo(() => {
+        return allCompanies.filter(c =>
+            c.name.toLowerCase().includes(searchTerm.toLowerCase())
+        );
+    }, [allCompanies, searchTerm]);
 
     const fetchData = async () => {
         setLoading(true);
@@ -114,6 +127,15 @@ export default function SuperAdminDashboard() {
                     </h1>
                     <p className="text-gray-500 mt-1">Gerencie empresas e aprovações do sistema Koda.</p>
                 </div>
+                <div className="flex items-center gap-4 bg-white p-2 border border-gray-200 rounded-xl shadow-sm">
+                    <input
+                        type="search"
+                        placeholder="Pesquisar..."
+                        className="px-4 py-2 text-sm outline-none w-64"
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                    />
+                </div>
             </header>
 
             <div className="flex border-b border-gray-200">
@@ -171,12 +193,12 @@ export default function SuperAdminDashboard() {
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-gray-200">
-                                    {allCompanies.length === 0 ? (
+                                    {filteredCompanies.length === 0 ? (
                                         <tr>
                                             <td colSpan={5} className="px-6 py-12 text-center text-gray-500 italic">Nenhuma empresa encontrada.</td>
                                         </tr>
                                     ) : (
-                                        allCompanies.map((company) => (
+                                        filteredCompanies.map((company) => (
                                             <tr key={company.id} className="hover:bg-gray-50 transition-colors">
                                                 <td className="px-6 py-4">
                                                     <div className="font-medium text-gray-900">{company.name}</div>
@@ -234,12 +256,12 @@ export default function SuperAdminDashboard() {
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-gray-200">
-                                    {allUsers.length === 0 ? (
+                                    {filteredUsers.length === 0 ? (
                                         <tr>
                                             <td colSpan={4} className="px-6 py-12 text-center text-gray-500 italic">Nenhum usuário encontrado.</td>
                                         </tr>
                                     ) : (
-                                        allUsers.map((userProfile) => (
+                                        filteredUsers.map((userProfile) => (
                                             <tr key={userProfile.id} className="hover:bg-gray-50 transition-colors">
                                                 <td className="px-6 py-4">
                                                     <div className="flex items-center gap-3">

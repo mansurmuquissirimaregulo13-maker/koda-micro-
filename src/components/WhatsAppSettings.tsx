@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from 'react';
 import { API_URL } from '../config';
 import { QRCodeSVG } from 'qrcode.react';
@@ -7,11 +6,9 @@ import { io } from 'socket.io-client';
 export function WhatsAppSettings() {
     const [qrCode, setQrCode] = useState<string | null>(null);
     const [status, setStatus] = useState<'disconnected' | 'connected' | 'ready'>('disconnected');
-    const [socket, setSocket] = useState<any>(null);
 
     useEffect(() => {
         const newSocket = io(API_URL);
-        setSocket(newSocket);
 
         newSocket.on('connect', () => {
             console.log('Connected to WhatsApp server');

@@ -1,13 +1,14 @@
-import React from 'react';
-import { TrendingUp, TrendingDown, BoxIcon } from 'lucide-react';
+import { TrendingUp, TrendingDown } from 'lucide-react';
+
 interface StatCardProps {
   title: string;
   value: string;
-  icon: BoxIcon;
+  icon: any;
   trend?: 'up' | 'down';
   trendValue?: string;
   color?: string;
 }
+
 export function StatCard({
   title,
   value,
@@ -22,18 +23,17 @@ export function StatCard({
         <div className={`p-3 rounded-lg ${color} bg-opacity-10`}>
           <Icon className={`w-6 h-6 ${color.replace('bg-', 'text-')}`} />
         </div>
-        {trend &&
-        <div
-          className={`flex items-center gap-1 text-xs font-medium px-2 py-1 rounded-full ${trend === 'up' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
-
-            {trend === 'up' ?
-          <TrendingUp className="w-3 h-3" /> :
-
-          <TrendingDown className="w-3 h-3" />
-          }
+        {trend && (
+          <div
+            className={`flex items-center gap-1 text-xs font-medium px-2 py-1 rounded-full ${trend === 'up' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+            {trend === 'up' ? (
+              <TrendingUp className="w-3 h-3" />
+            ) : (
+              <TrendingDown className="w-3 h-3" />
+            )}
             {trendValue}
           </div>
-        }
+        )}
       </div>
 
       <div>
@@ -42,6 +42,6 @@ export function StatCard({
           {value}
         </p>
       </div>
-    </div>);
-
+    </div>
+  );
 }

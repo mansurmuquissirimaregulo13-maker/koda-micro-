@@ -82,7 +82,7 @@ export async function approveUser(userId: string, adminId: string): Promise<void
     }
 }
 
-export async function rejectUser(userId: string) {
+export async function rejectUser(userId: string, _adminId?: string) {
     try {
         // 1. Get user details for email notification
         const { data: profile } = await supabase

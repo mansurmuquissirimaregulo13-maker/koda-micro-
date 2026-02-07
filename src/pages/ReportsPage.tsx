@@ -9,9 +9,8 @@ import {
   PieChart,
   Pie,
   Cell
-} from
-  'recharts';
-import { Download, Share2 } from 'lucide-react';
+} from 'recharts';
+import { Download } from 'lucide-react';
 import { useAppState } from '../hooks/useAppState';
 import { formatMZN } from '../utils/helpers';
 import jsPDF from 'jspdf';
@@ -24,34 +23,27 @@ export function ReportsPage() {
     const doc = new jsPDF();
     const today = new Date().toLocaleDateString('pt-BR');
 
-    // Header styling - Koda Brand Colors
-    // Dark Green Background for Header
     doc.setFillColor(27, 58, 45); // #1B3A2D
     doc.rect(0, 0, 210, 40, 'F');
 
-    // Title
     doc.setTextColor(255, 255, 255);
     doc.setFontSize(24);
     doc.setFont("helvetica", "bold");
     doc.text('Koda Finance', 20, 20);
 
-    // Subtitle & Date
     doc.setFontSize(12);
     doc.setFont("helvetica", "normal");
     doc.text('Relatório de Créditos e Performance', 20, 32);
     doc.text(`Gerado em: ${today}`, 150, 32);
 
-    // Summary Stats Section
     doc.setTextColor(50, 50, 50);
     doc.setFont("helvetica", "bold");
     doc.setFontSize(14);
     doc.text('Resumo Financeiro', 20, 55);
 
-    // Stats Grid
     doc.setFont("helvetica", "normal");
     doc.setFontSize(10);
 
-    // Box 1
     doc.setDrawColor(200, 200, 200);
     doc.setFillColor(250, 250, 250);
     doc.rect(20, 60, 50, 20, 'FD');
@@ -59,15 +51,13 @@ export function ReportsPage() {
     doc.setFont("helvetica", "bold");
     doc.text(formatMZN(stats.totalLent), 25, 75);
 
-    // Box 2
     doc.setFont("helvetica", "normal");
     doc.rect(80, 60, 50, 20, 'FD');
     doc.text('Total Recebido', 85, 68);
-    doc.setTextColor(27, 58, 45); // Green text for outcome
+    doc.setTextColor(27, 58, 45);
     doc.setFont("helvetica", "bold");
     doc.text(formatMZN(stats.totalCollected), 85, 75);
 
-    // Box 3
     doc.setTextColor(50, 50, 50);
     doc.setFont("helvetica", "normal");
     doc.rect(140, 60, 50, 20, 'FD');
@@ -75,8 +65,6 @@ export function ReportsPage() {
     doc.setFont("helvetica", "bold");
     doc.text(stats.activeCredits.toString(), 145, 75);
 
-    // Filter Active/Overdue Credits for Report
-    // Show all significant credits (active, overdue, paid recently)
     const significantCredits = credits.filter(c => c.status !== 'rejected');
 
     const tableData = significantCredits.map(credit => {
@@ -132,15 +120,14 @@ export function ReportsPage() {
         if (data.section === 'body' && data.column.index === 5) {
           const status = data.cell.raw as string;
           if (status === 'ATRASADO') {
-            data.cell.styles.textColor = [220, 38, 38]; // Red
+            data.cell.styles.textColor = [220, 38, 38];
           } else if (status === 'PAGO') {
-            data.cell.styles.textColor = [22, 163, 74]; // Green
+            data.cell.styles.textColor = [22, 163, 74];
           }
         }
       }
     });
 
-    // Footer
     const pageCount = doc.getNumberOfPages();
     for (let i = 1; i <= pageCount; i++) {
       doc.setPage(i);
@@ -153,7 +140,6 @@ export function ReportsPage() {
   };
 
   const handleExportExcel = () => {
-    // Simple CSV export for now
     const activeCredits = credits.filter(c => c.status === 'active' || c.status === 'overdue');
     let csvContent = "data:text/csv;charset=utf-8,";
     csvContent += "Cliente,Valor,Restante,Inicio,Fim,Status\n";
@@ -178,58 +164,25 @@ export function ReportsPage() {
     document.body.appendChild(link);
     link.click();
   };
-  // Mock data for charts
+
   const monthlyData = [
-    {
-      name: 'Jan',
-      emprestado: 40000,
-      recebido: 24000
-    },
-    {
-      name: 'Fev',
-      emprestado: 30000,
-      recebido: 13980
-    },
-    {
-      name: 'Mar',
-      emprestado: 20000,
-      recebido: 9800
-    },
-    {
-      name: 'Abr',
-      emprestado: 27800,
-      recebido: 39080
-    },
-    {
-      name: 'Mai',
-      emprestado: 18900,
-      recebido: 48000
-    },
-    {
-      name: 'Jun',
-      emprestado: 23900,
-      recebido: 38000
-    }];
+    { name: 'Jan', emprestado: 40000, recebido: 24000 },
+    { name: 'Fev', emprestado: 30000, recebido: 13980 },
+    { name: 'Mar', emprestado: 20000, recebido: 9800 },
+    { name: 'Abr', emprestado: 27800, recebido: 39080 },
+    { name: 'Mai', emprestado: 18900, recebido: 48000 },
+    { name: 'Jun', emprestado: 23900, recebido: 38000 }
+  ];
 
   const statusData = [
-    {
-      name: 'Ativos',
-      value: credits.filter((c) => c.status === 'active').length
-    },
-    {
-      name: 'Pagos',
-      value: credits.filter((c) => c.status === 'paid').length
-    },
-    {
-      name: 'Atrasados',
-      value: credits.filter((c) => c.status === 'overdue').length
-    },
-    {
-      name: 'Pendentes',
-      value: credits.filter((c) => c.status === 'pending').length
-    }];
+    { name: 'Ativos', value: credits.filter((c) => c.status === 'active').length },
+    { name: 'Pagos', value: credits.filter((c) => c.status === 'paid').length },
+    { name: 'Atrasados', value: credits.filter((c) => c.status === 'overdue').length },
+    { name: 'Pendentes', value: credits.filter((c) => c.status === 'pending').length }
+  ];
 
   const COLORS = ['#3B82F6', '#10B981', '#EF4444', '#F59E0B'];
+
   return (
     <div className="space-y-8 animate-in fade-in duration-500">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -257,7 +210,6 @@ export function ReportsPage() {
         </div>
       </div>
 
-      {/* Summary Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
           <h3 className="text-sm font-medium text-gray-500 mb-1">
@@ -288,7 +240,6 @@ export function ReportsPage() {
         </div>
       </div>
 
-      {/* Charts */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
           <h3 className="text-lg font-bold text-[#1B1B1B] mb-6">
@@ -301,45 +252,33 @@ export function ReportsPage() {
                   strokeDasharray="3 3"
                   vertical={false}
                   stroke="#E5E7EB" />
-
                 <XAxis
                   dataKey="name"
                   axisLine={false}
                   tickLine={false}
-                  tick={{
-                    fill: '#9CA3AF'
-                  }}
+                  tick={{ fill: '#9CA3AF' }}
                   dy={10} />
-
                 <YAxis
                   axisLine={false}
                   tickLine={false}
-                  tick={{
-                    fill: '#9CA3AF'
-                  }} />
-
+                  tick={{ fill: '#9CA3AF' }} />
                 <Tooltip
-                  cursor={{
-                    fill: '#F3F4F6'
-                  }}
+                  cursor={{ fill: '#F3F4F6' }}
                   contentStyle={{
                     borderRadius: '8px',
                     border: 'none',
                     boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)'
                   }} />
-
                 <Bar
                   dataKey="emprestado"
                   name="Emprestado"
                   fill="#1B3A2D"
                   radius={[4, 4, 0, 0]} />
-
                 <Bar
                   dataKey="recebido"
                   name="Recebido"
                   fill="#40916C"
                   radius={[4, 4, 0, 0]} />
-
               </BarChart>
             </ResponsiveContainer>
           </div>
@@ -360,35 +299,31 @@ export function ReportsPage() {
                   outerRadius={100}
                   paddingAngle={5}
                   dataKey="value">
-
-                  {statusData.map((entry, index) =>
+                  {statusData.map((_, index) => (
                     <Cell
                       key={`cell-${index}`}
                       fill={COLORS[index % COLORS.length]} />
-
-                  )}
+                  ))}
                 </Pie>
                 <Tooltip />
               </PieChart>
             </ResponsiveContainer>
             <div className="flex justify-center gap-4 mt-4 flex-wrap">
-              {statusData.map((entry, index) =>
+              {statusData.map((entry, index) => (
                 <div key={index} className="flex items-center gap-2">
                   <div
                     className="w-3 h-3 rounded-full"
-                    style={{
-                      backgroundColor: COLORS[index]
-                    }}>
+                    style={{ backgroundColor: COLORS[index] }}>
                   </div>
                   <span className="text-sm text-gray-600">
                     {entry.name} ({entry.value})
                   </span>
                 </div>
-              )}
+              ))}
             </div>
           </div>
         </div>
       </div>
-    </div>);
-
+    </div>
+  );
 }

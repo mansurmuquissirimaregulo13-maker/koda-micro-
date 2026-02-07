@@ -1,4 +1,3 @@
-import React from 'react';
 import { Link } from 'react-router-dom';
 import { Clock, Mail, ArrowLeft } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';

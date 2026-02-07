@@ -1,14 +1,16 @@
 import React, { useState } from 'react';
-import { Credit, Client, Payment } from '../utils/mockData';
+import { History } from 'lucide-react';
+import { Credit, Client, Payment } from '../types';
 import { formatMZN, formatDate } from '../utils/helpers';
 import { useAppState } from '../hooks/useAppState';
-import { History, CheckCircle, Circle } from 'lucide-react';
+
 interface PaymentFormProps {
   credit: Credit;
   client: Client;
   onSubmit: (data: Omit<Payment, 'id'>) => void;
   onCancel: () => void;
 }
+
 export function PaymentForm({
   credit,
   client,
@@ -20,7 +22,9 @@ export function PaymentForm({
   const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
   const [type, setType] = useState<'partial' | 'total'>('partial');
   const [description, setDescription] = useState('');
+
   const existingPayments = getCreditPayments(credit.id);
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     onSubmit({
@@ -31,16 +35,19 @@ export function PaymentForm({
       description
     });
   };
+
   const handleSetAmount = (val: number) => {
     setAmount(Math.min(val, credit.remainingAmount).toString());
-    if (val >= credit.remainingAmount) setType('total');else
-    setType('partial');
+    if (val >= credit.remainingAmount) setType('total');
+    else setType('partial');
   };
+
   const handleSetFullAmount = () => {
     setAmount(credit.remainingAmount.toString());
     setType('total');
     setDescription('Quitação total do crédito');
   };
+
   return (
     <div className="flex flex-col md:flex-row gap-6">
       {/* Left Side: Form */}
@@ -75,16 +82,16 @@ export function PaymentForm({
                 type="number"
                 min="1"
                 max={credit.remainingAmount}
-                className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#40916C] focus:border-transparent outline-none font-bold text-gray-900"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#40916C] focus:border-transparent outline-none font-bold text-gray-900"
                 value={amount}
                 onChange={(e) => setAmount(e.target.value)}
-                placeholder="0.00" />
-
+                placeholder="0.00"
+              />
               <button
                 type="button"
                 onClick={handleSetFullAmount}
-                className="px-3 py-2 text-xs font-medium text-[#1B3A2D] bg-[#D8F3DC] rounded-lg hover:bg-[#b7e4c0]">
-
+                className="whitespace-nowrap px-3 py-2 text-xs font-medium text-[#1B3A2D] bg-[#D8F3DC] rounded-lg hover:bg-[#b7e4c0]"
+              >
                 Pagar Total
               </button>
             </div>
@@ -92,16 +99,16 @@ export function PaymentForm({
             <div className="flex flex-wrap gap-2 mt-2">
               {[1000, 2000, 5000, 10000, 20000].map(
                 (val) =>
-                val <= credit.remainingAmount &&
-                <button
-                  key={val}
-                  type="button"
-                  onClick={() => handleSetAmount(val)}
-                  className="px-2 py-1 text-xs border border-gray-200 rounded-full hover:border-[#40916C] hover:text-[#40916C] transition-colors">
-
+                  val <= credit.remainingAmount && (
+                    <button
+                      key={val}
+                      type="button"
+                      onClick={() => handleSetAmount(val)}
+                      className="px-2 py-1 text-xs border border-gray-200 rounded-full hover:border-[#40916C] hover:text-[#40916C] transition-colors"
+                    >
                       {formatMZN(val)}
                     </button>
-
+                  )
               )}
             </div>
           </div>
@@ -115,8 +122,8 @@ export function PaymentForm({
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#40916C] focus:border-transparent outline-none"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              placeholder="Ex: Pagou via M-Pesa, Pagamento parcial..." />
-
+              placeholder="Ex: Pagou via M-Pesa, Pagamento parcial..."
+            />
           </div>
 
           <div className="space-y-2">
@@ -128,8 +135,8 @@ export function PaymentForm({
               type="date"
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#40916C] focus:border-transparent outline-none"
               value={date}
-              onChange={(e) => setDate(e.target.value)} />
-
+              onChange={(e) => setDate(e.target.value)}
+            />
           </div>
 
           <div className="space-y-2">
@@ -144,8 +151,8 @@ export function PaymentForm({
                   value="partial"
                   checked={type === 'partial'}
                   onChange={() => setType('partial')}
-                  className="text-[#1B3A2D] focus:ring-[#1B3A2D]" />
-
+                  className="text-[#1B3A2D] focus:ring-[#1B3A2D]"
+                />
                 <span className="text-sm text-gray-700">Parcial</span>
               </label>
               <label className="flex items-center gap-2 cursor-pointer">
@@ -155,8 +162,8 @@ export function PaymentForm({
                   value="total"
                   checked={type === 'total'}
                   onChange={() => setType('total')}
-                  className="text-[#1B3A2D] focus:ring-[#1B3A2D]" />
-
+                  className="text-[#1B3A2D] focus:ring-[#1B3A2D]"
+                />
                 <span className="text-sm text-gray-700">Total (Quitação)</span>
               </label>
             </div>
@@ -166,14 +173,14 @@ export function PaymentForm({
             <button
               type="button"
               onClick={onCancel}
-              className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50">
-
+              className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50"
+            >
               Cancelar
             </button>
             <button
               type="submit"
-              className="px-4 py-2 text-sm font-medium text-white bg-[#1B3A2D] rounded-lg hover:bg-[#2D6A4F]">
-
+              className="px-4 py-2 text-sm font-medium text-white bg-[#1B3A2D] rounded-lg hover:bg-[#2D6A4F]"
+            >
               Registrar Pagamento
             </button>
           </div>
@@ -191,9 +198,9 @@ export function PaymentForm({
           {/* Vertical Line */}
           <div className="absolute left-[5px] top-2 bottom-2 w-0.5 bg-gray-100"></div>
 
-          {existingPayments.length > 0 ?
-          existingPayments.map((payment, idx) =>
-          <div key={payment.id} className="relative pl-6">
+          {existingPayments.length > 0 ? (
+            existingPayments.map((payment) => (
+              <div key={payment.id} className="relative pl-6">
                 <div className="absolute left-0 top-1.5 w-3 h-3 rounded-full bg-green-100 border-2 border-green-500"></div>
                 <div className="text-xs text-gray-500 mb-0.5">
                   {formatDate(payment.date)}
@@ -201,18 +208,18 @@ export function PaymentForm({
                 <div className="font-bold text-gray-900 text-sm">
                   +{formatMZN(payment.amount)}
                 </div>
-                {payment.description &&
-            <div className="text-xs text-gray-600 mt-0.5 italic">
+                {payment.description && (
+                  <div className="text-xs text-gray-600 mt-0.5 italic">
                     {payment.description}
                   </div>
-            }
+                )}
               </div>
-          ) :
-
-          <div className="text-sm text-gray-500 italic pl-6">
+            ))
+          ) : (
+            <div className="text-sm text-gray-500 italic pl-6">
               Nenhum pagamento registrado ainda.
             </div>
-          }
+          )}
 
           {/* Start Point */}
           <div className="relative pl-6">
@@ -226,6 +233,6 @@ export function PaymentForm({
           </div>
         </div>
       </div>
-    </div>);
-
+    </div>
+  );
 }

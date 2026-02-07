@@ -1,16 +1,18 @@
-import React, { useEffect, useState } from 'react';
-import { Client, Credit } from '../utils/mockData';
+import { useEffect, useState } from 'react';
+import { Client, Credit } from '../types';
 import {
   calculateInterest,
   formatMZN,
-  calculateInstallmentValue } from
-'../utils/helpers';
+  calculateInstallmentValue
+} from '../utils/helpers';
 import { Calculator, Calendar, Percent, DollarSign } from 'lucide-react';
+
 interface CreditFormProps {
   clients: Client[];
   onSubmit: (data: Omit<Credit, 'id' | 'remainingAmount' | 'status'>) => void;
   onCancel: () => void;
 }
+
 export function CreditForm({ clients, onSubmit, onCancel }: CreditFormProps) {
   const [formData, setFormData] = useState({
     clientId: '',
@@ -21,26 +23,29 @@ export function CreditForm({ clients, onSubmit, onCancel }: CreditFormProps) {
     startDate: new Date().toISOString().split('T')[0],
     notes: ''
   });
+
   const [calculations, setCalculations] = useState({
     endDate: '',
     totalToPay: 0,
     interestAmount: 0,
     installmentValue: 0
   });
+
   useEffect(() => {
     const amount = parseFloat(formData.amount) || 0;
     const rate = parseFloat(formData.interestRate) || 0;
     const months = parseInt(formData.termMonths) || 1;
     const installments = parseInt(formData.numberOfInstallments) || 1;
     const start = new Date(formData.startDate);
-    // Calculate end date
+
     const end = new Date(start);
     end.setMonth(end.getMonth() + months);
     const endDateStr = end.toISOString().split('T')[0];
-    // Calculate totals
+
     const total = calculateInterest(amount, rate, months);
     const interestAmount = total - amount;
     const installmentValue = calculateInstallmentValue(total, installments);
+
     setCalculations({
       endDate: endDateStr,
       totalToPay: total,
@@ -48,25 +53,25 @@ export function CreditForm({ clients, onSubmit, onCancel }: CreditFormProps) {
       installmentValue
     });
   }, [
-  formData.amount,
-  formData.interestRate,
-  formData.termMonths,
-  formData.numberOfInstallments,
-  formData.startDate]
-  );
-  // Auto-update installments when term changes if they were same
+    formData.amount,
+    formData.interestRate,
+    formData.termMonths,
+    formData.numberOfInstallments,
+    formData.startDate
+  ]);
+
   const handleTermChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newTerm = e.target.value;
     setFormData((prev) => ({
       ...prev,
       termMonths: newTerm,
-      // If installments was same as term, update it too, otherwise keep custom
       numberOfInstallments:
-      prev.termMonths === prev.numberOfInstallments ?
-      newTerm :
-      prev.numberOfInstallments
+        prev.termMonths === prev.numberOfInstallments ?
+          newTerm :
+          prev.numberOfInstallments
     }));
   };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     onSubmit({
@@ -81,10 +86,12 @@ export function CreditForm({ clients, onSubmit, onCancel }: CreditFormProps) {
       notes: formData.notes
     });
   };
+
   const interestPercentage =
-  calculations.totalToPay > 0 ?
-  calculations.interestAmount / calculations.totalToPay * 100 :
-  0;
+    calculations.totalToPay > 0 ?
+      (calculations.interestAmount / calculations.totalToPay) * 100 :
+      0;
+
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -95,25 +102,23 @@ export function CreditForm({ clients, onSubmit, onCancel }: CreditFormProps) {
             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#40916C] focus:border-transparent outline-none bg-white"
             value={formData.clientId}
             onChange={(e) =>
-            setFormData({
-              ...formData,
-              clientId: e.target.value
-            })
+              setFormData({
+                ...formData,
+                clientId: e.target.value
+              })
             }>
-
             <option value="">Selecione um cliente...</option>
-            {clients.map((client) =>
-            <option key={client.id} value={client.id}>
+            {clients.map((client) => (
+              <option key={client.id} value={client.id}>
                 {client.name} - {client.bi}
               </option>
-            )}
+            ))}
           </select>
         </div>
 
         <div className="space-y-2">
           <label className="text-sm font-medium text-gray-700 flex items-center gap-2">
-            <DollarSign className="w-4 h-4 text-gray-400" /> Valor do Crédito
-            (MZN)
+            <DollarSign className="w-4 h-4 text-gray-400" /> Valor do Crédito (MZN)
           </label>
           <input
             required
@@ -122,13 +127,12 @@ export function CreditForm({ clients, onSubmit, onCancel }: CreditFormProps) {
             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#40916C] focus:border-transparent outline-none font-bold text-gray-900"
             value={formData.amount}
             onChange={(e) =>
-            setFormData({
-              ...formData,
-              amount: e.target.value
-            })
+              setFormData({
+                ...formData,
+                amount: e.target.value
+              })
             }
             placeholder="0.00" />
-
         </div>
 
         <div className="space-y-2">
@@ -143,12 +147,11 @@ export function CreditForm({ clients, onSubmit, onCancel }: CreditFormProps) {
             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#40916C] focus:border-transparent outline-none"
             value={formData.interestRate}
             onChange={(e) =>
-            setFormData({
-              ...formData,
-              interestRate: e.target.value
-            })
+              setFormData({
+                ...formData,
+                interestRate: e.target.value
+              })
             } />
-
         </div>
 
         <div className="space-y-2">
@@ -162,7 +165,6 @@ export function CreditForm({ clients, onSubmit, onCancel }: CreditFormProps) {
             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#40916C] focus:border-transparent outline-none"
             value={formData.termMonths}
             onChange={handleTermChange} />
-
         </div>
 
         <div className="space-y-2">
@@ -176,12 +178,11 @@ export function CreditForm({ clients, onSubmit, onCancel }: CreditFormProps) {
             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#40916C] focus:border-transparent outline-none"
             value={formData.numberOfInstallments}
             onChange={(e) =>
-            setFormData({
-              ...formData,
-              numberOfInstallments: e.target.value
-            })
+              setFormData({
+                ...formData,
+                numberOfInstallments: e.target.value
+              })
             } />
-
         </div>
 
         <div className="space-y-2">
@@ -194,12 +195,11 @@ export function CreditForm({ clients, onSubmit, onCancel }: CreditFormProps) {
             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#40916C] focus:border-transparent outline-none"
             value={formData.startDate}
             onChange={(e) =>
-            setFormData({
-              ...formData,
-              startDate: e.target.value
-            })
+              setFormData({
+                ...formData,
+                startDate: e.target.value
+              })
             } />
-
         </div>
 
         <div className="col-span-1 md:col-span-2 bg-gray-50 p-6 rounded-xl border border-gray-200 shadow-sm">
@@ -208,7 +208,6 @@ export function CreditForm({ clients, onSubmit, onCancel }: CreditFormProps) {
             Resumo da Simulação
           </h4>
 
-          {/* Visual Proportion Bar */}
           <div className="w-full h-4 bg-gray-200 rounded-full overflow-hidden mb-6 flex">
             <div
               className="h-full bg-[#40916C]"
@@ -278,13 +277,12 @@ export function CreditForm({ clients, onSubmit, onCancel }: CreditFormProps) {
             rows={2}
             value={formData.notes}
             onChange={(e) =>
-            setFormData({
-              ...formData,
-              notes: e.target.value
-            })
+              setFormData({
+                ...formData,
+                notes: e.target.value
+              })
             }
             placeholder="Detalhes adicionais..." />
-
         </div>
       </div>
 
@@ -293,16 +291,14 @@ export function CreditForm({ clients, onSubmit, onCancel }: CreditFormProps) {
           type="button"
           onClick={onCancel}
           className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50">
-
           Cancelar
         </button>
         <button
           type="submit"
           className="px-4 py-2 text-sm font-medium text-white bg-[#1B3A2D] rounded-lg hover:bg-[#2D6A4F]">
-
           Criar Crédito
         </button>
       </div>
-    </form>);
-
+    </form>
+  );
 }

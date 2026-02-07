@@ -1,0 +1,22 @@
+﻿src/components/AlertsPanel.tsx(2,25): error TS6133: 'ChevronRight' is declared but its value is never read.
+src/components/ClientForm.tsx(2,10): error TS2459: Module '"../utils/mockData"' declares 'Client' locally, but it is not exported.
+src/components/CreditForm.tsx(2,10): error TS2459: Module '"../utils/mockData"' declares 'Client' locally, but it is not exported.
+src/components/CreditForm.tsx(2,18): error TS2459: Module '"../utils/mockData"' declares 'Credit' locally, but it is not exported.
+src/components/CreditStatusBadge.tsx(1,1): error TS6133: 'React' is declared but its value is never read.
+src/components/CreditStatusBadge.tsx(2,10): error TS2459: Module '"../utils/helpers"' declares 'CreditStatus' locally, but it is not exported.
+src/components/StatCard.tsx(1,1): error TS6133: 'React' is declared but its value is never read.
+src/components/StatCard.tsx(2,36): error TS6133: 'BoxIcon' is declared but its value is never read.
+src/components/WhatsAppSettings.tsx(10,12): error TS6133: 'socket' is declared but its value is never read.
+src/index.tsx(3,1): error TS6133: 'React' is declared but its value is never read.
+src/pages/ClientsPage.tsx(1,8): error TS6133: 'React' is declared but its value is never read.
+src/pages/ClientsPage.tsx(10,3): error TS6133: 'CheckCircle' is declared but its value is never read.
+src/pages/ClientsPage.tsx(11,3): error TS6133: 'AlertCircle' is declared but its value is never read.
+src/pages/CreditsPage.tsx(1,8): error TS6133: 'React' is declared but its value is never read.
+src/pages/CreditsPage.tsx(11,3): error TS6133: 'Clock' is declared but its value is never read.
+src/pages/CreditsPage.tsx(27,18): error TS6133: 'Client' is declared but its value is never read.
+src/pages/DashboardPage.tsx(37,36): error TS6133: 'getOverdueCreditsWithDetails' is declared but its value is never read.
+src/pages/PendingApprovalPage.tsx(1,1): error TS6133: 'React' is declared but its value is never read.
+src/pages/ReportsPage.tsx(364,36): error TS6133: 'entry' is declared but its value is never read.
+src/pages/SettingsPage.tsx(1,29): error TS6133: 'Shield' is declared but its value is never read.
+src/pages/SuperAdminDashboard.tsx(34,12): error TS6133: 'searchTerm' is declared but its value is never read.
+src/pages/SuperAdminDashboard.tsx(34,24): error TS6133: 'setSearchTerm' is declared but its value is never read.

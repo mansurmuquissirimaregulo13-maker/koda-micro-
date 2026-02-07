@@ -27,7 +27,7 @@ export function LoginPage() {
         // Fetch profile to check role for redirection
         const { data: profile } = await supabase
           .from('user_profiles')
-          .select('role, status')
+          .select('email, role, status')
           .eq('id', user.id)
           .maybeSingle();
 
