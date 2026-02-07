@@ -132,6 +132,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     const signUp = async (email: string, password: string, fullName: string, companyName?: string) => {
         try {
+            console.log('Starting sign up process for:', email);
             const { data, error } = await supabase.auth.signUp({
                 email,
                 password,
@@ -142,12 +143,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                 }
             });
 
-            if (error) throw error;
+            if (error) {
+                console.error('Supabase Auth Error:', error);
+                throw error;
+            }
 
             if (data.user && companyName) {
+                console.log('User created, creating company:', companyName);
                 let companyId = null;
 
-                // 1. Criar a empresa (o perfil já foi criado pelo trigger no DB)
+                // 1. Criar a empresa
                 const { data: companyData, error: companyError } = await supabase
                     .from('companies')
                     .insert({
@@ -158,10 +163,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                     .select()
                     .maybeSingle();
 
-                if (companyError) throw companyError;
+                if (companyError) {
+                    console.error('Company Creation Error:', companyError);
+                    throw companyError;
+                }
                 companyId = companyData.id;
 
-                // 2. Atualizar o perfil com o ID da empresa criada
+                // 2. Atualizar o perfil
                 const { error: updateError } = await supabase
                     .from('user_profiles')
                     .update({
@@ -170,55 +178,57 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                     })
                     .eq('id', data.user.id);
 
-                if (updateError) throw updateError;
+                if (updateError) {
+                    console.error('Profile Update Error:', updateError);
+                    throw updateError;
+                }
 
-                // 3. Notificar o Admin (Mansur) sobre o novo cadastro
+                // 3. Notificar via Email (Fail-safe)
                 try {
-                    await fetch(`${API_URL}/api/send-email`, {
+                    const emailApiUrl = `${API_URL || ''}/api/send-email`;
+                    console.log('Sending emails via:', emailApiUrl);
+
+                    // Notificar Admin
+                    await fetch(emailApiUrl, {
                         method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                        },
+                        headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({
-                            email: 'mansurmuquissirimaregulo13@gmail.com', // Notify admin
+                            email: 'mansurmuquissirimaregulo13@gmail.com',
                             subject: 'Nova Empresa Registrada',
                             html: `
                                 <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
                                     <h1>Nova Empresa Registrada</h1>
                                     <p><strong>Nome da Empresa:</strong> ${companyName}</p>
                                     <p><strong>Usuário:</strong> ${fullName} (${email})</p>
-                                    <p>Verifique o painel administrativo para aprovar ou rejeitar.</p>
                                 </div>
                             `
                         })
-                    });
+                    }).catch(err => console.warn('Admin email failed silentely:', err));
 
-                    // 4. Notificar o Usuário sobre o status pendente
-                    await fetch(`${API_URL}/api/send-email`, {
+                    // Notificar Usuário
+                    await fetch(emailApiUrl, {
                         method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                        },
+                        headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({
-                            email: email, // Notify the new user
+                            email: email,
                             subject: 'Cadastro Realizado - Aguardando Aprovação',
                             html: `
                                 <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
                                     <h1 style="color: #ca8a04;">Aguardando Aprovação</h1>
                                     <p>Olá ${fullName},</p>
-                                    <p>Seu cadastro para a empresa <strong>${companyName}</strong> foi recebido com sucesso.</p>
-                                    <p>Sua conta está atualmente <strong>pendente de aprovação</strong> pelo administrador.</p>
-                                    <p>Você receberá um novo e-mail assim que sua conta for ativada.</p>
+                                    <p>Seu cadastro para a empresa <strong>${companyName}</strong> foi recebido.</p>
+                                    <p>Aguarde a ativação da sua conta.</p>
                                 </div>
                             `
                         })
-                    });
+                    }).catch(err => console.warn('User email failed silentely:', err));
+
                 } catch (notifyErr) {
-                    console.warn('Falha ao notificar admin, mas cadastro concluído:', notifyErr);
+                    console.warn('Email notification system error (non-blocking):', notifyErr);
                 }
             }
         } catch (error: any) {
-            console.error('SignUp Error:', error);
+            console.error('SignUp Critical Error:', error);
             throw error;
         }
     };
