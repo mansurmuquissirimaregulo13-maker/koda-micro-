@@ -81,28 +81,36 @@ export async function approveUser(userId: string, adminId: string): Promise<void
     }
 }
 
-export async function rejectUser(userId: string, adminId: string): Promise<void> {
-    // 1. Get user details for notification
-    const { data: userData } = await supabase
-        .from('user_profiles')
-        .select('email, full_name')
-        .eq('id', userId)
-        .maybeSingle();
+export async function rejectUser(userId: string) {
+    try {
+        // 1. Get user details for email notification
+        const { data: profile } = await supabase
+            .from('user_profiles')
+            .select('email, full_name')
+            .eq('id', userId)
+            .single();
 
-    const { error } = await supabase
-        .from('user_profiles')
-        .update({
-            status: 'rejected',
-            approved_at: new Date().toISOString(),
-            approved_by: adminId,
-        })
-        .eq('id', userId);
+        // 2. Update status to rejected
+        const { error } = await supabase
+            .from('user_profiles')
+            .update({
+                status: 'rejected',
+                approved_at: null,
+                approved_by: null
+            })
+            .eq('id', userId);
 
-    if (error) throw error;
+        if (error) throw error;
 
-    // 2. Notify by email
-    if (userData?.email) {
-        await notifyStatusChange(userData.email, userData.full_name || 'Usuário', 'rejected');
+        // 3. Notify user about rejection
+        if (profile?.email) {
+            await notifyStatusChange(profile.email, profile.full_name || 'Usuário', 'rejected');
+        }
+
+        return { error: null };
+    } catch (error) {
+        console.error('Error rejecting user:', error);
+        return { error };
     }
 }
 
@@ -229,26 +237,31 @@ async function notifyStatusChange(email: string, fullName: string, status: 'appr
             },
             body: JSON.stringify({
                 email,
-                subject: `Sua conta foi ${status === 'approved' ? 'aprovada' : 'rejeitada'}`,
-                html: `
-                    <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
-                        <h1 style="color: ${status === 'approved' ? '#16a34a' : '#dc2626'};">
-                            Conta ${status === 'approved' ? 'Aprovada' : 'Rejeitada'}
-                        </h1>
-                        <p>Olá ${fullName},</p>
-                        <p>
-                            ${status === 'approved'
-                        ? 'Sua conta foi aprovada com sucesso! Você já pode acessar o sistema.'
-                        : 'Infelizmente sua conta foi rejeitada. Entre em contato com o suporte para mais informações.'}
-                        </p>
-                        ${status === 'approved' ? '<a href="http://localhost:5173" style="display: inline-block; padding: 10px 20px; background-color: #16a34a; color: white; text-decoration: none; border-radius: 5px; margin-top: 20px;">Acessar Sistema</a>' : ''}
-                    </div>
-                `
+                subject: status === 'approved' ? 'Sua conta Koda foi Aprovada!' : 'Atualização sobre sua conta Koda',
+                html: status === 'approved' ? `
+                        <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
+                            <h1 style="color: #166534;">Conta Aprovada!</h1>
+                            <p>Olá ${fullName},</p>
+                            <p>Sua conta na Koda Microcrédito foi aprovada com sucesso.</p>
+                            <p>Você já pode acessar o sistema utilizando o botão abaixo:</p>
+                            <div style="text-align: center; margin: 30px 0;">
+                                <a href="http://localhost:5173/login" style="background-color: #166534; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold;">Acessar Sistema</a>
+                            </div>
+                            <p style="font-size: 12px; color: #666;">Se o botão não funcionar, copie e cole este link: http://localhost:5173/login</p>
+                        </div>
+                    ` : `
+                        <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
+                            <h1 style="color: #991b1b;">Conta Não Aprovada</h1>
+                            <p>Olá ${fullName},</p>
+                            <p>Informamos que seu cadastro na Koda Microcrédito não foi aprovado neste momento.</p>
+                            <p>Se você acredita que isso é um erro, entre em contato com o suporte.</p>
+                        </div>
+                    `
             })
         });
 
         if (!response.ok) {
-            const errorData = await response.json();
+            const errorData = await response.json().catch(() => ({}));
             console.warn('Failed to send email:', errorData);
             return;
         }

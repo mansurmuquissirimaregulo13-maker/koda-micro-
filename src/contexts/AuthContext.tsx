@@ -114,8 +114,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                     if (insertError) throw insertError;
                 }
             }
-        }
 
+            if (profileData) {
+                if (profileData.status === 'rejected') {
+                    await supabase.auth.signOut();
+                    throw new Error('Sua conta foi rejeitada ou desativada. Entre em contato com o suporte.');
+                }
+                if (profileData.status === 'pending') {
+                    // The UI will handle the redirect based on profile status
+                    return { user: data.user };
+                }
+            }
+        }
         return { user: data.user };
     };
 
@@ -177,6 +187,27 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                                     <p><strong>Nome da Empresa:</strong> ${companyName}</p>
                                     <p><strong>Usuário:</strong> ${fullName} (${email})</p>
                                     <p>Verifique o painel administrativo para aprovar ou rejeitar.</p>
+                                </div>
+                            `
+                        })
+                    });
+
+                    // 4. Notificar o Usuário sobre o status pendente
+                    await fetch('http://localhost:3001/api/send-email', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            email: email, // Notify the new user
+                            subject: 'Cadastro Realizado - Aguardando Aprovação',
+                            html: `
+                                <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
+                                    <h1 style="color: #ca8a04;">Aguardando Aprovação</h1>
+                                    <p>Olá ${fullName},</p>
+                                    <p>Seu cadastro para a empresa <strong>${companyName}</strong> foi recebido com sucesso.</p>
+                                    <p>Sua conta está atualmente <strong>pendente de aprovação</strong> pelo administrador.</p>
+                                    <p>Você receberá um novo e-mail assim que sua conta for ativada.</p>
                                 </div>
                             `
                         })
