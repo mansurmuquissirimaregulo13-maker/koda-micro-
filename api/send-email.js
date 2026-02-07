@@ -1,9 +1,7 @@
-import { Resend } from 'resend';
+import nodemailer from 'nodemailer';
 import dotenv from 'dotenv';
 
 dotenv.config();
-
-const resend = new Resend(process.env.RESEND_API_KEY);
 
 export default async function handler(req, res) {
     // CORS support
@@ -22,21 +20,26 @@ export default async function handler(req, res) {
     }
 
     try {
-        const { data, error } = await resend.emails.send({
-            from: 'Koda Admin <onboarding@resend.dev>',
-            to: [email],
+        const transporter = nodemailer.createTransport({
+            service: 'gmail',
+            auth: {
+                user: process.env.EMAIL_USER, // Your Gmail address
+                pass: process.env.EMAIL_PASS  // Your Gmail App Password
+            }
+        });
+
+        const info = await transporter.sendMail({
+            from: `"Koda Admin" <${process.env.EMAIL_USER}>`,
+            to: email,
             subject: subject,
             html: html,
         });
 
-        if (error) {
-            console.error('Error sending email:', error);
-            return res.status(400).json({ error });
-        }
+        console.log('Message sent: %s', info.messageId);
+        return res.status(200).json({ data: info });
 
-        return res.status(200).json({ data });
     } catch (error) {
         console.error('Server error sending email:', error);
-        return res.status(500).json({ error: 'Internal server error' });
+        return res.status(500).json({ error: error.message || 'Internal server error' });
     }
 }
