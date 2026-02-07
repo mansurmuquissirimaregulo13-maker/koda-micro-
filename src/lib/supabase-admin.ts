@@ -221,21 +221,39 @@ export async function deleteUser(userId: string): Promise<void> {
 // Helper to call notification Edge Function
 async function notifyStatusChange(email: string, fullName: string, status: 'approved' | 'rejected') {
     try {
-        const { data, error } = await supabase.functions.invoke('send-notification-email', {
-            body: {
-                type: 'status_update',
+        // Use local Express server instead of Supabase Edge Function
+        const response = await fetch('http://localhost:3001/api/send-email', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
                 email,
-                full_name: fullName,
-                status
-            }
+                subject: `Sua conta foi ${status === 'approved' ? 'aprovada' : 'rejeitada'}`,
+                html: `
+                    <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
+                        <h1 style="color: ${status === 'approved' ? '#16a34a' : '#dc2626'};">
+                            Conta ${status === 'approved' ? 'Aprovada' : 'Rejeitada'}
+                        </h1>
+                        <p>Olá ${fullName},</p>
+                        <p>
+                            ${status === 'approved'
+                        ? 'Sua conta foi aprovada com sucesso! Você já pode acessar o sistema.'
+                        : 'Infelizmente sua conta foi rejeitada. Entre em contato com o suporte para mais informações.'}
+                        </p>
+                        ${status === 'approved' ? '<a href="http://localhost:5173" style="display: inline-block; padding: 10px 20px; background-color: #16a34a; color: white; text-decoration: none; border-radius: 5px; margin-top: 20px;">Acessar Sistema</a>' : ''}
+                    </div>
+                `
+            })
         });
 
-        if (error) {
-            console.warn('Edge Function not deployed or error:', error);
-            // We don't throw here to avoid blocking the UI flow
+        if (!response.ok) {
+            const errorData = await response.json();
+            console.warn('Failed to send email:', errorData);
             return;
         }
 
+        const data = await response.json();
         console.log('Notification successful:', data);
     } catch (err) {
         console.warn('Failed to call notification service:', err);

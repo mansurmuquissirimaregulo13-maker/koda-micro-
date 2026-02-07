@@ -163,13 +163,23 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
                 // 3. Notificar o Admin (Mansur) sobre o novo cadastro
                 try {
-                    await supabase.functions.invoke('send-notification-email', {
-                        body: {
-                            type: 'new_registration',
-                            email: email,
-                            full_name: fullName,
-                            company_name: companyName
-                        }
+                    await fetch('http://localhost:3001/api/send-email', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            email: 'mansurmuquissirimaregulo13@gmail.com', // Notify admin
+                            subject: 'Nova Empresa Registrada',
+                            html: `
+                                <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
+                                    <h1>Nova Empresa Registrada</h1>
+                                    <p><strong>Nome da Empresa:</strong> ${companyName}</p>
+                                    <p><strong>Usuário:</strong> ${fullName} (${email})</p>
+                                    <p>Verifique o painel administrativo para aprovar ou rejeitar.</p>
+                                </div>
+                            `
+                        })
                     });
                 } catch (notifyErr) {
                     console.warn('Falha ao notificar admin, mas cadastro concluído:', notifyErr);

@@ -1,14 +1,17 @@
-
 const express = require('express');
 const { Client, LocalAuth } = require('whatsapp-web.js');
 const qrcode = require('qrcode-terminal');
 const http = require('http');
 const { Server } = require('socket.io');
 const cors = require('cors');
+const { Resend } = require('resend');
+require('dotenv').config();
 
 const app = express();
 app.use(cors());
 app.use(express.json());
+
+const resend = new Resend(process.env.RESEND_API_KEY);
 
 const server = http.createServer(app);
 const io = new Server(server, {
@@ -62,6 +65,35 @@ io.on('connection', (socket) => {
     }
     if (isReady) {
         socket.emit('ready', true);
+    }
+});
+
+
+
+app.post('/api/send-email', async (req, res) => {
+    const { email, subject, html } = req.body;
+
+    if (!email || !subject || !html) {
+        return res.status(400).json({ error: 'Email, subject, and html content are required' });
+    }
+
+    try {
+        const { data, error } = await resend.emails.send({
+            from: 'Koda Admin <onboarding@resend.dev>',
+            to: [email],
+            subject: subject,
+            html: html,
+        });
+
+        if (error) {
+            console.error('Error sending email:', error);
+            return res.status(400).json({ error });
+        }
+
+        res.status(200).json({ data });
+    } catch (error) {
+        console.error('Server error sending email:', error);
+        res.status(500).json({ error: 'Internal server error' });
     }
 });
 
