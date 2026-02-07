@@ -57,7 +57,7 @@ export function SignUpPage() {
                 toast.info('Aguardando aprovação do administrador.');
                 setTimeout(() => navigate('/pending-approval'), 3000);
             } else if (err.message.includes('User already registered') || err.message.includes('already registered')) {
-                setError('Este email já está cadastrado. Por favor, faça login.');
+                setError('Essa conta já está criada. Se for você, faça login.');
                 // Optional: Redirect to login after a delay or show a link
             } else {
                 setError(err.message || 'Erro ao criar conta. Tente novamente.');

@@ -1,4 +1,5 @@
 import { supabase } from './supabase';
+import { API_URL, APP_URL } from '../config';
 
 export interface UserProfile {
     id: string;
@@ -218,6 +219,19 @@ export async function rejectCompany(companyId: string): Promise<void> {
 }
 
 export async function deleteUser(userId: string): Promise<void> {
+    // 1. Get user details for notification before deleting
+    const { data: profile } = await supabase
+        .from('user_profiles')
+        .select('email, full_name')
+        .eq('id', userId)
+        .maybeSingle();
+
+    // 2. Notify user about removal
+    if (profile?.email) {
+        await notifyStatusChange(profile.email, profile.full_name || 'Usuário', 'removed');
+    }
+
+    // 3. Delete user
     const { error } = await supabase
         .from('user_profiles')
         .delete()
@@ -227,36 +241,57 @@ export async function deleteUser(userId: string): Promise<void> {
 }
 
 // Helper to call notification Edge Function
-async function notifyStatusChange(email: string, fullName: string, status: 'approved' | 'rejected') {
+async function notifyStatusChange(email: string, fullName: string, status: 'approved' | 'rejected' | 'removed') {
+    let subject = '';
+    let htmlContent = '';
+
+    if (status === 'approved') {
+        subject = 'Sua conta Koda foi Aprovada!';
+        htmlContent = `
+            <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
+                <h1 style="color: #166534;">Conta Aprovada!</h1>
+                <p>Olá ${fullName},</p>
+                <p>Sua conta na Koda Microcrédito foi aprovada com sucesso.</p>
+                <p>Você já pode acessar o sistema utilizando o botão abaixo:</p>
+                <div style="text-align: center; margin: 30px 0;">
+                    <a href="${APP_URL}/login" style="background-color: #166534; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold;">Acessar Sistema</a>
+                </div>
+                <p style="font-size: 12px; color: #666;">Se o botão não funcionar, copie e cole este link: ${APP_URL}/login</p>
+            </div>
+        `;
+    } else if (status === 'rejected') {
+        subject = 'Atualização sobre sua conta Koda';
+        htmlContent = `
+            <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
+                <h1 style="color: #991b1b;">Conta Não Aprovada</h1>
+                <p>Olá ${fullName},</p>
+                <p>Informamos que seu cadastro na Koda Microcrédito não foi aprovado neste momento.</p>
+                <p>Se você acredita que isso é um erro, entre em contato com o suporte.</p>
+            </div>
+        `;
+    } else if (status === 'removed') {
+        subject = 'Sua conta Koda foi removida';
+        htmlContent = `
+            <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
+                <h1 style="color: #991b1b;">Conta Removida</h1>
+                <p>Olá ${fullName},</p>
+                <p>Informamos que sua conta na Koda Microcrédito foi removida.</p>
+                <p>Se você acredita que isso é um erro, entre em contato com o suporte.</p>
+            </div>
+        `;
+    }
+
     try {
         // Use local Express server instead of Supabase Edge Function
-        const response = await fetch('http://localhost:3001/api/send-email', {
+        const response = await fetch(`${API_URL}/api/send-email`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify({
                 email,
-                subject: status === 'approved' ? 'Sua conta Koda foi Aprovada!' : 'Atualização sobre sua conta Koda',
-                html: status === 'approved' ? `
-                        <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
-                            <h1 style="color: #166534;">Conta Aprovada!</h1>
-                            <p>Olá ${fullName},</p>
-                            <p>Sua conta na Koda Microcrédito foi aprovada com sucesso.</p>
-                            <p>Você já pode acessar o sistema utilizando o botão abaixo:</p>
-                            <div style="text-align: center; margin: 30px 0;">
-                                <a href="http://localhost:5173/login" style="background-color: #166534; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold;">Acessar Sistema</a>
-                            </div>
-                            <p style="font-size: 12px; color: #666;">Se o botão não funcionar, copie e cole este link: http://localhost:5173/login</p>
-                        </div>
-                    ` : `
-                        <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
-                            <h1 style="color: #991b1b;">Conta Não Aprovada</h1>
-                            <p>Olá ${fullName},</p>
-                            <p>Informamos que seu cadastro na Koda Microcrédito não foi aprovado neste momento.</p>
-                            <p>Se você acredita que isso é um erro, entre em contato com o suporte.</p>
-                        </div>
-                    `
+                subject,
+                html: htmlContent
             })
         });
 

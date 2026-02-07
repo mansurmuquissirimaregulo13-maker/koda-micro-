@@ -16,12 +16,12 @@ export function TopBar({ onMenuClick, title = 'Dashboard', onSearch, onNotificat
           <Menu className="w-6 h-6" />
         </button>
 
-          <h1 className="text-xl font-bold text-[#1B1B1B] font-montserrat hidden sm:block">
-            Koda Microcrédito
-          </h1>
-          <p className="text-sm text-gray-500 hidden sm:block">{title}</p>
-        </div>
+        <h1 className="text-xl font-bold text-[#1B1B1B] font-montserrat hidden sm:block">
+          Koda Microcrédito
+        </h1>
+        <p className="text-sm text-gray-500 hidden sm:block">{title}</p>
       </div>
+
 
       <div className="flex items-center gap-4">
         <div className="relative">

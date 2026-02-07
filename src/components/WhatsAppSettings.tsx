@@ -1,5 +1,6 @@
 
 import { useEffect, useState } from 'react';
+import { API_URL } from '../config';
 import { QRCodeSVG } from 'qrcode.react';
 import { io } from 'socket.io-client';
 
@@ -9,7 +10,7 @@ export function WhatsAppSettings() {
     const [socket, setSocket] = useState<any>(null);
 
     useEffect(() => {
-        const newSocket = io('http://localhost:3001');
+        const newSocket = io(API_URL);
         setSocket(newSocket);
 
         newSocket.on('connect', () => {

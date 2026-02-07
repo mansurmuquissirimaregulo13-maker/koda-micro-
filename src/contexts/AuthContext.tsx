@@ -1,4 +1,5 @@
 import React, { createContext, useEffect, useState } from 'react';
+import { API_URL } from '../config';
 import { User } from '@supabase/supabase-js';
 import { supabase } from '../lib/supabase';
 
@@ -173,7 +174,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
                 // 3. Notificar o Admin (Mansur) sobre o novo cadastro
                 try {
-                    await fetch('http://localhost:3001/api/send-email', {
+                    await fetch(`${API_URL}/api/send-email`, {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
@@ -193,7 +194,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                     });
 
                     // 4. Notificar o Usuário sobre o status pendente
-                    await fetch('http://localhost:3001/api/send-email', {
+                    await fetch(`${API_URL}/api/send-email`, {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
