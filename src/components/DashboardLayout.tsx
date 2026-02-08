@@ -7,7 +7,7 @@ import { ClientsPage } from '../pages/ClientsPage';
 import { CreditsPage } from '../pages/CreditsPage';
 import { ReportsPage } from '../pages/ReportsPage';
 import { SettingsPage } from '../pages/SettingsPage';
-import { SupportPage } from '../pages/SupportPage';
+import { AdminUsersPage } from '../pages/AdminUsersPage';
 import SuperAdminDashboard from '../pages/SuperAdminDashboard';
 import { LoadingScreen } from './LoadingScreen';
 import { Modal } from './Modal';
@@ -28,8 +28,8 @@ export function DashboardLayout() {
         currentPath = 'dashboard';
     }
 
-    // Fallback para caminhos antigos
-    if (currentPath === 'admin/companies' || currentPath === 'admin/users') {
+    // Fallback para caminhos antigos ou tratamentos especiais
+    if (currentPath === 'admin/companies') {
         currentPath = 'admin/dashboard';
     }
 
@@ -77,6 +77,8 @@ export function DashboardLayout() {
                 return <SupportPage />;
             case 'admin/dashboard':
                 return <SuperAdminDashboard />;
+            case 'admin/users':
+                return <AdminUsersPage />;
             default:
                 return (
                     <DashboardPage
@@ -103,6 +105,8 @@ export function DashboardLayout() {
                 return 'Suporte';
             case 'admin/dashboard':
                 return 'Painel de Gestão Admin';
+            case 'admin/users':
+                return 'Gerenciar Usuários';
             default:
                 return 'Dashboard';
         }

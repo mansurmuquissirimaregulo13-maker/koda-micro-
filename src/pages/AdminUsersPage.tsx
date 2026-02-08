@@ -52,11 +52,11 @@ export function AdminUsersPage() {
         }
     };
 
-    const filteredUsers = users.filter((u) => {
+    const filteredUsers = (users || []).filter((u) => {
         const matchesFilter = filter === 'all' || u.status === filter;
         const matchesSearch =
-            u.full_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            u.email.toLowerCase().includes(searchTerm.toLowerCase());
+            (u.full_name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+            (u.email || '').toLowerCase().includes(searchTerm.toLowerCase());
         return matchesFilter && matchesSearch;
     });
 
@@ -74,8 +74,8 @@ export function AdminUsersPage() {
                     <Shield className="w-6 h-6 text-white" />
                 </div>
                 <div>
-                    <h1 className="text-2xl font-bold text-[#1B1B1B]">Gerenciar Usuários</h1>
-                    <p className="text-sm text-gray-500">Aprovar ou rejeitar solicitações de acesso</p>
+                    <h1 className="text-2xl font-bold text-[#1B1B1B]"><span>Gerenciar Usuários</span></h1>
+                    <p className="text-sm text-gray-500"><span>Aprovar ou rejeitar solicitações de acesso</span></p>
                 </div>
             </div>
 
@@ -194,20 +194,20 @@ export function AdminUsersPage() {
                                         <td className="px-6 py-4 whitespace-nowrap">
                                             <div className="flex items-center">
                                                 <div className="w-10 h-10 bg-gradient-to-br from-[#40916C] to-[#2D6A4F] rounded-full flex items-center justify-center text-white font-semibold">
-                                                    {user.full_name?.charAt(0).toUpperCase() || user.email.charAt(0).toUpperCase()}
+                                                    <span>{user.full_name?.charAt(0).toUpperCase() || user.email.charAt(0).toUpperCase()}</span>
                                                 </div>
                                                 <div className="ml-4">
                                                     <div className="text-sm font-medium text-gray-900">
-                                                        {user.full_name || 'Sem nome'}
+                                                        <span>{user.full_name || 'Sem nome'}</span>
                                                     </div>
                                                     <div className="text-xs text-gray-500">
-                                                        {user.role === 'admin' ? 'Administrador' : 'Usuário'}
+                                                        <span>{user.role === 'admin' ? 'Administrador' : 'Usuário'}</span>
                                                     </div>
                                                 </div>
                                             </div>
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap">
-                                            <div className="text-sm text-gray-900">{user.email}</div>
+                                            <div className="text-sm text-gray-900"><span>{user.email}</span></div>
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap">
                                             <span
@@ -218,9 +218,9 @@ export function AdminUsersPage() {
                                                         : 'bg-red-100 text-red-800'
                                                     }`}
                                             >
-                                                {user.status === 'approved' && 'Aprovado'}
-                                                {user.status === 'pending' && 'Pendente'}
-                                                {user.status === 'rejected' && 'Rejeitado'}
+                                                <span>{user.status === 'approved' && 'Aprovado'}</span>
+                                                <span>{user.status === 'pending' && 'Pendente'}</span>
+                                                <span>{user.status === 'rejected' && 'Rejeitado'}</span>
                                             </span>
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">

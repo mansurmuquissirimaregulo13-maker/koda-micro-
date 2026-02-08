@@ -43,15 +43,15 @@ export default function SuperAdminDashboard() {
     }, [activeTab]);
 
     const filteredUsers = useMemo(() => {
-        return allUsers.filter(u =>
-            u.full_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            u.email.toLowerCase().includes(searchTerm.toLowerCase())
+        return (allUsers || []).filter(u =>
+            (u?.full_name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+            (u?.email || '').toLowerCase().includes(searchTerm.toLowerCase())
         );
     }, [allUsers, searchTerm]);
 
     const filteredCompanies = useMemo(() => {
-        return allCompanies.filter(c =>
-            c.name.toLowerCase().includes(searchTerm.toLowerCase())
+        return (allCompanies || []).filter(c =>
+            (c?.name || '').toLowerCase().includes(searchTerm.toLowerCase())
         );
     }, [allCompanies, searchTerm]);
 
@@ -170,6 +170,7 @@ export default function SuperAdminDashboard() {
                         className="px-4 py-2 text-sm outline-none w-64"
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
+                        autoComplete="off"
                     />
                 </div>
             </header>
@@ -200,9 +201,9 @@ export default function SuperAdminDashboard() {
                 >
                     <div className="flex items-center gap-2">
                         <Users className="w-4 h-4" />
-                        Usuários {pendingUsers.length > 0 && (
+                        <span>Usuários</span> {(pendingUsers || []).length > 0 && (
                             <span className="bg-red-500 text-white text-[10px] px-1.5 py-0.5 rounded-full">
-                                {pendingUsers.length}
+                                {(pendingUsers || []).length}
                             </span>
                         )}
                     </div>
@@ -239,12 +240,12 @@ export default function SuperAdminDashboard() {
                                             filteredCompanies.map((company) => (
                                                 <tr key={company.id} className="hover:bg-gray-50 transition-colors">
                                                     <td className="px-6 py-4">
-                                                        <div className="font-medium text-gray-900">{company.name}</div>
-                                                        <div className="text-xs text-gray-400 font-mono">{company.id}</div>
+                                                        <div className="font-medium text-gray-900"><span>{company?.name || '---'}</span></div>
+                                                        <div className="text-xs text-gray-400 font-mono"><span>{company?.id}</span></div>
                                                     </td>
                                                     <td className="px-6 py-4">
-                                                        <div className="text-sm text-gray-900">{company.owner?.full_name || 'Desconhecido'}</div>
-                                                        <div className="text-sm text-gray-500">{company.owner?.email}</div>
+                                                        <div className="text-sm text-gray-900"><span>{company?.owner?.full_name || 'Desconhecido'}</span></div>
+                                                        <div className="text-sm text-gray-500"><span>{company?.owner?.email || '---'}</span></div>
                                                     </td>
                                                     <td className="px-6 py-4">
                                                         <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${company.status === 'approved' ? 'bg-green-100 text-green-800' :
@@ -352,16 +353,16 @@ export default function SuperAdminDashboard() {
                                                     <td className="px-6 py-4">
                                                         <div className="flex items-center gap-3">
                                                             <div className="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center text-gray-500 font-bold">
-                                                                {userProfile.full_name?.charAt(0) || userProfile.email.charAt(0).toUpperCase()}
+                                                                <span>{userProfile?.full_name?.charAt(0) || userProfile?.email?.charAt(0)?.toUpperCase()}</span>
                                                             </div>
                                                             <div>
-                                                                <div className="font-medium text-gray-900">{userProfile.full_name || 'Usuário'}</div>
-                                                                <div className="text-sm text-gray-500">{userProfile.email}</div>
+                                                                <div className="font-medium text-gray-900"><span>{userProfile?.full_name || 'Usuário'}</span></div>
+                                                                <div className="text-sm text-gray-500"><span>{userProfile?.email || '---'}</span></div>
                                                             </div>
                                                         </div>
                                                     </td>
                                                     <td className="px-6 py-4">
-                                                        <div className="text-sm text-gray-900">{userProfile.company?.name || 'Sem Empresa'}</div>
+                                                        <div className="text-sm text-gray-900"><span>{userProfile?.company?.name || 'Sem Empresa'}</span></div>
                                                         <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium mt-1 ${userProfile.status === 'approved' ? 'bg-green-100 text-green-800' :
                                                             userProfile.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
                                                                 'bg-red-100 text-red-800'
@@ -433,10 +434,10 @@ export default function SuperAdminDashboard() {
                                                 </div>
                                                 <div className="flex items-center justify-between py-2 border-y border-gray-50">
                                                     <div className="text-xs text-gray-500">
-                                                        Empresa: <span className="text-gray-900 font-medium">{userProfile.company?.name || 'Sem Empresa'}</span>
+                                                        Empresa: <span className="text-gray-900 font-medium"><span>{userProfile?.company?.name || 'Sem Empresa'}</span></span>
                                                     </div>
                                                     <div className="flex items-center gap-1 text-[10px] text-gray-400 uppercase font-bold tracking-tight">
-                                                        <Shield className="w-3 h-3" /> {userProfile.role}
+                                                        <Shield className="w-3 h-3" /> <span>{userProfile?.role}</span>
                                                     </div>
                                                 </div>
                                                 {userProfile.status === 'pending' && userProfile.role !== 'super_admin' && (
@@ -480,7 +481,7 @@ export default function SuperAdminDashboard() {
                     <div>
                         <p className="text-gray-500 text-xs font-bold uppercase tracking-wider">Usuários Aprovados</p>
                         <h3 className="text-3xl font-bold mt-1 text-green-600">
-                            {allUsers.filter(u => u.status === 'approved').length}
+                            {(allUsers || []).filter(u => u?.status === 'approved').length}
                         </h3>
                     </div>
                     <div className="w-12 h-12 bg-green-50 rounded-xl flex items-center justify-center">
@@ -507,7 +508,7 @@ export default function SuperAdminDashboard() {
                     <div>
                         <p className="text-gray-500 text-xs font-bold uppercase tracking-wider">Empresas Ativas</p>
                         <h3 className="text-3xl font-bold mt-1">
-                            {allCompanies.filter(c => c.status === 'approved').length}
+                            {(allCompanies || []).filter(c => c?.status === 'approved').length}
                         </h3>
                     </div>
                     <div className="w-12 h-12 bg-gray-50 rounded-xl flex items-center justify-center">
