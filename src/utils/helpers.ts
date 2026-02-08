@@ -17,12 +17,8 @@ export const formatDate = (dateString: string): string => {
 
 export const calculateInterest = (
   principal: number,
-  rate: number,
-  _months: number)
+  rate: number)
   : number => {
-  // Simple interest calculation: Principal * Rate * Time
-  // Or flat rate on principal as requested: Principal + (Principal * Rate/100)
-  // Let's stick to the flat rate model often used in microcredit
   const interestAmount = principal * (rate / 100);
   return principal + interestAmount;
 };

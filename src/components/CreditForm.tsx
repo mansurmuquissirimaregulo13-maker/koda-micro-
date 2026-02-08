@@ -42,7 +42,7 @@ export function CreditForm({ clients, onSubmit, onCancel }: CreditFormProps) {
     end.setMonth(end.getMonth() + months);
     const endDateStr = end.toISOString().split('T')[0];
 
-    const total = calculateInterest(amount, rate, months);
+    const total = calculateInterest(amount, rate);
     const interestAmount = total - amount;
     const installmentValue = calculateInstallmentValue(total, installments);
 
