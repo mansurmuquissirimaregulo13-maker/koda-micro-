@@ -207,7 +207,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                             email: 'mansurmuquissirimaregulo13@gmail.com',
                             subject: '🚨 Novo Cadastro no Koda Admin',
                             html: `
-    < div style = "font-family: sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #eee; padding: 20px; border-radius: 10px;" >
+                                    <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #eee; padding: 20px; border-radius: 10px;">
                                     <h1 style="color: #1B3A2D;">Novo Cadastro de Empresa</h1>
                                     <p>Um novo usuário se registrou e está aguardando sua aprovação.</p>
                                     <hr style="border: 0; border-top: 1px solid #eee;">
@@ -230,7 +230,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                             email: email,
                             subject: 'Bem-vindo ao Koda - Aguardando Aprovação',
                             html: `
-    < div style = "font-family: sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #eee; padding: 20px; border-radius: 10px;" >
+                                    <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #eee; padding: 20px; border-radius: 10px;">
                                     <h1 style="color: #1B3A2D;">Olá ${fullName}!</h1>
                                     <p>Obrigado por se cadastrar na <strong>Koda Microcrédito</strong>.</p>
                                     <p>Seu perfil foi criado com sucesso para a empresa <strong>${companyName}</strong>.</p>

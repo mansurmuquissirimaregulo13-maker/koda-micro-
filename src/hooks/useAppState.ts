@@ -122,11 +122,13 @@ export function useAppState() {
       if (error) throw error;
 
       // Replace temp ID with real ID
-      setClients(prev => prev.map(c => c.id === tempId ? {
-        ...newClient,
-        id: data.id,
-        registeredAt: data.created_at
-      } : c));
+      if (data) {
+        setClients(prev => prev.map(c => c.id === tempId ? {
+          ...newClient,
+          id: data.id,
+          registeredAt: data.created_at
+        } : c));
+      }
 
       return data;
     } catch (error) {
@@ -194,7 +196,9 @@ export function useAppState() {
       if (error) throw error;
 
       // Replace temp ID
-      setCredits(prev => prev.map(c => c.id === tempId ? { ...newCredit, id: data.id } : c));
+      if (data) {
+        setCredits(prev => prev.map(c => c.id === tempId ? { ...newCredit, id: data.id } : c));
+      }
       return data;
     } catch (error) {
       console.error("Error creating credit", error);
@@ -259,7 +263,9 @@ export function useAppState() {
       if (creditError) throw creditError;
 
       // Update ID
-      setPayments(prev => prev.map(p => p.id === tempId ? { ...newPayment, id: paymentRes.id } : p));
+      if (paymentRes) {
+        setPayments(prev => prev.map(p => p.id === tempId ? { ...newPayment, id: paymentRes.id } : p));
+      }
       return paymentRes;
 
     } catch (error) {

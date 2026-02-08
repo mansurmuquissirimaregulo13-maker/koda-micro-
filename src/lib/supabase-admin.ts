@@ -82,36 +82,31 @@ export async function approveUser(userId: string, adminId: string): Promise<void
     }
 }
 
-export async function rejectUser(userId: string, _adminId?: string) {
-    try {
-        // 1. Get user details for email notification
-        const { data: profile } = await supabase
-            .from('user_profiles')
-            .select('email, full_name')
-            .eq('id', userId)
-            .single();
+export async function rejectUser(userId: string, _adminId?: string): Promise<void> {
+    // 1. Get user details for email notification
+    const { data: profile, error: fetchError } = await supabase
+        .from('user_profiles')
+        .select('email, full_name')
+        .eq('id', userId)
+        .maybeSingle();
 
-        // 2. Update status to rejected
-        const { error } = await supabase
-            .from('user_profiles')
-            .update({
-                status: 'rejected',
-                approved_at: null,
-                approved_by: null
-            })
-            .eq('id', userId);
+    if (fetchError) throw fetchError;
 
-        if (error) throw error;
+    // 2. Update status to rejected
+    const { error } = await supabase
+        .from('user_profiles')
+        .update({
+            status: 'rejected',
+            approved_at: null,
+            approved_by: null
+        })
+        .eq('id', userId);
 
-        // 3. Notify user about rejection
-        if (profile?.email) {
-            await notifyStatusChange(profile.email, profile.full_name || 'Usuário', 'rejected');
-        }
+    if (error) throw error;
 
-        return { error: null };
-    } catch (error) {
-        console.error('Error rejecting user:', error);
-        return { error };
+    // 3. Notify user about rejection
+    if (profile?.email) {
+        await notifyStatusChange(profile.email, profile.full_name || 'Usuário', 'rejected');
     }
 }
 

@@ -7,6 +7,8 @@ import {
     Shield,
     Check,
     X,
+    TrendingUp,
+    DollarSign,
 } from 'lucide-react';
 import {
     getPendingUsers,
@@ -22,6 +24,8 @@ import {
 } from '../lib/supabase-admin';
 import { useAuth } from '../hooks/useAuth';
 import { toast } from 'sonner';
+import { useAppState } from '../hooks/useAppState';
+import { formatMZN } from '../utils/helpers';
 
 export default function SuperAdminDashboard() {
     const { user } = useAuth();
@@ -32,6 +36,7 @@ export default function SuperAdminDashboard() {
     const [allCompanies, setAllCompanies] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
+    const { stats: globalStats } = useAppState();
 
     useEffect(() => {
         fetchData();
@@ -50,7 +55,14 @@ export default function SuperAdminDashboard() {
         );
     }, [allCompanies, searchTerm]);
 
-    const fetchData = async () => {
+    const fetchData = async (forceSearch = false) => {
+        // Prevent loading show if we already have data (simple cache)
+        if (!forceSearch && ((activeTab === 'companies' && allCompanies.length > 0) || (activeTab === 'users' && allUsers.length > 0))) {
+            // Optional: Fetch in background without setting loading=true
+            refreshDataInBackground();
+            return;
+        }
+
         setLoading(true);
         try {
             if (activeTab === 'companies') {
@@ -72,6 +84,28 @@ export default function SuperAdminDashboard() {
             toast.error('Erro ao buscar dados: ' + error.message);
         } finally {
             setLoading(false);
+        }
+    };
+
+    const refreshDataInBackground = async () => {
+        try {
+            if (activeTab === 'companies') {
+                const [pending, all] = await Promise.all([
+                    getPendingCompanies(),
+                    getAllCompanies()
+                ]);
+                setPendingCompanies(pending);
+                setAllCompanies(all);
+            } else {
+                const [pending, all] = await Promise.all([
+                    getPendingUsers(),
+                    getAllUsers()
+                ]);
+                setPendingUsers(pending);
+                setAllUsers(all);
+            }
+        } catch (e) {
+            console.error('Background refresh failed', e);
         }
     };
 
@@ -98,7 +132,8 @@ export default function SuperAdminDashboard() {
 
     const handleApproveUser = async (id: string) => {
         try {
-            await approveUser(id, user!.id);
+            if (!user?.id) throw new Error('Administrador não autenticado.');
+            await approveUser(id, user.id);
             toast.success('Usuário aprovado com sucesso!');
             fetchData();
         } catch (error: any) {
@@ -109,7 +144,8 @@ export default function SuperAdminDashboard() {
     const handleRejectUser = async (id: string) => {
         if (!confirm('Tem certeza que deseja rejeitar este usuário?')) return;
         try {
-            await rejectUser(id, user!.id);
+            if (!user?.id) throw new Error('Administrador não autenticado.');
+            await rejectUser(id, user.id);
             toast.success('Usuário rejeitado.');
             fetchData();
         } catch (error: any) {
@@ -182,33 +218,84 @@ export default function SuperAdminDashboard() {
                 ) : (
                     <div className="overflow-x-auto">
                         {activeTab === 'companies' ? (
-                            <table className="w-full text-left">
-                                <thead className="bg-gray-50 border-b border-gray-200">
-                                    <tr>
-                                        <th className="px-6 py-4 text-sm font-semibold text-gray-900 uppercase tracking-wider">Empresa</th>
-                                        <th className="px-6 py-4 text-sm font-semibold text-gray-900 uppercase tracking-wider">Dono</th>
-                                        <th className="px-6 py-4 text-sm font-semibold text-gray-900 uppercase tracking-wider">Status</th>
-                                        <th className="px-6 py-4 text-sm font-semibold text-gray-900 uppercase tracking-wider">Data</th>
-                                        <th className="px-6 py-4 text-sm font-semibold text-gray-900 uppercase tracking-wider text-right">Ações</th>
-                                    </tr>
-                                </thead>
-                                <tbody className="divide-y divide-gray-200">
-                                    {filteredCompanies.length === 0 ? (
+                            <>
+                                {/* Desktop Table View */}
+                                <table className="w-full text-left hidden md:table">
+                                    <thead className="bg-gray-50 border-b border-gray-200">
                                         <tr>
-                                            <td colSpan={5} className="px-6 py-12 text-center text-gray-500 italic">Nenhuma empresa encontrada.</td>
+                                            <th className="px-6 py-4 text-sm font-semibold text-gray-900 uppercase tracking-wider">Empresa</th>
+                                            <th className="px-6 py-4 text-sm font-semibold text-gray-900 uppercase tracking-wider">Dono</th>
+                                            <th className="px-6 py-4 text-sm font-semibold text-gray-900 uppercase tracking-wider">Status</th>
+                                            <th className="px-6 py-4 text-sm font-semibold text-gray-900 uppercase tracking-wider">Data</th>
+                                            <th className="px-6 py-4 text-sm font-semibold text-gray-900 uppercase tracking-wider text-right">Ações</th>
                                         </tr>
+                                    </thead>
+                                    <tbody className="divide-y divide-gray-200">
+                                        {filteredCompanies.length === 0 ? (
+                                            <tr>
+                                                <td colSpan={5} className="px-6 py-12 text-center text-gray-500 italic">Nenhuma empresa encontrada.</td>
+                                            </tr>
+                                        ) : (
+                                            filteredCompanies.map((company) => (
+                                                <tr key={company.id} className="hover:bg-gray-50 transition-colors">
+                                                    <td className="px-6 py-4">
+                                                        <div className="font-medium text-gray-900">{company.name}</div>
+                                                        <div className="text-xs text-gray-400 font-mono">{company.id}</div>
+                                                    </td>
+                                                    <td className="px-6 py-4">
+                                                        <div className="text-sm text-gray-900">{company.owner?.full_name || 'Desconhecido'}</div>
+                                                        <div className="text-sm text-gray-500">{company.owner?.email}</div>
+                                                    </td>
+                                                    <td className="px-6 py-4">
+                                                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${company.status === 'approved' ? 'bg-green-100 text-green-800' :
+                                                            company.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
+                                                                'bg-red-100 text-red-800'
+                                                            }`}>
+                                                            {company.status === 'approved' ? 'Aprovada' :
+                                                                company.status === 'pending' ? 'Pendente' : 'Rejeitada'}
+                                                        </span>
+                                                    </td>
+                                                    <td className="px-6 py-4 text-sm text-gray-500">
+                                                        {company.created_at ? new Date(company.created_at).toLocaleDateString('pt-BR') : '---'}
+                                                    </td>
+                                                    <td className="px-6 py-4 text-right">
+                                                        {company.status === 'pending' && (
+                                                            <div className="flex justify-end gap-2">
+                                                                <button
+                                                                    onClick={() => handleApproveCompany(company.id)}
+                                                                    className="p-2 text-green-600 hover:bg-green-50 rounded-lg transition-colors"
+                                                                    title="Aprovar"
+                                                                >
+                                                                    <CheckCircle2 className="w-5 h-5" />
+                                                                </button>
+                                                                <button
+                                                                    onClick={() => handleRejectCompany(company.id)}
+                                                                    className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                                                                    title="Rejeitar"
+                                                                >
+                                                                    <XCircle className="w-5 h-5" />
+                                                                </button>
+                                                            </div>
+                                                        )}
+                                                    </td>
+                                                </tr>
+                                            ))
+                                        )}
+                                    </tbody>
+                                </table>
+
+                                {/* Mobile Card View */}
+                                <div className="grid grid-cols-1 divide-y divide-gray-100 md:hidden">
+                                    {filteredCompanies.length === 0 ? (
+                                        <div className="p-12 text-center text-gray-500 italic">Nenhuma empresa encontrada.</div>
                                     ) : (
                                         filteredCompanies.map((company) => (
-                                            <tr key={company.id} className="hover:bg-gray-50 transition-colors">
-                                                <td className="px-6 py-4">
-                                                    <div className="font-medium text-gray-900">{company.name}</div>
-                                                    <div className="text-xs text-gray-400 font-mono">{company.id}</div>
-                                                </td>
-                                                <td className="px-6 py-4">
-                                                    <div className="text-sm text-gray-900">{company.owner?.full_name || 'Desconhecido'}</div>
-                                                    <div className="text-sm text-gray-500">{company.owner?.email}</div>
-                                                </td>
-                                                <td className="px-6 py-4">
+                                            <div key={company.id} className="p-4 space-y-4">
+                                                <div className="flex justify-between items-start">
+                                                    <div>
+                                                        <div className="font-bold text-gray-900">{company.name}</div>
+                                                        <div className="text-xs text-gray-500">{company.created_at ? new Date(company.created_at).toLocaleDateString('pt-BR') : '---'}</div>
+                                                    </div>
                                                     <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${company.status === 'approved' ? 'bg-green-100 text-green-800' :
                                                         company.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
                                                             'bg-red-100 text-red-800'
@@ -216,137 +303,216 @@ export default function SuperAdminDashboard() {
                                                         {company.status === 'approved' ? 'Aprovada' :
                                                             company.status === 'pending' ? 'Pendente' : 'Rejeitada'}
                                                     </span>
-                                                </td>
-                                                <td className="px-6 py-4 text-sm text-gray-500">
-                                                    {new Date(company.created_at).toLocaleDateString('pt-BR')}
-                                                </td>
-                                                <td className="px-6 py-4 text-right">
-                                                    {company.status === 'pending' && (
-                                                        <div className="flex justify-end gap-2">
-                                                            <button
-                                                                onClick={() => handleApproveCompany(company.id)}
-                                                                className="p-2 text-green-600 hover:bg-green-50 rounded-lg transition-colors"
-                                                                title="Aprovar"
-                                                            >
-                                                                <CheckCircle2 className="w-5 h-5" />
-                                                            </button>
-                                                            <button
-                                                                onClick={() => handleRejectCompany(company.id)}
-                                                                className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                                                                title="Rejeitar"
-                                                            >
-                                                                <XCircle className="w-5 h-5" />
-                                                            </button>
-                                                        </div>
-                                                    )}
-                                                </td>
-                                            </tr>
+                                                </div>
+                                                <div className="text-sm">
+                                                    <div className="text-gray-600 font-medium">Dono: {company.owner?.full_name || 'Desconhecido'}</div>
+                                                    <div className="text-gray-400">{company.owner?.email}</div>
+                                                </div>
+                                                {company.status === 'pending' && (
+                                                    <div className="flex gap-2 pt-2">
+                                                        <button
+                                                            onClick={() => handleApproveCompany(company.id)}
+                                                            className="flex-1 bg-green-600 text-white py-2 rounded-lg font-medium flex items-center justify-center gap-2"
+                                                        >
+                                                            <Check className="w-4 h-4" /> Aprovar
+                                                        </button>
+                                                        <button
+                                                            onClick={() => handleRejectCompany(company.id)}
+                                                            className="flex-1 bg-red-50 text-red-600 py-2 rounded-lg font-medium flex items-center justify-center gap-2 border border-red-100"
+                                                        >
+                                                            <X className="w-4 h-4" /> Rejeitar
+                                                        </button>
+                                                    </div>
+                                                )}
+                                            </div>
                                         ))
                                     )}
-                                </tbody>
-                            </table>
+                                </div>
+                            </>
                         ) : (
-                            <table className="w-full text-left">
-                                <thead className="bg-gray-50 border-b border-gray-200">
-                                    <tr>
-                                        <th className="px-6 py-4 text-sm font-semibold text-gray-900 uppercase tracking-wider">Usuário</th>
-                                        <th className="px-6 py-4 text-sm font-semibold text-gray-900 uppercase tracking-wider">Empresa</th>
-                                        <th className="px-6 py-4 text-sm font-semibold text-gray-900 uppercase tracking-wider">Role</th>
-                                        <th className="px-6 py-4 text-sm font-semibold text-gray-900 uppercase tracking-wider text-right">Ações</th>
-                                    </tr>
-                                </thead>
-                                <tbody className="divide-y divide-gray-200">
-                                    {filteredUsers.length === 0 ? (
+                            <>
+                                {/* Desktop Table View */}
+                                <table className="w-full text-left hidden md:table">
+                                    <thead className="bg-gray-50 border-b border-gray-200">
                                         <tr>
-                                            <td colSpan={4} className="px-6 py-12 text-center text-gray-500 italic">Nenhum usuário encontrado.</td>
+                                            <th className="px-6 py-4 text-sm font-semibold text-gray-900 uppercase tracking-wider">Usuário</th>
+                                            <th className="px-6 py-4 text-sm font-semibold text-gray-900 uppercase tracking-wider">Empresa</th>
+                                            <th className="px-6 py-4 text-sm font-semibold text-gray-900 uppercase tracking-wider">Role</th>
+                                            <th className="px-6 py-4 text-sm font-semibold text-gray-900 uppercase tracking-wider text-right">Ações</th>
                                         </tr>
+                                    </thead>
+                                    <tbody className="divide-y divide-gray-200">
+                                        {filteredUsers.length === 0 ? (
+                                            <tr>
+                                                <td colSpan={4} className="px-6 py-12 text-center text-gray-500 italic">Nenhum usuário encontrado.</td>
+                                            </tr>
+                                        ) : (
+                                            filteredUsers.map((userProfile) => (
+                                                <tr key={userProfile.id} className="hover:bg-gray-50 transition-colors">
+                                                    <td className="px-6 py-4">
+                                                        <div className="flex items-center gap-3">
+                                                            <div className="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center text-gray-500 font-bold">
+                                                                {userProfile.full_name?.charAt(0) || userProfile.email.charAt(0).toUpperCase()}
+                                                            </div>
+                                                            <div>
+                                                                <div className="font-medium text-gray-900">{userProfile.full_name || 'Usuário'}</div>
+                                                                <div className="text-sm text-gray-500">{userProfile.email}</div>
+                                                            </div>
+                                                        </div>
+                                                    </td>
+                                                    <td className="px-6 py-4">
+                                                        <div className="text-sm text-gray-900">{userProfile.company?.name || 'Sem Empresa'}</div>
+                                                        <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium mt-1 ${userProfile.status === 'approved' ? 'bg-green-100 text-green-800' :
+                                                            userProfile.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
+                                                                'bg-red-100 text-red-800'
+                                                            }`}>
+                                                            {userProfile.status === 'approved' ? 'Aprovado' :
+                                                                userProfile.status === 'pending' ? 'Pendente' : 'Rejeitado'}
+                                                        </span>
+                                                    </td>
+                                                    <td className="px-6 py-4">
+                                                        <div className="flex items-center gap-2 text-sm text-gray-600">
+                                                            {userProfile.role === 'super_admin' ? (
+                                                                <Shield className="w-4 h-4 text-indigo-600" />
+                                                            ) : userProfile.role === 'admin' ? (
+                                                                <Shield className="w-4 h-4 text-[#1B3A2D]" />
+                                                            ) : (
+                                                                <Users className="w-4 h-4" />
+                                                            )}
+                                                            <span className="capitalize">{userProfile.role}</span>
+                                                        </div>
+                                                    </td>
+                                                    <td className="px-6 py-4 text-right">
+                                                        {userProfile.status === 'pending' && userProfile.role !== 'super_admin' && (
+                                                            <div className="flex justify-end gap-2">
+                                                                <button
+                                                                    onClick={() => handleApproveUser(userProfile.id)}
+                                                                    className="bg-green-50 text-green-700 px-3 py-1 rounded-md hover:bg-green-100 transition-colors text-xs font-semibold flex items-center gap-1"
+                                                                >
+                                                                    <Check className="w-3 h-3" /> Aprovar
+                                                                </button>
+                                                                <button
+                                                                    onClick={() => handleRejectUser(userProfile.id)}
+                                                                    className="bg-red-50 text-red-700 px-3 py-1 rounded-md hover:bg-red-100 transition-colors text-xs font-semibold flex items-center gap-1"
+                                                                >
+                                                                    <X className="w-3 h-3" /> Rejeitar
+                                                                </button>
+                                                            </div>
+                                                        )}
+                                                    </td>
+                                                </tr>
+                                            ))
+                                        )}
+                                    </tbody>
+                                </table>
+
+                                {/* Mobile User Card View */}
+                                <div className="grid grid-cols-1 divide-y divide-gray-100 md:hidden">
+                                    {filteredUsers.length === 0 ? (
+                                        <div className="p-12 text-center text-gray-500 italic">Nenhum usuário encontrado.</div>
                                     ) : (
                                         filteredUsers.map((userProfile) => (
-                                            <tr key={userProfile.id} className="hover:bg-gray-50 transition-colors">
-                                                <td className="px-6 py-4">
+                                            <div key={userProfile.id} className="p-4 space-y-3">
+                                                <div className="flex items-center justify-between">
                                                     <div className="flex items-center gap-3">
-                                                        <div className="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center text-gray-500 font-bold">
+                                                        <div className="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center text-gray-500 font-bold border border-gray-200">
                                                             {userProfile.full_name?.charAt(0) || userProfile.email.charAt(0).toUpperCase()}
                                                         </div>
                                                         <div>
-                                                            <div className="font-medium text-gray-900">{userProfile.full_name || 'Usuário'}</div>
-                                                            <div className="text-sm text-gray-500">{userProfile.email}</div>
+                                                            <div className="font-bold text-gray-900">{userProfile.full_name || 'Usuário'}</div>
+                                                            <div className="text-xs text-gray-500">{userProfile.email}</div>
                                                         </div>
                                                     </div>
-                                                </td>
-                                                <td className="px-6 py-4">
-                                                    <div className="text-sm text-gray-900">{userProfile.company?.name || 'Sem Empresa'}</div>
-                                                    <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium mt-1 ${userProfile.status === 'approved' ? 'bg-green-100 text-green-800' :
+                                                    <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium ${userProfile.status === 'approved' ? 'bg-green-100 text-green-800' :
                                                         userProfile.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
                                                             'bg-red-100 text-red-800'
                                                         }`}>
                                                         {userProfile.status === 'approved' ? 'Aprovado' :
                                                             userProfile.status === 'pending' ? 'Pendente' : 'Rejeitado'}
                                                     </span>
-                                                </td>
-                                                <td className="px-6 py-4">
-                                                    <div className="flex items-center gap-2 text-sm text-gray-600">
-                                                        {userProfile.role === 'super_admin' ? (
-                                                            <Shield className="w-4 h-4 text-indigo-600" />
-                                                        ) : userProfile.role === 'admin' ? (
-                                                            <Shield className="w-4 h-4 text-[#1B3A2D]" />
-                                                        ) : (
-                                                            <Users className="w-4 h-4" />
-                                                        )}
-                                                        <span className="capitalize">{userProfile.role}</span>
+                                                </div>
+                                                <div className="flex items-center justify-between py-2 border-y border-gray-50">
+                                                    <div className="text-xs text-gray-500">
+                                                        Empresa: <span className="text-gray-900 font-medium">{userProfile.company?.name || 'Sem Empresa'}</span>
                                                     </div>
-                                                </td>
-                                                <td className="px-6 py-4 text-right">
-                                                    {userProfile.status === 'pending' && userProfile.role !== 'super_admin' && (
-                                                        <div className="flex justify-end gap-2">
-                                                            <button
-                                                                onClick={() => handleApproveUser(userProfile.id)}
-                                                                className="bg-green-50 text-green-700 px-3 py-1 rounded-md hover:bg-green-100 transition-colors text-xs font-semibold flex items-center gap-1"
-                                                            >
-                                                                <Check className="w-3 h-3" /> Aprovar
-                                                            </button>
-                                                            <button
-                                                                onClick={() => handleRejectUser(userProfile.id)}
-                                                                className="bg-red-50 text-red-700 px-3 py-1 rounded-md hover:bg-red-100 transition-colors text-xs font-semibold flex items-center gap-1"
-                                                            >
-                                                                <X className="w-3 h-3" /> Rejeitar
-                                                            </button>
-                                                        </div>
-                                                    )}
-                                                </td>
-                                            </tr>
+                                                    <div className="flex items-center gap-1 text-[10px] text-gray-400 uppercase font-bold tracking-tight">
+                                                        <Shield className="w-3 h-3" /> {userProfile.role}
+                                                    </div>
+                                                </div>
+                                                {userProfile.status === 'pending' && userProfile.role !== 'super_admin' && (
+                                                    <div className="flex gap-2 pt-1">
+                                                        <button
+                                                            onClick={() => handleApproveUser(userProfile.id)}
+                                                            className="flex-1 bg-green-600 text-white py-2 rounded-lg font-medium text-xs flex items-center justify-center gap-2"
+                                                        >
+                                                            <Check className="w-4 h-4" /> Aprovar
+                                                        </button>
+                                                        <button
+                                                            onClick={() => handleRejectUser(userProfile.id)}
+                                                            className="flex-1 bg-white text-red-600 py-2 rounded-lg font-medium text-xs flex items-center justify-center gap-2 border border-red-100 hover:bg-red-50"
+                                                        >
+                                                            <X className="w-4 h-4" /> Rejeitar
+                                                        </button>
+                                                    </div>
+                                                )}
+                                            </div>
                                         ))
                                     )}
-                                </tbody>
-                            </table>
+                                </div>
+                            </>
                         )}
                     </div>
                 )}
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div className="bg-[#1B3A2D] p-6 rounded-xl text-white shadow-sm flex items-center justify-between">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <div className="bg-[#1B3A2D] p-6 rounded-2xl text-white shadow-lg shadow-green-900/20 flex items-center justify-between border border-white/10">
                     <div>
-                        <p className="opacity-80 text-sm">Empresas Pendentes</p>
+                        <p className="opacity-80 text-xs font-bold uppercase tracking-wider">Empresas Pendentes</p>
                         <h3 className="text-3xl font-bold mt-1">{pendingCompanies.length}</h3>
                     </div>
-                    <Building2 className="w-10 h-10 opacity-20" />
-                </div>
-                <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm flex items-center justify-between">
-                    <div>
-                        <p className="text-gray-500 text-sm">Total de Usuários</p>
-                        <h3 className="text-3xl font-bold mt-1">{allUsers.length}</h3>
+                    <div className="w-12 h-12 bg-white/10 rounded-xl flex items-center justify-center">
+                        <Building2 className="w-6 h-6 opacity-80" />
                     </div>
-                    <Users className="w-10 h-10 text-gray-100" />
                 </div>
-                <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm flex items-center justify-between">
+
+                <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm flex items-center justify-between hover:shadow-md transition-shadow">
                     <div>
-                        <p className="text-gray-500 text-sm">Empresas Ativas</p>
+                        <p className="text-gray-500 text-xs font-bold uppercase tracking-wider">Usuários Aprovados</p>
+                        <h3 className="text-3xl font-bold mt-1 text-green-600">
+                            {allUsers.filter(u => u.status === 'approved').length}
+                        </h3>
+                    </div>
+                    <div className="w-12 h-12 bg-green-50 rounded-xl flex items-center justify-center">
+                        <CheckCircle2 className="w-6 h-6 text-green-500" />
+                    </div>
+                </div>
+
+                <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm flex items-center justify-between hover:shadow-md transition-shadow">
+                    <div>
+                        <p className="text-gray-500 text-xs font-bold uppercase tracking-wider">Total Arrecadado</p>
+                        <h3 className="text-2xl font-bold mt-1 text-[#1B3A2D]">
+                            {formatMZN(globalStats.totalCollected)}
+                        </h3>
+                        <p className="text-[10px] text-gray-400 mt-1 flex items-center gap-1">
+                            <TrendingUp className="w-3 h-3 text-green-500" /> +5.2% este mês
+                        </p>
+                    </div>
+                    <div className="w-12 h-12 bg-blue-50 rounded-xl flex items-center justify-center">
+                        <DollarSign className="w-6 h-6 text-blue-500" />
+                    </div>
+                </div>
+
+                <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm flex items-center justify-between hover:shadow-md transition-shadow">
+                    <div>
+                        <p className="text-gray-500 text-xs font-bold uppercase tracking-wider">Empresas Ativas</p>
                         <h3 className="text-3xl font-bold mt-1">
                             {allCompanies.filter(c => c.status === 'approved').length}
                         </h3>
                     </div>
-                    <CheckCircle2 className="w-10 h-10 text-gray-100" />
+                    <div className="w-12 h-12 bg-gray-50 rounded-xl flex items-center justify-center">
+                        <Building2 className="w-6 h-6 text-gray-400" />
+                    </div>
                 </div>
             </div>
         </div>

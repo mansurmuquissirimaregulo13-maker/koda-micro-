@@ -5,7 +5,7 @@ import { AdminRoute } from './components/AdminRoute';
 import { LandingPage } from './pages/LandingPage';
 import { LoginPage } from './pages/LoginPage';
 import { SignUpPage } from './pages/SignUpPage';
-import { PendingApprovalPage } from './pages/PendingApprovalPage';
+import PendingApprovalPage from './pages/PendingApprovalPage';
 import { DashboardLayout } from './components/DashboardLayout';
 import { Toaster } from 'sonner';
 
@@ -55,6 +55,14 @@ export function App() {
           />
           <Route
             path="/settings"
+            element={
+              <ProtectedRoute>
+                <DashboardLayout />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/support"
             element={
               <ProtectedRoute>
                 <DashboardLayout />

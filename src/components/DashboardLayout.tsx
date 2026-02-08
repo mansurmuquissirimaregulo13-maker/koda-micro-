@@ -7,6 +7,7 @@ import { ClientsPage } from '../pages/ClientsPage';
 import { CreditsPage } from '../pages/CreditsPage';
 import { ReportsPage } from '../pages/ReportsPage';
 import { SettingsPage } from '../pages/SettingsPage';
+import { SupportPage } from '../pages/SupportPage';
 import SuperAdminDashboard from '../pages/SuperAdminDashboard';
 import { Modal } from './Modal';
 import { ClientForm } from './ClientForm';
@@ -71,6 +72,8 @@ export function DashboardLayout() {
                 return <ReportsPage />;
             case 'settings':
                 return <SettingsPage />;
+            case 'support':
+                return <SupportPage />;
             case 'admin/dashboard':
                 return <SuperAdminDashboard />;
             default:
@@ -95,6 +98,8 @@ export function DashboardLayout() {
                 return 'Relatórios';
             case 'settings':
                 return 'Configurações';
+            case 'support':
+                return 'Suporte';
             case 'admin/dashboard':
                 return 'Painel de Gestão Admin';
             default:

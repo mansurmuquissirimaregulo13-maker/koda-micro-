@@ -10,8 +10,10 @@ import {
   Pie,
   Cell
 } from 'recharts';
-import { Download } from 'lucide-react';
+import { Download, MessageSquare } from 'lucide-react';
 import { useAppState } from '../hooks/useAppState';
+import { API_URL } from '../config';
+import { toast } from 'sonner';
 import { formatMZN } from '../utils/helpers';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
@@ -165,6 +167,35 @@ export function ReportsPage() {
     link.click();
   };
 
+  const handleSendWhatsApp = async () => {
+    const message = `📊 *Resumo Financeiro Koda*\n\n` +
+      `💰 *Total Emprestado:* ${formatMZN(stats.totalLent)}\n` +
+      `✅ *Total Recebido:* ${formatMZN(stats.totalCollected)}\n` +
+      `👥 *Créditos Ativos:* ${stats.activeCredits}\n` +
+      `⚠️ *Atrasados:* ${stats.overdueCredits}\n\n` +
+      `_Gerado em: ${new Date().toLocaleDateString('pt-BR')}_`;
+
+    const phone = window.prompt("Insira o número de WhatsApp (com DDI, ex: 25884...):");
+    if (!phone) return;
+
+    try {
+      const response = await fetch(`${API_URL}/send-message`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ phone, message })
+      });
+
+      if (response.ok) {
+        toast.success("Resumo enviado com sucesso via WhatsApp!");
+      } else {
+        const err = await response.json();
+        toast.error(`Falha ao enviar: ${err.error || 'Erro no servidor'}`);
+      }
+    } catch (error) {
+      toast.error("Erro ao conectar com o servidor WhatsApp.");
+    }
+  };
+
   const monthlyData = [
     { name: 'Jan', emprestado: 40000, recebido: 24000 },
     { name: 'Fev', emprestado: 30000, recebido: 13980 },
@@ -206,6 +237,12 @@ export function ReportsPage() {
             className="px-4 py-2 bg-[#1B3A2D] text-white rounded-lg font-medium hover:bg-[#2D6A4F] flex items-center gap-2 shadow-sm">
             <Download className="w-4 h-4" />
             Exportar PDF
+          </button>
+          <button
+            onClick={handleSendWhatsApp}
+            className="px-4 py-2 bg-[#166534] text-white rounded-lg font-medium hover:bg-[#1B3A2D] flex items-center gap-2 shadow-sm">
+            <MessageSquare className="w-4 h-4" />
+            Enviar p/ WhatsApp
           </button>
         </div>
       </div>

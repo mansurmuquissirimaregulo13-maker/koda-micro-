@@ -5,6 +5,7 @@ import {
   AlertCircle,
   Plus,
   CheckCircle,
+  DollarSign,
 } from 'lucide-react';
 
 import { StatCard } from '../components/StatCard';
@@ -58,9 +59,9 @@ export function DashboardPage({
       {/* Info section removed as emails are now handled via Gmail SMTP */}
 
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
         <StatCard
-          title="Total Clientes"
+          title="Clientes"
           value={stats.totalClients.toString()}
           icon={Users}
           color="bg-blue-500"
@@ -80,6 +81,14 @@ export function DashboardPage({
           value={formatMZN(stats.totalLent)}
           icon={Banknote}
           color="bg-purple-500" />
+
+        <StatCard
+          title="Total Arrecadado"
+          value={formatMZN(stats.totalCollected)}
+          icon={DollarSign}
+          color="bg-emerald-600"
+          trend="up"
+          trendValue="Recuperado" />
 
         <div className={`${stats.overdueCredits > 0 ? 'animate-pulse-subtle ring-2 ring-red-100' : ''} rounded-xl`}>
           <StatCard
@@ -178,16 +187,16 @@ export function DashboardPage({
             <h3 className="text-lg font-bold text-[#1B1B1B] font-montserrat">
               Créditos Recentes
             </h3>
-            <div className="flex gap-2">
+            <div className="flex flex-col sm:flex-row gap-2">
               <button
                 onClick={onNewClient}
-                className="px-3 py-2 text-sm font-medium text-[#1B3A2D] bg-[#D8F3DC] rounded-lg hover:bg-[#b7e4c0] transition-colors flex items-center gap-2">
+                className="px-4 py-2 text-sm font-semibold text-[#1B3A2D] bg-[#D8F3DC] rounded-xl hover:bg-[#b7e4c0] transition-all flex items-center justify-center gap-2 active:scale-95">
                 <Plus className="w-4 h-4" />
                 Novo Cliente
               </button>
               <button
                 onClick={onNewCredit}
-                className="px-3 py-2 text-sm font-medium text-white bg-[#1B3A2D] rounded-lg hover:bg-[#2D6A4F] transition-colors flex items-center gap-2">
+                className="px-4 py-2 text-sm font-semibold text-white bg-[#1B3A2D] rounded-xl hover:bg-[#2D6A4F] transition-all flex items-center justify-center gap-2 shadow-sm active:scale-95">
                 <Plus className="w-4 h-4" />
                 Novo Crédito
               </button>

@@ -93,24 +93,29 @@ export function Sidebar({ currentPage, onNavigate, isOpen }: SidebarProps) {
     >
       <div className="flex flex-col h-full">
         {/* Logo Area */}
-        <div className="p-6 flex items-center gap-3">
-          <div className="w-8 h-8 bg-white/10 rounded-lg flex items-center justify-center">
-            <CreditCard className="w-5 h-5 text-white" />
+        <div className="p-8 flex items-center gap-4">
+          <div className="w-10 h-10 bg-white/10 rounded-xl flex items-center justify-center shadow-inner">
+            <CreditCard className="w-6 h-6 text-white" />
           </div>
-          <span className="text-xl font-bold font-montserrat tracking-tight">
-            Koda Microcrédito
-          </span>
+          <div>
+            <span className="text-xl font-bold font-montserrat tracking-tight block">
+              Koda
+            </span>
+            <span className="text-[10px] text-green-300 font-medium uppercase tracking-[0.2em]">
+              Microcrédito
+            </span>
+          </div>
         </div>
 
         {/* Menu Items */}
         <div className="flex-1 px-4 py-6 space-y-8 overflow-y-auto">
           {/* Main Menu */}
           {!isSystemAdmin && (
-            <div>
-              <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-4 px-2">
+            <div className="pt-2">
+              <h3 className="text-[10px] font-bold text-gray-400 uppercase tracking-[0.15em] mb-4 px-4 opacity-70">
                 Menu Principal
               </h3>
-              <nav className="space-y-1">
+              <nav className="space-y-2">
                 {finalMenuItems.map((item) => {
                   const Icon = item.icon;
                   const isActive = currentPage === item.id;
@@ -120,15 +125,15 @@ export function Sidebar({ currentPage, onNavigate, isOpen }: SidebarProps) {
                       to={item.path}
                       onClick={onNavigate}
                       className={`
-                        w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-sm font-medium transition-colors
+                        w-full flex items-center justify-between px-4 py-3.5 rounded-xl text-sm font-medium transition-all
                         ${isActive
-                          ? 'bg-[#40916C] text-white shadow-sm'
+                          ? 'bg-[#40916C] text-white shadow-lg shadow-green-900/40 translate-x-1'
                           : 'text-gray-300 hover:bg-[#2D6A4F] hover:text-white'
                         }
                       `}
                     >
-                      <div className="flex items-center gap-3">
-                        <Icon className="w-5 h-5" />
+                      <div className="flex items-center gap-4">
+                        <Icon className={`w-5 h-5 ${isActive ? 'text-white' : 'text-gray-400'}`} />
                         <span>{item.label}</span>
                       </div>
                       {isActive && <ChevronRight className="w-4 h-4 opacity-50" />}
@@ -142,10 +147,10 @@ export function Sidebar({ currentPage, onNavigate, isOpen }: SidebarProps) {
           {/* Admin Menu */}
           {isSystemAdmin && adminItems.length > 0 && (
             <div>
-              <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-4 px-2">
+              <h3 className="text-[10px] font-bold text-gray-400 uppercase tracking-[0.15em] mb-4 px-4 opacity-70">
                 Administração
               </h3>
-              <nav className="space-y-1">
+              <nav className="space-y-2">
                 {adminItems.map((item) => {
                   const Icon = item.icon;
                   const isActive = currentPage === item.id;
@@ -155,15 +160,15 @@ export function Sidebar({ currentPage, onNavigate, isOpen }: SidebarProps) {
                       to={item.path}
                       onClick={onNavigate}
                       className={`
-                        w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-sm font-medium transition-colors
+                        w-full flex items-center justify-between px-4 py-3.5 rounded-xl text-sm font-medium transition-all
                         ${isActive
-                          ? 'bg-purple-600 text-white shadow-sm'
+                          ? 'bg-purple-600 text-white shadow-lg shadow-purple-900/40 translate-x-1'
                           : 'text-gray-300 hover:bg-purple-600/20 hover:text-white'
                         }
                       `}
                     >
-                      <div className="flex items-center gap-3">
-                        <Icon className="w-5 h-5" />
+                      <div className="flex items-center gap-4">
+                        <Icon className={`w-5 h-5 ${isActive ? 'text-white' : 'text-purple-400'}`} />
                         <span>{item.label}</span>
                       </div>
                       {isActive && <ChevronRight className="w-4 h-4 opacity-50" />}

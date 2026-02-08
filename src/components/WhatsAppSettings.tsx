@@ -2,31 +2,37 @@ import { useEffect, useState } from 'react';
 import { API_URL } from '../config';
 import { QRCodeSVG } from 'qrcode.react';
 import { io } from 'socket.io-client';
+import { MessageSquare, RefreshCw, CheckCircle2, AlertCircle, Smartphone } from 'lucide-react';
 
 export function WhatsAppSettings() {
     const [qrCode, setQrCode] = useState<string | null>(null);
     const [status, setStatus] = useState<'disconnected' | 'connected' | 'ready'>('disconnected');
+    const [loading, setLoading] = useState(true);
 
     useEffect(() => {
         const newSocket = io(API_URL);
 
         newSocket.on('connect', () => {
             console.log('Connected to WhatsApp server');
+            setLoading(false);
         });
 
         newSocket.on('qr', (qr: string) => {
             setQrCode(qr);
             setStatus('disconnected');
+            setLoading(false);
         });
 
         newSocket.on('ready', () => {
-            setStatus('connected');
+            setStatus('ready');
             setQrCode(null);
+            setLoading(false);
         });
 
         newSocket.on('authenticated', () => {
             setStatus('connected');
             setQrCode(null);
+            setLoading(false);
         });
 
         return () => {
@@ -35,37 +41,100 @@ export function WhatsAppSettings() {
     }, []);
 
     return (
-        <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-            <h2 className="text-lg font-semibold text-[#1B1B1B] mb-4">Conexão WhatsApp</h2>
-
-            <div className="flex flex-col items-center justify-center p-8 bg-gray-50 rounded-lg">
-                {status === 'connected' ? (
-                    <div className="text-center">
-                        <div className="w-16 h-16 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto mb-3">
-                            <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                            </svg>
+        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+            <div className="p-6 bg-[#166534]/5 border-b border-[#166534]/10 flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                    <div className="p-2 bg-[#166534] text-white rounded-lg">
+                        <MessageSquare className="w-5 h-5" />
+                    </div>
+                    <div>
+                        <h3 className="font-bold text-gray-900">Conexão WhatsApp</h3>
+                        <div className="flex items-center gap-2">
+                            <span className={`w-2 h-2 rounded-full ${status === 'ready' || status === 'connected' ? 'bg-green-500 animate-pulse' : 'bg-yellow-500'}`}></span>
+                            <span className="text-[10px] uppercase font-bold tracking-wider text-gray-500">
+                                {status === 'ready' || status === 'connected' ? 'Conectado' : 'Aguardando Login'}
+                            </span>
                         </div>
-                        <p className="font-medium text-green-800">WhatsApp Conectado!</p>
-                        <p className="text-sm text-gray-500 mt-1">O sistema está pronto para enviar notificações.</p>
                     </div>
-                ) : (
-                    <div className="text-center">
-                        {qrCode ? (
-                            <div className="bg-white p-4 rounded shadow-sm inline-block border-2 border-gray-100">
-                                <QRCodeSVG value={qrCode} size={256} className="mx-auto" />
-                                <p className="text-xs text-gray-500 mt-4 text-center">
-                                    Abra o WhatsApp &gt; Aparelhos Conectados &gt; Conectar Aparelho
-                                </p>
-                            </div>
-                        ) : (
-                            <div className="animate-pulse text-gray-400">
-                                <p>Aguardando QR Code do servidor...</p>
-                                <p className="text-xs mt-2">Certifique-se que "node server/index.js" está rodando.</p>
-                            </div>
-                        )}
-                    </div>
+                </div>
+                {status !== 'ready' && (
+                    <button
+                        onClick={() => window.location.reload()}
+                        className="p-2 text-gray-400 hover:text-[#166534] transition-colors"
+                        title="Recarregar QR Code"
+                    >
+                        <RefreshCw className="w-4 h-4" />
+                    </button>
                 )}
+            </div>
+
+            <div className="p-8 grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+                <div className="space-y-6">
+                    <div>
+                        <h4 className="font-bold text-gray-900 mb-4 flex items-center gap-2">
+                            <Smartphone className="w-5 h-5 text-[#166534]" />
+                            Como conectar?
+                        </h4>
+                        <ol className="space-y-4">
+                            {[
+                                'Abra o WhatsApp no seu telemóvel',
+                                'Toque em Mais Opções (⋮) ou Configurações (⚙️)',
+                                'Selecione "Aparelhos Conectados"',
+                                'Toque em "Conectar um Aparelho"',
+                                'Aponte a camera para o código ao lado'
+                            ].map((step, i) => (
+                                <li key={i} className="flex gap-3 text-sm text-gray-600">
+                                    <span className="flex-shrink-0 w-6 h-6 rounded-full bg-gray-100 text-gray-500 flex items-center justify-center font-bold text-xs">
+                                        {i + 1}
+                                    </span>
+                                    {step}
+                                </li>
+                            ))}
+                        </ol>
+                    </div>
+
+                    <div className="p-4 bg-blue-50 rounded-xl border border-blue-100 flex gap-3">
+                        <AlertCircle className="w-5 h-5 text-blue-600 flex-shrink-0" />
+                        <p className="text-xs text-blue-700 leading-relaxed">
+                            Mantenha o telemóvel conectado à internet para garantir que os relatórios e alertas sejam enviados sem interrupções.
+                        </p>
+                    </div>
+                </div>
+
+                <div className="flex flex-col items-center">
+                    {loading ? (
+                        <div className="w-[280px] h-[280px] bg-gray-50 rounded-2xl flex flex-col items-center justify-center gap-4 border border-dashed border-gray-200">
+                            <div className="w-10 h-10 border-4 border-[#166534]/20 border-t-[#166534] rounded-full animate-spin"></div>
+                            <p className="text-sm text-gray-400 font-medium">Iniciando servidor...</p>
+                        </div>
+                    ) : status === 'ready' || status === 'connected' ? (
+                        <div className="w-[280px] h-[280px] bg-green-50 rounded-2xl flex flex-col items-center justify-center gap-4 border border-green-100 animate-in zoom-in duration-300">
+                            <div className="w-20 h-20 bg-green-100 text-green-600 rounded-full flex items-center justify-center shadow-inner">
+                                <CheckCircle2 className="w-10 h-10" />
+                            </div>
+                            <div className="text-center">
+                                <p className="font-bold text-green-800 text-lg">Pronto!</p>
+                                <p className="text-xs text-green-600 font-medium px-4">O sistema está pronto para enviar notificações WhatsApp.</p>
+                            </div>
+                        </div>
+                    ) : qrCode ? (
+                        <div className="p-6 bg-white rounded-2xl shadow-xl border border-gray-100 animate-in fade-in zoom-in duration-500">
+                            <div className="p-2 border-4 border-gray-50 rounded-xl">
+                                <QRCodeSVG value={qrCode} size={220} />
+                            </div>
+                            <p className="text-center text-[10px] text-gray-400 mt-4 font-bold uppercase tracking-widest">
+                                Expira em breve...
+                            </p>
+                        </div>
+                    ) : (
+                        <div className="w-[280px] h-[280px] bg-gray-50 rounded-2xl flex flex-col items-center justify-center gap-4 border border-dashed border-gray-200">
+                            <AlertCircle className="w-10 h-10 text-gray-300" />
+                            <p className="text-sm text-gray-400 font-medium text-center px-6 italic">
+                                Não foi possível obter o QR Code.<br />Certifique-se que o servidor está rodando.
+                            </p>
+                        </div>
+                    )}
+                </div>
             </div>
         </div>
     );

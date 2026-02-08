@@ -47,8 +47,8 @@ export function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#F7F7F2] flex items-center justify-center p-4">
-      <div className="bg-white w-full max-w-md rounded-2xl shadow-xl border border-gray-200 overflow-hidden">
+    <div className="min-h-[100dvh] bg-[#F7F7F2] flex items-center justify-center p-4">
+      <div className="bg-white w-full max-w-md rounded-2xl shadow-xl border border-gray-200 overflow-hidden relative z-10">
         <div className="bg-[#1B3A2D] p-8 text-center">
           <div className="w-16 h-16 bg-white/10 rounded-2xl flex items-center justify-center mx-auto mb-4">
             <CreditCard className="w-8 h-8 text-white" />
@@ -71,7 +71,8 @@ export function LoginPage() {
                 <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
                 <input
                   type="text"
-                  className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#40916C] focus:border-transparent outline-none"
+                  required
+                  className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#40916C] focus:border-transparent outline-none appearance-none"
                   placeholder="seu-email@exemplo.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
@@ -85,7 +86,8 @@ export function LoginPage() {
                 <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
                 <input
                   type="password"
-                  className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#40916C] focus:border-transparent outline-none"
+                  required
+                  className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#40916C] focus:border-transparent outline-none appearance-none"
                   placeholder="••••••••"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
@@ -94,7 +96,7 @@ export function LoginPage() {
             </div>
 
             {error && (
-              <div className="text-red-500 text-sm text-center bg-red-50 p-2 rounded-lg">
+              <div className="text-red-500 text-sm text-center bg-red-50 p-3 rounded-lg animate-fade-in">
                 {error}
               </div>
             )}
@@ -102,35 +104,38 @@ export function LoginPage() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-[#1B3A2D] text-white py-3 rounded-lg font-medium hover:bg-[#2D6A4F] transition-colors shadow-lg shadow-green-900/20 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full bg-[#1B3A2D] text-white py-4 rounded-xl font-bold text-lg hover:bg-[#2D6A4F] transition-all transform active:scale-[0.96] shadow-lg shadow-green-900/20 disabled:opacity-50 disabled:cursor-not-allowed relative z-30 touch-manipulation"
             >
-              {loading ? 'Entrando...' : 'Entrar no Sistema'}
+              {loading ? (
+                <span className="flex items-center justify-center gap-2">
+                  <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                  Entrando...
+                </span>
+              ) : 'Entrar no Sistema'}
             </button>
           </form>
 
-          <div className="mt-6 text-center">
+          <div className="mt-8 text-center space-y-4">
             <p className="text-sm text-gray-600">
               Não tem uma conta?{' '}
               <Link
                 to="/signup"
-                className="text-[#40916C] font-medium hover:text-[#2D6A4F] transition-colors"
+                className="text-[#40916C] font-semibold hover:text-[#2D6A4F] transition-colors inline-block p-1"
               >
                 Criar conta
               </Link>
             </p>
-          </div>
 
-          <div className="mt-4 text-center">
             <Link
               to="/"
-              className="text-sm text-gray-500 hover:text-gray-700 transition-colors"
+              className="text-sm text-gray-500 hover:text-gray-700 transition-colors block p-1"
             >
               ← Voltar para página inicial
             </Link>
           </div>
 
-          <div className="mt-6 text-center text-xs text-gray-400">
-            <p>&copy; 2026 Koda Microcrédito. Todos os direitos reservados.</p>
+          <div className="mt-8 text-center text-xs text-gray-400">
+            <p>&copy; 2026 Koda Microcrédito</p>
           </div>
         </div>
       </div>
