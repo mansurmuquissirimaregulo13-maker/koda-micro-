@@ -9,6 +9,7 @@ import { ReportsPage } from '../pages/ReportsPage';
 import { SettingsPage } from '../pages/SettingsPage';
 import { SupportPage } from '../pages/SupportPage';
 import SuperAdminDashboard from '../pages/SuperAdminDashboard';
+import { LoadingScreen } from './LoadingScreen';
 import { Modal } from './Modal';
 import { ClientForm } from './ClientForm';
 import { CreditForm } from './CreditForm';
@@ -108,11 +109,7 @@ export function DashboardLayout() {
     };
 
     if (loading) {
-        return (
-            <div className="min-h-screen bg-[#F7F7F2] flex items-center justify-center">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#1B1B1B]"></div>
-            </div>
-        );
+        return <LoadingScreen />;
     }
 
     return (
