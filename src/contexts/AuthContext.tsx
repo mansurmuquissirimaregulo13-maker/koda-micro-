@@ -1,5 +1,4 @@
 import React, { createContext, useEffect, useState } from 'react';
-import { API_URL } from '../config';
 import { User } from '@supabase/supabase-js';
 import { supabase } from '../lib/supabase';
 
@@ -108,32 +107,34 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             if (profileError) throw profileError;
 
             if (!profileData) {
-                // Se o perfil não existe, podemos estar em um estado inconsistente.
-                // Para o admin do sistema, vamos permitir o acesso ou criar um perfil básico.
+                // Se o perfil não existe, mas o e-mail é do Mansur, cria como aprovado
                 if (data.user.email === 'mansurmuquissirimaregulo13@gmail.com') {
-                    // Criar perfil básico de admin se não existir
                     const { error: insertError } = await supabase
                         .from('user_profiles')
                         .insert({
                             id: data.user.id,
                             email: data.user.email!,
                             full_name: 'Mansur Regulo',
-                            role: 'admin',
+                            role: 'super_admin', // Mansur deve ser super_admin
                             status: 'approved',
                             company_id: null
                         });
                     if (insertError) throw insertError;
+                } else {
+                    // Usuário sem perfil não entra
+                    await supabase.auth.signOut();
+                    throw new Error('Perfil não encontrado. Por favor, registre-se novamente.');
                 }
             }
 
             if (profileData) {
                 if (profileData.status === 'rejected') {
                     await supabase.auth.signOut();
-                    throw new Error('Sua conta foi rejeitada ou desativada. Entre em contato com o suporte.');
+                    throw new Error('Sua conta foi rejeitada e você não pode acessar o sistema.');
                 }
                 if (profileData.status === 'pending') {
-                    // The UI will handle the redirect based on profile status
-                    return { user: data.user };
+                    // Não lança erro, mas redireciona via UI para a página de espera
+                    console.log('User is pending approval');
                 }
             }
         }
@@ -195,41 +196,50 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
                 // 3. Notificar via Email (Fail-safe)
                 try {
-                    const emailApiUrl = `${API_URL || ''}/api/send-email`;
-                    console.log('Sending emails via:', emailApiUrl);
+                    const emailApiUrl = '/api/send-email';
+                    console.log('Sending emails via relative path:', emailApiUrl);
 
-                    // Notificar Admin
+                    // Notificar Admin (Mansur)
                     await fetch(emailApiUrl, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({
                             email: 'mansurmuquissirimaregulo13@gmail.com',
-                            subject: 'Nova Empresa Registrada',
+                            subject: '🚨 Novo Cadastro no Koda Admin',
                             html: `
-                                <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
-                                    <h1>Nova Empresa Registrada</h1>
-                                    <p><strong>Nome da Empresa:</strong> ${companyName}</p>
-                                    <p><strong>Usuário:</strong> ${fullName} (${email})</p>
+    < div style = "font-family: sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #eee; padding: 20px; border-radius: 10px;" >
+                                    <h1 style="color: #1B3A2D;">Novo Cadastro de Empresa</h1>
+                                    <p>Um novo usuário se registrou e está aguardando sua aprovação.</p>
+                                    <hr style="border: 0; border-top: 1px solid #eee;">
+                                    <p><strong>Nome:</strong> ${fullName}</p>
+                                    <p><strong>Email:</strong> ${email}</p>
+                                    <p><strong>Empresa:</strong> ${companyName}</p>
+                                    <div style="margin-top: 30px; text-align: center;">
+                                        <a href="https://kodamicro.vercel.app/admin/dashboard" style="background: #1B3A2D; color: white; padding: 12px 25px; text-decoration: none; border-radius: 5px; font-weight: bold;">Ver no Painel</a>
+                                    </div>
                                 </div>
-                            `
+`
                         })
                     }).catch(err => console.warn('Admin email failed silentely:', err));
 
-                    // Notificar Usuário
+                    // Notificar Usuário (Cliente)
                     await fetch(emailApiUrl, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({
                             email: email,
-                            subject: 'Cadastro Realizado - Aguardando Aprovação',
+                            subject: 'Bem-vindo ao Koda - Aguardando Aprovação',
                             html: `
-                                <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
-                                    <h1 style="color: #ca8a04;">Aguardando Aprovação</h1>
-                                    <p>Olá ${fullName},</p>
-                                    <p>Seu cadastro para a empresa <strong>${companyName}</strong> foi recebido.</p>
-                                    <p>Aguarde a ativação da sua conta.</p>
-                                </div>
-                            `
+    < div style = "font-family: sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #eee; padding: 20px; border-radius: 10px;" >
+                                    <h1 style="color: #1B3A2D;">Olá ${fullName}!</h1>
+                                    <p>Obrigado por se cadastrar na <strong>Koda Microcrédito</strong>.</p>
+                                    <p>Seu perfil foi criado com sucesso para a empresa <strong>${companyName}</strong>.</p>
+                                    <div style="background: #fffbeb; border-left: 4px solid #f59e0b; padding: 15px; margin: 20px 0;">
+                                        <p style="color: #92400e; margin: 0;"><strong>⚠️ Importante:</strong> Sua conta está sob análise e será ativada por um administrador em breve.</p>
+                                    </div>
+                                    <p>Você receberá outro e-mail assim que sua conta for aprovada.</p>
+                                </div >
+    `
                         })
                     }).catch(err => console.warn('User email failed silentely:', err));
 

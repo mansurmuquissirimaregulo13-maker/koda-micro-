@@ -21,17 +21,13 @@ export function ProtectedRoute({ children }: ProtectedRouteProps) {
         return <Navigate to="/login" replace />;
     }
 
-    // Admins bypass status check to access the management cockpit
-    if (profile?.role === 'admin') {
+    // Admins bypass status check to access management
+    if (profile?.role === 'super_admin' || (profile?.role === 'admin' && profile?.status === 'approved')) {
         return <>{children}</>;
     }
 
-    if (profile?.status === 'pending') {
+    if (profile?.status === 'pending' || profile?.status === 'rejected') {
         return <Navigate to="/pending-approval" replace />;
-    }
-
-    if (profile?.status === 'rejected') {
-        return <Navigate to="/login" replace />;
     }
 
     if (profile?.status !== 'approved') {

@@ -1,5 +1,5 @@
 import { supabase } from './supabase';
-import { API_URL, APP_URL } from '../config';
+import { APP_URL } from '../config';
 
 export interface UserProfile {
     id: string;
@@ -282,8 +282,8 @@ async function notifyStatusChange(email: string, fullName: string, status: 'appr
     }
 
     try {
-        // Use local Express server instead of Supabase Edge Function
-        const response = await fetch(`${API_URL}/api/send-email`, {
+        // Use relative path for production compatibility
+        const response = await fetch('/api/send-email', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
