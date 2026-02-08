@@ -17,14 +17,14 @@ export function DataTable<
   T extends {
     id: string;
   }>(
-{
-  data,
-  columns,
-  searchable = true,
-  searchPlaceholder = 'Pesquisar...',
-  onRowClick,
-  actions
-}: DataTableProps<T>) {
+    {
+      data,
+      columns,
+      searchable = true,
+      searchPlaceholder = 'Pesquisar...',
+      onRowClick,
+      actions
+    }: DataTableProps<T>) {
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
@@ -32,7 +32,7 @@ export function DataTable<
   const filteredData = data.filter((item) => {
     if (!searchTerm) return true;
     return Object.values(item as any).some((val) =>
-    String(val).toLowerCase().includes(searchTerm.toLowerCase())
+      String(val).toLowerCase().includes(searchTerm.toLowerCase())
     );
   });
   // Pagination
@@ -45,15 +45,15 @@ export function DataTable<
   return (
     <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
       {searchable &&
-      <div className="p-4 border-b border-gray-100 flex items-center gap-3">
+        <div className="p-4 border-b border-gray-100 flex items-center gap-3">
           <div className="relative flex-1 max-w-md">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
             <input
-            type="text"
-            placeholder={searchPlaceholder}
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#40916C] focus:border-transparent" />
+              type="text"
+              placeholder={searchPlaceholder}
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full pl-10 pr-4 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#40916C] focus:border-transparent" />
 
           </div>
         </div>
@@ -64,15 +64,15 @@ export function DataTable<
           <thead className="bg-gray-50 border-b border-gray-100">
             <tr>
               {columns.map((col, idx) =>
-              <th
-                key={idx}
-                className={`px-6 py-3 font-semibold text-gray-600 uppercase tracking-wider text-xs ${col.className || ''}`}>
+                <th
+                  key={idx}
+                  className={`px-6 py-3 font-semibold text-gray-600 uppercase tracking-wider text-xs ${col.className || ''}`}>
 
                   {col.header}
                 </th>
               )}
               {actions &&
-              <th className="px-6 py-3 font-semibold text-gray-600 uppercase tracking-wider text-xs text-right">
+                <th className="px-6 py-3 font-semibold text-gray-600 uppercase tracking-wider text-xs text-right">
                   Ações
                 </th>
               }
@@ -80,40 +80,40 @@ export function DataTable<
           </thead>
           <tbody className="divide-y divide-gray-100">
             {paginatedData.length > 0 ?
-            paginatedData.map((item) =>
-            <tr
-              key={item.id}
-              onClick={() => onRowClick?.(item)}
-              className={`
+              paginatedData.map((item) =>
+                <tr
+                  key={item.id}
+                  onClick={() => onRowClick?.(item)}
+                  className={`
                     hover:bg-gray-50 transition-colors
                     ${onRowClick ? 'cursor-pointer' : ''}
                   `}>
 
                   {columns.map((col, idx) =>
-              <td
-                key={idx}
-                className={`px-6 py-4 text-gray-700 ${col.className || ''}`}>
+                    <td
+                      key={idx}
+                      className={`px-4 md:px-6 py-4 text-gray-700 whitespace-nowrap md:whitespace-normal ${col.className || ''}`}>
 
                       {typeof col.accessor === 'function' ?
-                col.accessor(item) :
-                item[col.accessor] as React.ReactNode}
+                        col.accessor(item) :
+                        item[col.accessor] as React.ReactNode}
                     </td>
-              )}
+                  )}
                   {actions &&
-              <td
-                className="px-6 py-4 text-right"
-                onClick={(e) => e.stopPropagation()}>
+                    <td
+                      className="px-6 py-4 text-right"
+                      onClick={(e) => e.stopPropagation()}>
 
                       {actions(item)}
                     </td>
-              }
+                  }
                 </tr>
-            ) :
+              ) :
 
-            <tr>
+              <tr>
                 <td
-                colSpan={columns.length + (actions ? 1 : 0)}
-                className="px-6 py-8 text-center text-gray-500">
+                  colSpan={columns.length + (actions ? 1 : 0)}
+                  className="px-6 py-8 text-center text-gray-500">
 
                   Nenhum dado encontrado
                 </td>
@@ -124,7 +124,7 @@ export function DataTable<
       </div>
 
       {totalPages > 1 &&
-      <div className="p-4 border-t border-gray-100 flex items-center justify-between">
+        <div className="p-4 border-t border-gray-100 flex items-center justify-between">
           <span className="text-xs text-gray-500">
             Mostrando {startIndex + 1} a{' '}
             {Math.min(startIndex + itemsPerPage, filteredData.length)} de{' '}
@@ -132,9 +132,9 @@ export function DataTable<
           </span>
           <div className="flex items-center gap-2">
             <button
-            onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-            disabled={currentPage === 1}
-            className="p-1 rounded hover:bg-gray-100 disabled:opacity-50">
+              onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+              disabled={currentPage === 1}
+              className="p-1 rounded hover:bg-gray-100 disabled:opacity-50">
 
               <ChevronLeft className="w-5 h-5" />
             </button>
@@ -142,9 +142,9 @@ export function DataTable<
               {currentPage} / {totalPages}
             </span>
             <button
-            onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
-            disabled={currentPage === totalPages}
-            className="p-1 rounded hover:bg-gray-100 disabled:opacity-50">
+              onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+              disabled={currentPage === totalPages}
+              className="p-1 rounded hover:bg-gray-100 disabled:opacity-50">
 
               <ChevronRight className="w-5 h-5" />
             </button>

@@ -70,6 +70,8 @@ io.on('connection', (socket) => {
 
 
 
+const nodemailer = require('nodemailer');
+
 app.post('/api/send-email', async (req, res) => {
     const { email, subject, html } = req.body;
 
@@ -78,19 +80,23 @@ app.post('/api/send-email', async (req, res) => {
     }
 
     try {
-        const { data, error } = await resend.emails.send({
-            from: 'Koda Admin <onboarding@resend.dev>',
-            to: [email],
+        const transporter = nodemailer.createTransport({
+            service: 'gmail',
+            auth: {
+                user: process.env.EMAIL_USER,
+                pass: process.env.EMAIL_PASS
+            }
+        });
+
+        const info = await transporter.sendMail({
+            from: `"Koda Admin" <${process.env.EMAIL_USER}>`,
+            to: email,
             subject: subject,
             html: html,
         });
 
-        if (error) {
-            console.error('Error sending email:', error);
-            return res.status(400).json({ error });
-        }
-
-        res.status(200).json({ data });
+        console.log('Message sent: %s', info.messageId);
+        res.status(200).json({ data: info });
     } catch (error) {
         console.error('Server error sending email:', error);
         res.status(500).json({ error: 'Internal server error' });

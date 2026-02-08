@@ -5,9 +5,8 @@ import {
   AlertCircle,
   Plus,
   CheckCircle,
-  Shield,
-  ExternalLink
 } from 'lucide-react';
+
 import { StatCard } from '../components/StatCard';
 import { AlertsPanel } from '../components/AlertsPanel';
 import { DataTable } from '../components/DataTable';
@@ -33,7 +32,7 @@ export function DashboardPage({
   onNewClient,
   onNewCredit
 }: DashboardPageProps) {
-  const { stats, credits, clients, isSystemAdmin } = useAppState();
+  const { stats, credits, clients } = useAppState();
 
   const chartData = [
     { name: 'Jan', value: 25000 },
@@ -56,62 +55,8 @@ export function DashboardPage({
 
   return (
     <div className="space-y-8 animate-in fade-in duration-500">
-      {isSystemAdmin && (
-        <div className="bg-amber-50 border border-amber-200 rounded-xl p-6 shadow-sm">
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
-            <div className="flex items-start gap-4">
-              <div className="bg-amber-100 p-3 rounded-lg">
-                <Shield className="w-6 h-6 text-amber-700" />
-              </div>
-              <div>
-                <h3 className="text-lg font-bold text-amber-900 font-montserrat">
-                  Ativação de E-mail Pendente
-                </h3>
-                <p className="text-amber-800 text-sm mt-1 max-w-xl">
-                  O motor de e-mails está montado, mas o Resend exige que você autorize o seu e-mail
-                  <span className="font-bold"> mansurmuquissirimaregulo13@gmail.com </span>
-                  no painel deles para liberar o envio global.
-                </p>
-              </div>
-            </div>
-            <div className="flex flex-wrap gap-3">
-              <a
-                href="https://resend.com/senders"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 px-4 py-2 bg-amber-600 text-white text-sm font-semibold rounded-lg hover:bg-amber-700 transition-colors"
-              >
-                Autorizar no Resend <ExternalLink className="w-4 h-4" />
-              </a>
-              <button
-                onClick={() => window.open('https://mail.google.com/mail/u/0/#search/from%3Aresend+verification', '_blank')}
-                className="inline-flex items-center gap-2 px-4 py-2 bg-white text-amber-900 text-sm font-semibold border border-amber-300 rounded-lg hover:bg-amber-100 transition-colors"
-              >
-                Buscar E-mail de Verificação
-              </button>
-            </div>
-          </div>
+      {/* Info section removed as emails are now handled via Gmail SMTP */}
 
-          <div className="mt-6 p-4 bg-white/50 rounded-lg border border-amber-100">
-            <h4 className="text-xs font-bold text-amber-900 uppercase tracking-wider mb-3">
-              Opção Profissional: Configurar Domínio (Opcional)
-            </h4>
-            <p className="text-xs text-amber-800 mb-4">
-              Se você preferir usar <span className="font-mono">@koda.com</span>, adicione estes registros ao seu provedor de domínio:
-            </p>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="bg-gray-50 p-3 rounded border border-gray-200">
-                <p className="text-[10px] text-gray-500 font-bold mb-1">DKIM (TXT)</p>
-                <p className="text-[9px] font-mono break-all text-gray-800">Host: resend._domainkey | Value: p=MIGfMA0GCSqGSI...</p>
-              </div>
-              <div className="bg-gray-50 p-3 rounded border border-gray-200">
-                <p className="text-[10px] text-gray-500 font-bold mb-1">SPF (TXT)</p>
-                <p className="text-[9px] font-mono break-all text-gray-800">Host: @ | Value: v=spf1 include:amazonses.com ~all</p>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <StatCard
