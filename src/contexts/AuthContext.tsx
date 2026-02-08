@@ -63,16 +63,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     const loadProfile = async (userId: string) => {
         try {
+            console.log('Loading profile for user:', userId);
             const { data, error } = await supabase
                 .from('user_profiles')
                 .select('*')
                 .eq('id', userId)
                 .maybeSingle();
 
-            if (error) throw error;
+            if (error) {
+                console.error('Database error loading profile:', error);
+                throw error;
+            }
+            console.log('Profile context loaded:', data ? 'Found' : 'Not Found');
             setProfile(data);
         } catch (error) {
-            console.error('Error loading profile:', error);
+            console.error('Critical error in loadProfile:', error);
             setProfile(null);
         } finally {
             setLoading(false);
@@ -80,13 +85,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     };
 
     const signIn = async (email: string, password: string) => {
+        console.log('Attempting login for:', email);
         const { data, error } = await supabase.auth.signInWithPassword({
             email,
             password,
         });
 
-        if (error) throw error;
+        if (error) {
+            console.error('Auth sign-in error:', error.message);
+            throw error;
+        }
 
+        console.log('Auth successful, fetching profile...');
         // Check if user is approved (Admins bypass this)
         if (data.user) {
             const { data: profileData, error: profileError } = await supabase
