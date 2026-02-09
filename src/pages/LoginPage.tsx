@@ -1,3 +1,8 @@
+import React, { useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { CreditCard, Lock, Mail } from 'lucide-react';
+import { useAuth } from '../hooks/useAuth';
+import { supabase } from '../lib/supabase';
 import { toast } from 'sonner';
 
 export function LoginPage() {

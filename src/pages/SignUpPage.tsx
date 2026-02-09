@@ -48,7 +48,9 @@ export function SignUpPage() {
         setLoading(true);
 
         try {
+            const toastId = toast.loading('Criando sua conta...');
             await signUp(email, password, fullName, companyName);
+            toast.success('🎉 Conta criada com sucesso!', { id: toastId });
             navigate('/pending-approval');
         } catch (err: any) {
             console.error('Detailed SignUp catch:', err);
@@ -68,9 +70,9 @@ export function SignUpPage() {
     };
 
     return (
-        <div className="min-h-screen bg-[#F7F7F2] flex items-center justify-center p-4">
-            <div className="bg-white w-full max-w-md rounded-2xl shadow-xl border border-gray-200 overflow-hidden">
-                <div className="bg-gradient-to-r from-[#1B3A2D] to-[#2D6A4F] p-8 text-center">
+        <div className="min-h-[100dvh] bg-[#F7F7F2] flex items-center justify-center p-4">
+            <div className="bg-white w-full max-w-md rounded-2xl shadow-xl border border-gray-200 relative z-10 transition-all">
+                <div className="bg-gradient-to-r from-[#1B3A2D] to-[#2D6A4F] p-8 text-center rounded-t-2xl">
                     <div className="w-16 h-16 bg-white/10 rounded-2xl flex items-center justify-center mx-auto mb-4">
                         <CreditCard className="w-8 h-8 text-white" />
                     </div>
@@ -92,7 +94,8 @@ export function SignUpPage() {
                                 <UserPlus className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
                                 <input
                                     type="text"
-                                    className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#40916C] focus:border-transparent outline-none"
+                                    className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#40916C] focus:border-transparent outline-none appearance-none text-base bg-white"
+                                    style={{ fontSize: '16px' }}
                                     placeholder="Seu nome completo"
                                     value={fullName}
                                     onChange={(e) => setFullName(e.target.value)}
@@ -108,7 +111,8 @@ export function SignUpPage() {
                                 <Building2 className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
                                 <input
                                     type="text"
-                                    className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#40916C] focus:border-transparent outline-none"
+                                    className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#40916C] focus:border-transparent outline-none appearance-none text-base bg-white"
+                                    style={{ fontSize: '16px' }}
                                     placeholder="Ex: Koda Microfinanças"
                                     value={companyName}
                                     onChange={(e) => setCompanyName(e.target.value)}
@@ -124,7 +128,8 @@ export function SignUpPage() {
                                 <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
                                 <input
                                     type="email"
-                                    className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#40916C] focus:border-transparent outline-none"
+                                    className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#40916C] focus:border-transparent outline-none appearance-none text-base bg-white"
+                                    style={{ fontSize: '16px' }}
                                     placeholder="seu-email@exemplo.com"
                                     value={email}
                                     onChange={(e) => setEmail(e.target.value)}
@@ -138,7 +143,8 @@ export function SignUpPage() {
                                 <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
                                 <input
                                     type="password"
-                                    className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#40916C] focus:border-transparent outline-none"
+                                    className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#40916C] focus:border-transparent outline-none appearance-none text-base bg-white"
+                                    style={{ fontSize: '16px' }}
                                     placeholder="Mínimo 6 caracteres"
                                     value={password}
                                     onChange={(e) => setPassword(e.target.value)}
@@ -154,7 +160,8 @@ export function SignUpPage() {
                                 <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
                                 <input
                                     type="password"
-                                    className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#40916C] focus:border-transparent outline-none"
+                                    className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#40916C] focus:border-transparent outline-none appearance-none text-base bg-white"
+                                    style={{ fontSize: '16px' }}
                                     placeholder="Digite a senha novamente"
                                     value={confirmPassword}
                                     onChange={(e) => setConfirmPassword(e.target.value)}
@@ -163,7 +170,7 @@ export function SignUpPage() {
                         </div>
 
                         {error && (
-                            <div className="text-red-500 text-sm text-center bg-red-50 p-3 rounded-lg">
+                            <div className="text-red-500 text-sm text-center bg-red-50 p-3 rounded-lg border border-red-100">
                                 {error}
                             </div>
                         )}
@@ -171,9 +178,16 @@ export function SignUpPage() {
                         <button
                             type="submit"
                             disabled={loading}
-                            className="w-full bg-[#1B3A2D] text-white py-3 rounded-lg font-medium hover:bg-[#2D6A4F] transition-colors shadow-lg shadow-green-900/20 disabled:opacity-50 disabled:cursor-not-allowed"
+                            className={`w-full bg-[#1B3A2D] text-white py-4 rounded-xl font-bold text-lg hover:bg-[#2D6A4F] active:bg-[#12261d] transition-all transform active:scale-[0.98] shadow-lg shadow-green-900/20 disabled:opacity-50 disabled:cursor-not-allowed relative z-50 touch-manipulation flex items-center justify-center min-h-[60px] cursor-pointer`}
                         >
-                            {loading ? 'Criando conta...' : 'Criar Conta'}
+                            {loading ? (
+                                <div className="flex items-center gap-3">
+                                    <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                                    <span>Criando conta...</span>
+                                </div>
+                            ) : (
+                                <span>Criar Conta</span>
+                            )}
                         </button>
                     </form>
 
