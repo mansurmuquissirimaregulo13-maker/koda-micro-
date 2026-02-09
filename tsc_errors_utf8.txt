@@ -1,2 +1,0 @@
-﻿src/components/DashboardLayout.tsx(77,25): error TS2304: Cannot find name 'SupportPage'.
-src/pages/SupportPage.tsx(5,5): error TS6133: 'Phone' is declared but its value is never read.
