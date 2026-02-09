@@ -213,6 +213,15 @@ export async function rejectCompany(companyId: string): Promise<void> {
     }
 }
 
+export async function deleteCompany(companyId: string): Promise<void> {
+    const { error } = await supabase
+        .from('companies')
+        .delete()
+        .eq('id', companyId);
+
+    if (error) throw error;
+}
+
 export async function deleteUser(userId: string): Promise<void> {
     // 1. Get user details for notification before deleting
     const { data: profile } = await supabase

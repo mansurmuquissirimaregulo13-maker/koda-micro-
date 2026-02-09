@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
-import { UserCheck, UserX, Users, Clock, CheckCircle, XCircle, Search, Shield } from 'lucide-react';
-import { getPendingUsers, getAllUsers, approveUser, rejectUser, UserProfile } from '../lib/supabase-admin';
+import { UserCheck, UserX, Users, Clock, CheckCircle, XCircle, Search, Shield, Trash2 } from 'lucide-react';
+import { getPendingUsers, getAllUsers, approveUser, rejectUser, deleteUser, UserProfile } from '../lib/supabase-admin';
 import { useAuth } from '../hooks/useAuth';
 import { toast } from 'sonner';
 
@@ -42,6 +42,7 @@ export function AdminUsersPage() {
     };
 
     const handleReject = async (userId: string) => {
+        if (!confirm('Tem certeza que deseja rejeitar este usuário?')) return;
         try {
             await rejectUser(userId, user!.id);
             toast.success('Usuário rejeitado');
@@ -49,6 +50,18 @@ export function AdminUsersPage() {
         } catch (error) {
             console.error('Error rejecting user:', error);
             toast.error('Erro ao rejeitar usuário');
+        }
+    };
+
+    const handleDelete = async (userId: string) => {
+        if (!confirm('ATENÇÃO: Isso excluirá permanentemente este usuário. Continuar?')) return;
+        try {
+            await deleteUser(userId);
+            toast.success('Usuário excluído com sucesso!');
+            loadUsers();
+        } catch (error) {
+            console.error('Error deleting user:', error);
+            toast.error('Erro ao excluir usuário');
         }
     };
 
@@ -245,10 +258,14 @@ export function AdminUsersPage() {
                                                     </button>
                                                 </div>
                                             )}
-                                            {user.status !== 'pending' && (
-                                                <span className="text-gray-400 text-xs">
-                                                    {user.status === 'approved' ? 'Já aprovado' : 'Já rejeitado'}
-                                                </span>
+                                            {user.status !== 'pending' && user.role !== 'super_admin' && (
+                                                <button
+                                                    onClick={() => handleDelete(user.id)}
+                                                    className="inline-flex items-center gap-1 px-3 py-1.5 bg-gray-100 text-red-600 rounded-lg hover:bg-red-50 transition-colors text-xs font-medium border border-red-100"
+                                                >
+                                                    <Trash2 className="w-4 h-4" />
+                                                    Excluir
+                                                </button>
                                             )}
                                         </td>
                                     </tr>

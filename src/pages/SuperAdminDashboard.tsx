@@ -9,6 +9,7 @@ import {
     X,
     TrendingUp,
     DollarSign,
+    Trash2,
 } from 'lucide-react';
 import {
     getPendingUsers,
@@ -19,6 +20,8 @@ import {
     rejectUser,
     approveCompany,
     rejectCompany,
+    deleteCompany,
+    deleteUser,
     UserProfile,
     Company
 } from '../lib/supabase-admin';
@@ -153,6 +156,28 @@ export default function SuperAdminDashboard() {
         }
     };
 
+    const handleDeleteUser = async (id: string) => {
+        if (!confirm('TEM CERTEZA? Isso excluirá permanentemente o usuário e seus dados.')) return;
+        try {
+            await deleteUser(id);
+            toast.success('Usuário excluído com sucesso.');
+            fetchData();
+        } catch (error: any) {
+            toast.error('Erro ao excluir usuário: ' + error.message);
+        }
+    };
+
+    const handleDeleteCompany = async (id: string) => {
+        if (!confirm('ATENÇÃO: Excluir a empresa removerá todos os dados vinculados a ela. Continuar?')) return;
+        try {
+            await deleteCompany(id);
+            toast.success('Empresa excluída com sucesso.');
+            fetchData();
+        } catch (error: any) {
+            toast.error('Erro ao excluir empresa: ' + error.message);
+        }
+    };
+
     return (
         <div className="p-6 max-w-7xl mx-auto space-y-8 animate-in fade-in duration-500">
             <header className="flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -278,6 +303,15 @@ export default function SuperAdminDashboard() {
                                                                 </button>
                                                             </div>
                                                         )}
+                                                        {company.status !== 'pending' && (
+                                                            <button
+                                                                onClick={() => handleDeleteCompany(company.id)}
+                                                                className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                                                                title="Excluir Permanentemente"
+                                                            >
+                                                                <Trash2 className="w-4 h-4" />
+                                                            </button>
+                                                        )}
                                                     </td>
                                                 </tr>
                                             ))
@@ -324,6 +358,14 @@ export default function SuperAdminDashboard() {
                                                             <X className="w-4 h-4" /> Rejeitar
                                                         </button>
                                                     </div>
+                                                )}
+                                                {company.status !== 'pending' && (
+                                                    <button
+                                                        onClick={() => handleDeleteCompany(company.id)}
+                                                        className="w-full flex items-center justify-center gap-2 py-2 text-sm text-red-600 bg-red-50 rounded-lg hover:bg-red-100 transition-colors"
+                                                    >
+                                                        <Trash2 className="w-4 h-4" /> Excluir Empresa
+                                                    </button>
                                                 )}
                                             </div>
                                         ))
@@ -400,6 +442,15 @@ export default function SuperAdminDashboard() {
                                                                 </button>
                                                             </div>
                                                         )}
+                                                        {userProfile.status !== 'pending' && userProfile.role !== 'super_admin' && (
+                                                            <button
+                                                                onClick={() => handleDeleteUser(userProfile.id)}
+                                                                className="text-gray-400 hover:text-red-500 transition-colors p-1"
+                                                                title="Excluir Usuário"
+                                                            >
+                                                                <Trash2 className="w-4 h-4" />
+                                                            </button>
+                                                        )}
                                                     </td>
                                                 </tr>
                                             ))
@@ -456,6 +507,14 @@ export default function SuperAdminDashboard() {
                                                         </button>
                                                     </div>
                                                 )}
+                                                {userProfile.status !== 'pending' && userProfile.role !== 'super_admin' && (
+                                                    <button
+                                                        onClick={() => handleDeleteUser(userProfile.id)}
+                                                        className="w-full flex items-center justify-center gap-2 py-2 text-xs text-red-600 border border-red-100 rounded-lg hover:bg-red-50"
+                                                    >
+                                                        <Trash2 className="w-4 h-4" /> Excluir Registro
+                                                    </button>
+                                                )}
                                             </div>
                                         ))
                                     )}
@@ -491,19 +550,31 @@ export default function SuperAdminDashboard() {
 
                 <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm flex items-center justify-between hover:shadow-md transition-shadow">
                     <div>
+                        <p className="text-gray-500 text-xs font-bold uppercase tracking-wider">Total Emprestado</p>
+                        <h3 className="text-2xl font-bold mt-1 text-orange-600">
+                            {formatMZN(globalStats.totalLent)}
+                        </h3>
+                        <p className="text-[10px] text-gray-400 mt-1">Soma de todos os contratos</p>
+                    </div>
+                    <div className="w-12 h-12 bg-orange-50 rounded-xl flex items-center justify-center">
+                        <TrendingUp className="w-6 h-6 text-orange-500" />
+                    </div>
+                </div>
+
+                <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm flex items-center justify-between hover:shadow-md transition-shadow">
+                    <div>
                         <p className="text-gray-500 text-xs font-bold uppercase tracking-wider">Total Arrecadado</p>
                         <h3 className="text-2xl font-bold mt-1 text-[#1B3A2D]">
                             {formatMZN(globalStats.totalCollected)}
                         </h3>
                         <p className="text-[10px] text-gray-400 mt-1 flex items-center gap-1">
-                            <TrendingUp className="w-3 h-3 text-green-500" /> +5.2% este mês
+                            Saldo em Aberto: {formatMZN(globalStats.totalLent - globalStats.totalCollected)}
                         </p>
                     </div>
                     <div className="w-12 h-12 bg-blue-50 rounded-xl flex items-center justify-center">
                         <DollarSign className="w-6 h-6 text-blue-500" />
                     </div>
                 </div>
-
                 <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm flex items-center justify-between hover:shadow-md transition-shadow">
                     <div>
                         <p className="text-gray-500 text-xs font-bold uppercase tracking-wider">Empresas Ativas</p>
@@ -516,6 +587,5 @@ export default function SuperAdminDashboard() {
                     </div>
                 </div>
             </div>
-        </div>
-    );
+            );
 }
