@@ -132,9 +132,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                     await supabase.auth.signOut();
                     throw new Error('Sua conta foi rejeitada e você não pode acessar o sistema.');
                 }
-                if (profileData.status === 'pending') {
-                    // Não lança erro, mas redireciona via UI para a página de espera
-                    console.log('User is pending approval');
+                if (profileData.status === 'pending' && profileData.email !== 'mansurmuquissirimaregulo13@gmail.com') {
+                    // Critical Security Fix: Force logout and throw error for pending users
+                    await supabase.auth.signOut();
+                    throw new Error('Conta pendente de aprovação. Aguarde a liberação do administrador.');
                 }
             }
         }

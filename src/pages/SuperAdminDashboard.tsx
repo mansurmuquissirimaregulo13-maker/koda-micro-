@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
+import { supabase } from '../lib/supabase';
 import {
     Users,
     Building2,
@@ -10,6 +11,7 @@ import {
     TrendingUp,
     DollarSign,
     Trash2,
+    AlertTriangle,
 } from 'lucide-react';
 import {
     getPendingUsers,
@@ -175,6 +177,52 @@ export default function SuperAdminDashboard() {
             fetchData();
         } catch (error: any) {
             toast.error('Erro ao excluir empresa: ' + error.message);
+        }
+    };
+
+    const handleSystemReset = async () => {
+        if (!confirm('PERIGO: Esta ação apagará TODOS os dados do sistema (exceto sua conta de Super Admin).')) return;
+        if (!confirm('TEM CERTEZA ABSOLUTA? Esta ação não pode ser desfeita.')) return;
+
+        const adminValidation = prompt('Digite "CONFIRMAR" para prosseguir:');
+        if (adminValidation !== 'CONFIRMAR') {
+            toast.error('Confirmação incorreta. Operação cancelada.');
+            return;
+        }
+
+        setLoading(true);
+        try {
+            // 1. Delete all credits
+            const { error: creditsError } = await supabase.from('credits').delete().neq('id', '00000000-0000-0000-0000-000000000000'); // Delete all
+            if (creditsError) throw creditsError;
+
+            // 2. Delete all clients
+            const { error: clientsError } = await supabase.from('clients').delete().neq('id', '00000000-0000-0000-0000-000000000000'); // Delete all
+            if (clientsError) throw clientsError;
+
+            // 3. Delete other companies (exclude admin's company if any)
+            if (user?.id) {
+                const { error: companiesError } = await supabase
+                    .from('companies')
+                    .delete()
+                    .neq('owner_id', user.id);
+                if (companiesError) throw companiesError;
+
+                // 4. Delete other user profiles
+                const { error: profilesError } = await supabase
+                    .from('user_profiles')
+                    .delete()
+                    .neq('id', user.id);
+                if (profilesError) throw profilesError;
+            }
+
+            toast.success('Sistema resetado com sucesso! Apenas sua conta admin foi mantida.');
+            fetchData();
+        } catch (error: any) {
+            console.error('System reset error:', error);
+            toast.error('Erro ao resetar sistema: ' + error.message);
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -585,6 +633,31 @@ export default function SuperAdminDashboard() {
                     <div className="w-12 h-12 bg-gray-50 rounded-xl flex items-center justify-center">
                         <Building2 className="w-6 h-6 text-gray-400" />
                     </div>
+                </div>
+            </div>
+
+            {/* Danger Zone */}
+            <div className="mt-12 border border-red-200 rounded-2xl overflow-hidden bg-red-50">
+                <div className="p-6 border-b border-red-200 bg-red-100 flex items-center gap-3">
+                    <AlertTriangle className="w-6 h-6 text-red-600" />
+                    <h2 className="text-lg font-bold text-red-900">Zona de Perigo</h2>
+                </div>
+                <div className="p-6">
+                    <p className="text-red-800 mb-4">
+                        Ações aqui são irreversíveis. Tenha certeza absoluta do que está fazendo.
+                    </p>
+                    <button
+                        onClick={handleSystemReset}
+                        className="bg-red-600 text-white px-6 py-3 rounded-xl font-bold hover:bg-red-700 transition-colors shadow-lg shadow-red-900/20 flex items-center gap-2"
+                    >
+                        <Trash2 className="w-5 h-5" />
+                        Zerar Todo o Sistema
+                    </button>
+                    <p className="text-xs text-red-600 mt-3">
+                        * Isso apagará todas as empresas, clientes e usuários, mantendo apenas sua conta de Super Admin.
+                        <br />
+                        * Nota: Os logins (E-mail/Senha) devem ser removidos manualmente no painel do Supabase se desejar reutilizar os mesmos e-mails.
+                    </p>
                 </div>
             </div>
         </div>

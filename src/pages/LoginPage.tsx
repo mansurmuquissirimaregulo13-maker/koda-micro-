@@ -31,7 +31,7 @@ export function LoginPage() {
           .eq('id', user.id)
           .maybeSingle();
 
-        if (profile?.status === 'pending') {
+        if (profile?.status === 'pending' && profile.email !== 'mansurmuquissirimaregulo13@gmail.com') {
           navigate('/pending-approval');
         } else if (profile?.email === 'mansurmuquissirimaregulo13@gmail.com' || profile?.role === 'super_admin') {
           navigate('/admin/dashboard');
@@ -40,6 +40,10 @@ export function LoginPage() {
         }
       }
     } catch (err: any) {
+      if (err.message === 'Conta pendente de aprovação. Aguarde a liberação do administrador.') {
+        navigate('/pending-approval');
+        return;
+      }
       setError(err.message || 'Email ou senha incorretos.');
     } finally {
       setLoading(false);
