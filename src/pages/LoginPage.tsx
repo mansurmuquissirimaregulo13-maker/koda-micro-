@@ -1,8 +1,4 @@
-import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { CreditCard, Lock, Mail } from 'lucide-react';
-import { useAuth } from '../hooks/useAuth';
-import { supabase } from '../lib/supabase';
+import { toast } from 'sonner';
 
 export function LoginPage() {
   const [email, setEmail] = useState('');
@@ -13,12 +9,21 @@ export function LoginPage() {
   const { signIn } = useAuth();
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+    if (e) e.preventDefault();
+    console.log('Login form submitted');
     setError('');
+
+    if (!email || !password) {
+      setError('Por favor, preencha todos os campos.');
+      return;
+    }
+
     setLoading(true);
+    const toastId = toast.loading('Autenticando...');
 
     try {
       await signIn(email, password);
+      toast.success('Login realizado com sucesso!', { id: toastId });
 
       // Get the user after sign in
       const { data: { user } } = await supabase.auth.getUser();
@@ -40,6 +45,7 @@ export function LoginPage() {
         }
       }
     } catch (err: any) {
+      toast.error(err.message || 'Erro ao entrar.', { id: toastId });
       if (err.message === 'Conta pendente de aprovação. Aguarde a liberação do administrador.') {
         navigate('/pending-approval');
         return;
@@ -52,8 +58,8 @@ export function LoginPage() {
 
   return (
     <div className="min-h-[100dvh] bg-[#F7F7F2] flex items-center justify-center p-4">
-      <div className="bg-white w-full max-w-md rounded-2xl shadow-xl border border-gray-200 overflow-hidden relative z-10">
-        <div className="bg-[#1B3A2D] p-8 text-center">
+      <div className="bg-white w-full max-w-md rounded-2xl shadow-xl border border-gray-200 relative z-10 transition-all">
+        <div className="bg-[#1B3A2D] p-8 text-center rounded-t-2xl">
           <div className="w-16 h-16 bg-white/10 rounded-2xl flex items-center justify-center mx-auto mb-4">
             <CreditCard className="w-8 h-8 text-white" />
           </div>
@@ -74,10 +80,10 @@ export function LoginPage() {
               <div className="relative">
                 <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
                 <input
-                  type="text"
+                  type="email" // Changed to email for better mobile keyboard
                   required
-                  className="w-full pl-10 pr-4 py-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#40916C] focus:border-transparent outline-none appearance-none text-base"
-                  style={{ fontSize: '16px' }} // Fix for iOS zoom
+                  className="w-full pl-10 pr-4 py-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#40916C] focus:border-transparent outline-none appearance-none text-base bg-white"
+                  style={{ fontSize: '16px' }}
                   placeholder="seu-email@exemplo.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
@@ -92,8 +98,8 @@ export function LoginPage() {
                 <input
                   type="password"
                   required
-                  className="w-full pl-10 pr-4 py-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#40916C] focus:border-transparent outline-none appearance-none text-base"
-                  style={{ fontSize: '16px' }} // Fix for iOS zoom
+                  className="w-full pl-10 pr-4 py-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#40916C] focus:border-transparent outline-none appearance-none text-base bg-white"
+                  style={{ fontSize: '16px' }}
                   placeholder="••••••••"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
@@ -110,7 +116,8 @@ export function LoginPage() {
             <button
               type="submit"
               disabled={loading}
-              className={`w-full bg-[#1B3A2D] text-white py-4 rounded-xl font-bold text-lg hover:bg-[#2D6A4F] active:bg-[#12261d] transition-all transform active:scale-[0.98] shadow-lg shadow-green-900/20 disabled:opacity-50 disabled:cursor-not-allowed relative z-50 touch-manipulation flex items-center justify-center min-h-[56px] ${loading ? 'cursor-not-allowed' : 'cursor-pointer'}`}
+              className={`w-full bg-[#1B3A2D] text-white py-4 rounded-xl font-bold text-lg hover:bg-[#2D6A4F] active:bg-[#12261d] transition-all transform active:scale-[0.98] shadow-lg shadow-green-900/20 disabled:opacity-50 disabled:cursor-not-allowed relative z-50 touch-manipulation flex items-center justify-center min-h-[60px] cursor-pointer`}
+              onClick={() => console.log('Button clicked')}
             >
               {loading ? (
                 <div className="flex items-center gap-3">
