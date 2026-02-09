@@ -186,7 +186,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                     .from('user_profiles')
                     .update({
                         company_id: companyId,
-                        role: 'admin'
+                        role: 'admin',
+                        status: 'pending' // Force pending status
                     })
                     .eq('id', data.user.id);
 
@@ -197,7 +198,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
                 // 3. Notificar via Email (Fail-safe)
                 try {
-                    const emailApiUrl = '/api/send-email';
+                    // Use absolute URL to ensure it works on localhost too (if pointing to prod API)
+                    const baseUrl = import.meta.env.VITE_API_URL || window.location.origin;
+                    const emailApiUrl = `${baseUrl}/api/send-email`;
+                    console.log('Sending emails to:', emailApiUrl);
                     console.log('Sending emails via relative path:', emailApiUrl);
 
                     // Notificar Admin (Mansur)
