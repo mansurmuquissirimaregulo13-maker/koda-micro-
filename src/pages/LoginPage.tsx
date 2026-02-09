@@ -76,7 +76,8 @@ export function LoginPage() {
                 <input
                   type="text"
                   required
-                  className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#40916C] focus:border-transparent outline-none appearance-none"
+                  className="w-full pl-10 pr-4 py-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#40916C] focus:border-transparent outline-none appearance-none text-base"
+                  style={{ fontSize: '16px' }} // Fix for iOS zoom
                   placeholder="seu-email@exemplo.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
@@ -91,7 +92,8 @@ export function LoginPage() {
                 <input
                   type="password"
                   required
-                  className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#40916C] focus:border-transparent outline-none appearance-none"
+                  className="w-full pl-10 pr-4 py-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#40916C] focus:border-transparent outline-none appearance-none text-base"
+                  style={{ fontSize: '16px' }} // Fix for iOS zoom
                   placeholder="••••••••"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
@@ -100,7 +102,7 @@ export function LoginPage() {
             </div>
 
             {error && (
-              <div className="text-red-500 text-sm text-center bg-red-50 p-3 rounded-lg animate-fade-in">
+              <div className="text-red-500 text-sm text-center bg-red-50 p-3 rounded-lg animate-fade-in border border-red-100">
                 {error}
               </div>
             )}
@@ -108,14 +110,16 @@ export function LoginPage() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-[#1B3A2D] text-white py-4 rounded-xl font-bold text-lg hover:bg-[#2D6A4F] transition-all transform active:scale-[0.96] shadow-lg shadow-green-900/20 disabled:opacity-50 disabled:cursor-not-allowed relative z-30 touch-manipulation"
+              className={`w-full bg-[#1B3A2D] text-white py-4 rounded-xl font-bold text-lg hover:bg-[#2D6A4F] active:bg-[#12261d] transition-all transform active:scale-[0.98] shadow-lg shadow-green-900/20 disabled:opacity-50 disabled:cursor-not-allowed relative z-50 touch-manipulation flex items-center justify-center min-h-[56px] ${loading ? 'cursor-not-allowed' : 'cursor-pointer'}`}
             >
               {loading ? (
-                <span className="flex items-center justify-center gap-2">
+                <div className="flex items-center gap-3">
                   <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                  Entrando...
-                </span>
-              ) : 'Entrar no Sistema'}
+                  <span>Entrando...</span>
+                </div>
+              ) : (
+                <span>Entrar no Sistema</span>
+              )}
             </button>
           </form>
 
