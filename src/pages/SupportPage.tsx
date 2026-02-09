@@ -2,7 +2,6 @@ import {
     HelpCircle,
     MessageCircle,
     Mail,
-    Phone,
     Clock,
     ChevronRight,
     ExternalLink

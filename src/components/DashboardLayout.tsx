@@ -8,6 +8,7 @@ import { CreditsPage } from '../pages/CreditsPage';
 import { ReportsPage } from '../pages/ReportsPage';
 import { SettingsPage } from '../pages/SettingsPage';
 import { AdminUsersPage } from '../pages/AdminUsersPage';
+import { SupportPage } from '../pages/SupportPage';
 import SuperAdminDashboard from '../pages/SuperAdminDashboard';
 import { LoadingScreen } from './LoadingScreen';
 import { Modal } from './Modal';
