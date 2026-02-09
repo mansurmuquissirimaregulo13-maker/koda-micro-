@@ -1,7 +1,9 @@
-import nodemailer from 'nodemailer';
+import { Resend } from 'resend';
 import dotenv from 'dotenv';
 
 dotenv.config();
+
+const resend = new Resend(process.env.RESEND_API_KEY);
 
 export default async function handler(req, res) {
     // CORS support
@@ -20,23 +22,20 @@ export default async function handler(req, res) {
     }
 
     try {
-        const transporter = nodemailer.createTransport({
-            service: 'gmail',
-            auth: {
-                user: process.env.EMAIL_USER, // Your Gmail address
-                pass: process.env.EMAIL_PASS  // Your Gmail App Password
-            }
-        });
-
-        const info = await transporter.sendMail({
-            from: `"Koda Admin" <${process.env.EMAIL_USER}>`,
-            to: email,
+        const { data, error } = await resend.emails.send({
+            from: 'Koda Admin <onboarding@resend.dev>',
+            to: [email],
             subject: subject,
             html: html,
         });
 
-        console.log('Message sent: %s', info.messageId);
-        return res.status(200).json({ data: info });
+        if (error) {
+            console.error('Resend API Error:', error);
+            return res.status(400).json({ error: error.message });
+        }
+
+        console.log('Email sent successfully:', data);
+        return res.status(200).json({ data });
 
     } catch (error) {
         console.error('Server error sending email:', error);
