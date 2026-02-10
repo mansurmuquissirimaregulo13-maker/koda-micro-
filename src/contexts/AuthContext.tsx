@@ -164,54 +164,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             if (data.user) {
                 console.log('User created. Database trigger will handle profile and company creation.');
 
-                // 3. Notificar via Email (Fail-safe)
+                // 3. Notificar via Edge Function (Centralizado)
                 try {
-                    const baseUrl = import.meta.env.VITE_API_URL || window.location.origin;
+                    const baseUrl = window.location.origin;
                     const emailApiUrl = `${baseUrl}/api/send-email`;
 
-                    // Notificar Admin (Mansur)
                     await fetch(emailApiUrl, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({
-                            email: 'mansurmuquissirimaregulo13@gmail.com',
-                            subject: '🚨 Novo Cadastro no Koda Admin',
-                            html: `
-                                    <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #eee; padding: 20px; border-radius: 10px;">
-                                    <h1 style="color: #1B3A2D;">Novo Cadastro de Empresa</h1>
-                                    <p>Um novo usuário se registrou e está aguardando sua aprovação.</p>
-                                    <hr style="border: 0; border-top: 1px solid #eee;">
-                                    <p><strong>Nome:</strong> ${fullName}</p>
-                                    <p><strong>Email:</strong> ${email}</p>
-                                    <p><strong>Empresa:</strong> ${companyName}</p>
-                                    <div style="margin-top: 30px; text-align: center;">
-                                        <a href="https://kodamicro.vercel.app/admin/dashboard" style="background: #1B3A2D; color: white; padding: 12px 25px; text-decoration: none; border-radius: 5px; font-weight: bold;">Ver no Painel</a>
-                                    </div>
-                                </div>
-`
-                        })
-                    }).catch(err => console.warn('Admin email failed silentely:', err));
-
-                    // Notificar Usuário (Cliente)
-                    await fetch(emailApiUrl, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
+                            type: 'new_registration',
                             email: email,
-                            subject: 'Bem-vindo ao Koda - Aguardando Aprovação',
-                            html: `
-                                    <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #eee; padding: 20px; border-radius: 10px;">
-                                    <h1 style="color: #1B3A2D;">Olá ${fullName}!</h1>
-                                    <p>Obrigado por se cadastrar na <strong>Koda Microcrédito</strong>.</p>
-                                    <p>Seu perfil foi criado com sucesso para a empresa <strong>${companyName}</strong>.</p>
-                                    <div style="background: #fffbeb; border-left: 4px solid #f59e0b; padding: 15px; margin: 20px 0;">
-                                        <p style="color: #92400e; margin: 0;"><strong>⚠️ Importante:</strong> Sua conta está sob análise e será ativada por um administrador em breve.</p>
-                                    </div>
-                                    <p>Você receberá outro e-mail assim que sua conta for aprovada.</p>
-                                </div >
-    `
+                            full_name: fullName,
+                            company_name: companyName
                         })
-                    }).catch(err => console.warn('User email failed silentely:', err));
+                    }).catch(err => console.warn('PWA notification failed silently:', err));
 
                 } catch (notifyErr) {
                     console.warn('Email notification system error (non-blocking):', notifyErr);

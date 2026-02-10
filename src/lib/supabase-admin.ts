@@ -1,5 +1,4 @@
 import { supabase } from './supabase';
-import { APP_URL } from '../config';
 
 export interface UserProfile {
     id: string;
@@ -262,67 +261,34 @@ export async function deleteUser(userId: string): Promise<void> {
 
 // Helper to call notification Edge Function
 async function notifyStatusChange(email: string, fullName: string, status: 'approved' | 'rejected' | 'removed') {
-    let subject = '';
-    let htmlContent = '';
-
-    if (status === 'approved') {
-        subject = 'Sua conta Koda foi Aprovada!';
-        htmlContent = `
-            <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
-                <h1 style="color: #166534;">Conta Aprovada!</h1>
-                <p>Olá ${fullName},</p>
-                <p>Sua conta na Koda Microcrédito foi aprovada com sucesso.</p>
-                <p>Você já pode acessar o sistema utilizando o botão abaixo:</p>
-                <div style="text-align: center; margin: 30px 0;">
-                    <a href="${APP_URL}/login" style="background-color: #166534; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold;">Acessar Sistema</a>
-                </div>
-                <p style="font-size: 12px; color: #666;">Se o botão não funcionar, copie e cole este link: ${APP_URL}/login</p>
-            </div>
-        `;
-    } else if (status === 'rejected') {
-        subject = 'Atualização sobre sua conta Koda';
-        htmlContent = `
-            <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
-                <h1 style="color: #991b1b;">Conta Não Aprovada</h1>
-                <p>Olá ${fullName},</p>
-                <p>Informamos que seu cadastro na Koda Microcrédito não foi aprovado neste momento.</p>
-                <p>Se você acredita que isso é um erro, entre em contato com o suporte.</p>
-            </div>
-        `;
-    } else if (status === 'removed') {
-        subject = 'Sua conta Koda foi removida';
-        htmlContent = `
-            <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
-                <h1 style="color: #991b1b;">Conta Removida</h1>
-                <p>Olá ${fullName},</p>
-                <p>Informamos que sua conta na Koda Microcrédito foi removida.</p>
-                <p>Se você acredita que isso é um erro, entre em contato com o suporte.</p>
-            </div>
-        `;
-    }
-
     try {
-        // Use relative path for production compatibility
-        const response = await fetch('/api/send-email', {
+        const baseUrl = window.location.origin;
+        const emailApiUrl = `${baseUrl}/api/send-email`;
+
+        // Map status to Edge Function type
+        const type = status === 'removed' ? 'removed' : 'status_update';
+
+        const response = await fetch(emailApiUrl, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify({
+                type,
                 email,
-                subject,
-                html: htmlContent
+                full_name: fullName,
+                status
             })
         });
 
         if (!response.ok) {
             const errorData = await response.json().catch(() => ({}));
-            console.warn('Failed to send email:', errorData);
+            console.warn('Failed to send status notification:', errorData);
             return;
         }
 
         const data = await response.json();
-        console.log('Notification successful:', data);
+        console.log('Status notification successful:', data);
     } catch (err) {
         console.warn('Failed to call notification service:', err);
     }
