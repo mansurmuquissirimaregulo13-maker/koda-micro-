@@ -9,6 +9,7 @@ import {
   LogOut,
   ChevronRight,
   Shield,
+  MessageSquare,
 } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
 
@@ -46,6 +47,12 @@ export function Sidebar({ currentPage, onNavigate, isOpen }: SidebarProps) {
       label: 'Relatórios',
       icon: BarChart3,
       path: '/reports',
+    },
+    {
+      id: 'messages',
+      label: 'Mensagens',
+      icon: MessageSquare,
+      path: '/messages',
     },
   ];
 

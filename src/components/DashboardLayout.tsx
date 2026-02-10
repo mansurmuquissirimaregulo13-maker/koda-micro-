@@ -9,6 +9,7 @@ import { ReportsPage } from '../pages/ReportsPage';
 import { SettingsPage } from '../pages/SettingsPage';
 import { AdminUsersPage } from '../pages/AdminUsersPage';
 import { SupportPage } from '../pages/SupportPage';
+import { MessagesPage } from '../pages/MessagesPage';
 import SuperAdminDashboard from '../pages/SuperAdminDashboard';
 import { LoadingScreen } from './LoadingScreen';
 import { Modal } from './Modal';
@@ -76,6 +77,8 @@ export function DashboardLayout() {
                 return <SettingsPage />;
             case 'support':
                 return <SupportPage />;
+            case 'messages':
+                return <MessagesPage />;
             case 'admin/dashboard':
                 return <SuperAdminDashboard />;
             case 'admin/users':
@@ -104,6 +107,8 @@ export function DashboardLayout() {
                 return 'Configurações';
             case 'support':
                 return 'Suporte';
+            case 'messages':
+                return 'Centro de Mensagens';
             case 'admin/dashboard':
                 return 'Painel de Gestão Admin';
             case 'admin/users':

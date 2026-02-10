@@ -54,6 +54,14 @@ export function App() {
             }
           />
           <Route
+            path="/messages"
+            element={
+              <ProtectedRoute>
+                <DashboardLayout />
+              </ProtectedRoute>
+            }
+          />
+          <Route
             path="/settings"
             element={
               <ProtectedRoute>

@@ -2,12 +2,43 @@ import { useEffect, useState } from 'react';
 import { API_URL } from '../config';
 import { QRCodeSVG } from 'qrcode.react';
 import { io } from 'socket.io-client';
-import { MessageSquare, RefreshCw, CheckCircle2, AlertCircle, Smartphone } from 'lucide-react';
+import { MessageSquare, RefreshCw, CheckCircle2, AlertCircle, Smartphone, Send } from 'lucide-react';
+import { toast } from 'sonner';
 
 export function WhatsAppSettings() {
     const [qrCode, setQrCode] = useState<string | null>(null);
     const [status, setStatus] = useState<'disconnected' | 'connected' | 'ready'>('disconnected');
     const [loading, setLoading] = useState(true);
+    const [testMessageLoading, setTestMessageLoading] = useState(false);
+    const [testPhone, setTestPhone] = useState('');
+
+    const handleTestMessage = async () => {
+        if (!testPhone) {
+            toast.error('Insira um número para o teste.');
+            return;
+        }
+        setTestMessageLoading(true);
+        try {
+            const response = await fetch(`${API_URL}/send-message`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    phone: testPhone,
+                    message: '🚀 Teste de conexão WhatsApp - Koda Admin funcional!'
+                })
+            });
+            const data = await response.json();
+            if (data.success) {
+                toast.success('Mensagem de teste enviada!');
+            } else {
+                throw new Error(data.error);
+            }
+        } catch (err: any) {
+            toast.error(`Falha no teste: ${err.message}`);
+        } finally {
+            setTestMessageLoading(false);
+        }
+    };
 
     useEffect(() => {
         console.log('Attempting to connect to WhatsApp server at:', API_URL);
@@ -148,6 +179,39 @@ export function WhatsAppSettings() {
                         </div>
                     )}
                 </div>
+
+                {/* Test Message Section */}
+                {status === 'ready' || status === 'connected' ? (
+                    <div className="mt-8 pt-8 border-t border-gray-100 w-full lg:col-span-2">
+                        <div className="bg-green-50/50 p-6 rounded-2xl border border-green-100 flex flex-col md:flex-row items-center gap-6">
+                            <div className="flex-1">
+                                <h4 className="font-bold text-green-900 mb-1 flex items-center gap-2">
+                                    <Send className="w-4 h-4" />
+                                    Testar Conexão
+                                </h4>
+                                <p className="text-xs text-green-700">
+                                    Envie uma mensagem de teste para verificar se o envio está funcionando corretamente.
+                                </p>
+                            </div>
+                            <div className="flex w-full md:w-auto gap-3">
+                                <input
+                                    type="text"
+                                    placeholder="Número (ex: 25884...)"
+                                    value={testPhone}
+                                    onChange={(e) => setTestPhone(e.target.value)}
+                                    className="px-4 py-2 border border-green-200 rounded-lg focus:ring-2 focus:ring-green-500 outline-none text-sm w-full md:w-48 bg-white"
+                                />
+                                <button
+                                    onClick={handleTestMessage}
+                                    disabled={testMessageLoading}
+                                    className="bg-[#166534] text-white px-6 py-2 rounded-lg font-bold text-sm hover:bg-[#14532d] transition-all flex items-center gap-2 disabled:opacity-50 whitespace-nowrap"
+                                >
+                                    {testMessageLoading ? 'Enviando...' : 'Enviar Teste'}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                ) : null}
             </div>
         </div>
     );
