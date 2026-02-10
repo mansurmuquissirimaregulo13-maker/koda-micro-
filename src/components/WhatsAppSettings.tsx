@@ -10,26 +10,39 @@ export function WhatsAppSettings() {
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        const newSocket = io(API_URL);
+        console.log('Attempting to connect to WhatsApp server at:', API_URL);
+        const newSocket = io(API_URL, {
+            transports: ['websocket', 'polling'],
+            reconnectionAttempts: 5,
+            timeout: 10000
+        });
 
         newSocket.on('connect', () => {
-            console.log('Connected to WhatsApp server');
+            console.log('Connected to WhatsApp server successfully');
+            setLoading(false);
+        });
+
+        newSocket.on('connect_error', (err) => {
+            console.error('WhatsApp socket connection error:', err);
             setLoading(false);
         });
 
         newSocket.on('qr', (qr: string) => {
+            console.log('New WhatsApp QR Code received');
             setQrCode(qr);
             setStatus('disconnected');
             setLoading(false);
         });
 
         newSocket.on('ready', () => {
+            console.log('WhatsApp client is READY');
             setStatus('ready');
             setQrCode(null);
             setLoading(false);
         });
 
         newSocket.on('authenticated', () => {
+            console.log('WhatsApp client is AUTHENTICATED');
             setStatus('connected');
             setQrCode(null);
             setLoading(false);

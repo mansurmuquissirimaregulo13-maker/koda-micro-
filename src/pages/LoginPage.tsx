@@ -121,8 +121,11 @@ export function LoginPage() {
             <button
               type="submit"
               disabled={loading}
-              className={`w-full bg-[#1B3A2D] text-white py-4 rounded-xl font-bold text-lg hover:bg-[#2D6A4F] active:bg-[#12261d] transition-all transform active:scale-[0.98] shadow-lg shadow-green-900/20 disabled:opacity-50 disabled:cursor-not-allowed relative z-50 touch-manipulation flex items-center justify-center min-h-[60px] cursor-pointer`}
-              onClick={() => console.log('Button clicked')}
+              className={`w-full bg-[#1B3A2D] text-white py-4 rounded-xl font-bold text-lg hover:bg-[#2D6A4F] active:bg-[#12261d] transition-all transform active:scale-[0.98] shadow-lg shadow-green-900/20 disabled:opacity-50 disabled:cursor-not-allowed relative z-50 touch-manipulation flex items-center justify-center min-h-[60px] cursor-pointer select-none`}
+              onClick={() => {
+                console.log('Login button clicked');
+                if (!loading) toast.info('Processando pedido...', { duration: 1000 });
+              }}
             >
               {loading ? (
                 <div className="flex items-center gap-3">
