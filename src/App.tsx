@@ -8,11 +8,13 @@ import { SignUpPage } from './pages/SignUpPage';
 import PendingApprovalPage from './pages/PendingApprovalPage';
 import { DashboardLayout } from './components/DashboardLayout';
 import { Toaster } from 'sonner';
+import { InstallPWA } from './components/InstallPWA';
 
 export function App() {
   return (
     <AuthProvider>
       <Router>
+        <InstallPWA />
         <Routes>
           {/* Public Routes */}
           <Route path="/" element={<LandingPage />} />
