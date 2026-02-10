@@ -230,18 +230,34 @@ export async function deleteUser(userId: string): Promise<void> {
         .eq('id', userId)
         .maybeSingle();
 
-    // 2. Notify user about removal
+    // 2. Notify user about removal (Email)
     if (profile?.email) {
         await notifyStatusChange(profile.email, profile.full_name || 'Usuário', 'removed');
     }
 
-    // 3. Delete user
-    const { error } = await supabase
-        .from('user_profiles')
-        .delete()
-        .eq('id', userId);
+    // 3. Delete from Auth via Edge Function (This will cascade delete the profile record)
+    try {
+        const response = await fetch('/api/send-email', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                type: 'delete_user',
+                user_id: userId
+            })
+        });
 
-    if (error) throw error;
+        if (!response.ok) {
+            const errorData = await response.json().catch(() => ({}));
+            throw new Error(errorData.error || 'Falha ao remover usuário da Auth');
+        }
+
+        console.log('User deleted successfully from Auth and Database');
+    } catch (err) {
+        console.error('Error deleting user:', err);
+        throw err;
+    }
 }
 
 // Helper to call notification Edge Function

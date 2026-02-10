@@ -73,7 +73,33 @@ io.on('connection', (socket) => {
 const nodemailer = require('nodemailer');
 
 app.post('/api/send-email', async (req, res) => {
-    const { email, subject, html } = req.body;
+    const payload = req.body;
+
+    // If payload has a 'type' (e.g., delete_user, status_update), forward to Supabase Edge Function
+    if (payload.type) {
+        try {
+            console.log('Proxying request to Supabase Edge Function:', payload.type);
+            const SUPABASE_URL = process.env.VITE_SUPABASE_URL || 'https://ujszmgrmutidovbhnfvl.supabase.co';
+            const EDGE_FUNCTION_URL = `${SUPABASE_URL}/functions/v1/send-notification-email`;
+
+            const response = await fetch(EDGE_FUNCTION_URL, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${process.env.VITE_SUPABASE_ANON_KEY}`
+                },
+                body: JSON.stringify(payload)
+            });
+
+            const data = await response.json();
+            return res.status(response.status).json(data);
+        } catch (error) {
+            console.error('Proxy Error:', error);
+            return res.status(500).json({ error: 'Failed to proxy request to Edge Function: ' + error.message });
+        }
+    }
+
+    const { email, subject, html } = payload;
 
     if (!email || !subject || !html) {
         return res.status(400).json({ error: 'Email, subject, and html content are required' });
