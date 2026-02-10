@@ -132,15 +132,15 @@ export function Sidebar({ currentPage, onNavigate, isOpen }: SidebarProps) {
                       to={item.path}
                       onClick={onNavigate}
                       className={`
-                        w-full flex items-center justify-between px-4 py-3.5 rounded-xl text-sm font-medium transition-all
+                        w-full flex items-center justify-between px-5 py-4 lg:py-3.5 rounded-xl text-sm font-bold transition-all
                         ${isActive
-                          ? 'bg-[#40916C] text-white shadow-lg shadow-green-900/40 translate-x-1'
-                          : 'text-gray-300 hover:bg-[#2D6A4F] hover:text-white'
+                          ? 'bg-[#40916C] text-white shadow-xl shadow-green-950/40 translate-x-1'
+                          : 'text-green-100/70 hover:bg-[#2D6A4F] hover:text-white'
                         }
                       `}
                     >
                       <div className="flex items-center gap-4">
-                        <Icon className={`w-5 h-5 ${isActive ? 'text-white' : 'text-gray-400'}`} />
+                        <Icon className={`w-5 h-5 ${isActive ? 'text-white' : 'text-green-300'}`} />
                         <span>{item.label}</span>
                       </div>
                       {isActive && <ChevronRight className="w-4 h-4 opacity-50" />}

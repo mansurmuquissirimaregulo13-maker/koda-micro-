@@ -82,39 +82,39 @@ export function CreditsPage({ searchTerm = '' }: CreditsPageProps) {
   });
 
   return (
-    <div className="space-y-6 animate-in fade-in duration-500">
+    <div className="space-y-6 md:space-y-8 animate-in fade-in duration-500 px-1 md:px-0">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h2 className="text-2xl font-bold text-[#1B1B1B] font-montserrat">
+          <h2 className="text-xl md:text-2xl font-bold text-[#1B1B1B] font-montserrat tracking-tight">
             Gestão de Créditos
           </h2>
-          <p className="text-gray-500 text-sm">
+          <p className="text-gray-500 text-xs md:text-sm">
             Controle de empréstimos e pagamentos.
           </p>
         </div>
         <button
           onClick={() => setIsCreateModalOpen(true)}
-          className="px-4 py-2 bg-[#1B3A2D] text-white rounded-lg font-medium hover:bg-[#2D6A4F] transition-colors flex items-center gap-2 shadow-lg shadow-green-900/20">
+          className="w-full sm:w-auto flex items-center justify-center gap-2 px-6 py-3.5 md:py-2 bg-[#1B3A2D] text-white rounded-xl hover:bg-[#2D6A4F] transition-all shadow-lg shadow-green-900/20 font-bold text-sm">
           <Plus className="w-4 h-4" />
           Novo Crédito
         </button>
       </div>
 
-      <div className="bg-white p-4 rounded-xl border border-gray-200 shadow-sm flex items-center gap-4">
+      <div className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm flex flex-col sm:flex-row sm:items-center gap-3 md:gap-4">
         <div className="flex items-center gap-2 text-gray-500">
           <Filter className="w-4 h-4" />
-          <span className="text-sm font-medium">Filtrar por Status:</span>
+          <span className="text-xs md:text-sm font-bold uppercase tracking-wider opacity-70">Filtrar Status:</span>
         </div>
         <select
           value={statusFilter}
           onChange={(e) => setStatusFilter(e.target.value as any)}
-          className="px-3 py-1.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-[#40916C] outline-none">
-          <option value="all">Todos</option>
-          <option value="pending">Pendente</option>
-          <option value="active">Aprovado / Ativo</option>
-          <option value="paid">Pago</option>
-          <option value="overdue">Atrasado</option>
-          <option value="rejected">Rejeitado</option>
+          className="w-full sm:w-auto px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-[#40916C] outline-none font-medium text-gray-700">
+          <option value="all">Todos os Créditos</option>
+          <option value="pending">Pendentes</option>
+          <option value="active">Aprovados / Ativos</option>
+          <option value="paid">Liquidados / Pagos</option>
+          <option value="overdue">Em Atraso</option>
+          <option value="rejected">Rejeitados</option>
         </select>
       </div>
 

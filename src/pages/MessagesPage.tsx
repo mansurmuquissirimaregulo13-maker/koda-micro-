@@ -1,12 +1,10 @@
 ﻿import { useState } from "react";
-import { 
-  MessageSquare, 
-  Users, 
-  AlertCircle, 
-  CheckCircle, 
-  Info,
-  ChevronRight,
-  Shield
+import {
+    MessageSquare,
+    AlertCircle,
+    CheckCircle,
+    Info,
+    ChevronRight
 } from "lucide-react";
 import { useAppState } from "../hooks/useAppState";
 import { toast } from "sonner";
@@ -64,11 +62,11 @@ export function MessagesPage() {
     };
 
     return (
-        <div className="space-y-6 animate-in fade-in duration-500">
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div className="space-y-6 md:space-y-8 animate-in fade-in duration-500 px-1 md:px-0">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>
-                    <h1 className="text-2xl font-bold text-gray-900 font-montserrat">Centro de Mensagens</h1>
-                    <p className="text-gray-500 text-sm">Gerencie notificacoes e comunicacoes via WhatsApp</p>
+                    <h1 className="text-xl md:text-2xl font-bold text-[#1B1B1B] font-montserrat tracking-tight">Centro de Mensagens</h1>
+                    <p className="text-gray-500 text-xs md:text-sm">Gerencie notificações e comunicações via WhatsApp</p>
                 </div>
             </div>
 
@@ -87,8 +85,8 @@ export function MessagesPage() {
                                     key={type.id}
                                     onClick={() => setSelectedType(type.id as MessageType)}
                                     className={`w-full flex items-center gap-3 p-3 rounded-xl transition-all text-left ${selectedType === type.id
-                                            ? "bg-[#1B3A2D] text-white shadow-md shadow-green-900/20"
-                                            : "bg-white text-gray-600 hover:bg-gray-50 border border-transparent"
+                                        ? "bg-[#1B3A2D] text-white shadow-md shadow-green-900/20"
+                                        : "bg-white text-gray-600 hover:bg-gray-50 border border-transparent"
                                         }`}
                                 >
                                     <div className={`p-2 rounded-lg ${selectedType === type.id ? "bg-white/20" : type.color}`}>

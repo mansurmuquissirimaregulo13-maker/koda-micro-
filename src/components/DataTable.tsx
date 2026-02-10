@@ -45,16 +45,15 @@ export function DataTable<
   return (
     <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
       {searchable &&
-        <div className="p-4 border-b border-gray-100 flex items-center gap-3">
-          <div className="relative flex-1 max-w-md">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+        <div className="p-4 md:p-6 border-b border-gray-100">
+          <div className="relative w-full max-w-md">
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 md:w-5 h-4 md:h-5 text-gray-400" />
             <input
               type="text"
               placeholder={searchPlaceholder}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#40916C] focus:border-transparent" />
-
+              className="w-full pl-11 pr-4 py-3.5 md:py-2.5 text-base md:text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#40916C] focus:border-transparent bg-gray-50/50" />
           </div>
         </div>
       }

@@ -12,6 +12,7 @@ import {
     DollarSign,
     Trash2,
     AlertTriangle,
+    Mail,
 } from 'lucide-react';
 import {
     getPendingUsers,
@@ -368,40 +369,46 @@ export default function SuperAdminDashboard() {
                                 </table>
 
                                 {/* Mobile Card View */}
-                                <div className="grid grid-cols-1 divide-y divide-gray-100 md:hidden">
+                                <div className="grid grid-cols-1 divide-y divide-gray-100 md:hidden bg-white">
                                     {filteredCompanies.length === 0 ? (
                                         <div className="p-12 text-center text-gray-500 italic">Nenhuma empresa encontrada.</div>
                                     ) : (
                                         filteredCompanies.map((company) => (
-                                            <div key={company.id} className="p-4 space-y-4">
+                                            <div key={company.id} className="p-5 space-y-4 hover:bg-gray-50/50 transition-colors">
                                                 <div className="flex justify-between items-start">
                                                     <div>
-                                                        <div className="font-bold text-gray-900">{company.name}</div>
-                                                        <div className="text-xs text-gray-500">{company.created_at ? new Date(company.created_at).toLocaleDateString('pt-BR') : '---'}</div>
+                                                        <div className="font-bold text-gray-900 text-base">{company.name}</div>
+                                                        <div className="text-[10px] text-gray-400 mt-1 uppercase font-bold tracking-wider">ID: {company.id.slice(0, 8)}...</div>
                                                     </div>
-                                                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${company.status === 'approved' ? 'bg-green-100 text-green-800' :
-                                                        company.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
-                                                            'bg-red-100 text-red-800'
+                                                    <span className={`inline-flex items-center px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${company.status === 'approved' ? 'bg-green-100 text-green-800 border border-green-200' :
+                                                        company.status === 'pending' ? 'bg-yellow-100 text-yellow-800 border border-yellow-200' :
+                                                            'bg-red-100 text-red-800 border border-red-200'
                                                         }`}>
                                                         {company.status === 'approved' ? 'Aprovada' :
                                                             company.status === 'pending' ? 'Pendente' : 'Rejeitada'}
                                                     </span>
                                                 </div>
-                                                <div className="text-sm">
-                                                    <div className="text-gray-600 font-medium">Dono: {company.owner?.full_name || 'Desconhecido'}</div>
-                                                    <div className="text-gray-400">{company.owner?.email}</div>
+                                                <div className="bg-gray-50 p-4 rounded-xl space-y-2 border border-gray-100">
+                                                    <div className="flex items-center gap-2 text-sm">
+                                                        <Users className="w-4 h-4 text-gray-400" />
+                                                        <span className="text-gray-600 font-medium">Dono: <span className="text-gray-900">{company.owner?.full_name || 'Desconhecido'}</span></span>
+                                                    </div>
+                                                    <div className="flex items-center gap-2 text-xs">
+                                                        <Mail className="w-3.5 h-3.5 text-gray-400" />
+                                                        <span className="text-gray-500 truncate">{company.owner?.email}</span>
+                                                    </div>
                                                 </div>
                                                 {company.status === 'pending' && (
-                                                    <div className="flex gap-2 pt-2">
+                                                    <div className="flex gap-3 pt-2">
                                                         <button
                                                             onClick={() => handleApproveCompany(company.id)}
-                                                            className="flex-1 bg-green-600 text-white py-2 rounded-lg font-medium flex items-center justify-center gap-2"
+                                                            className="flex-1 bg-green-600 text-white py-3.5 rounded-xl font-bold text-xs flex items-center justify-center gap-2 shadow-lg shadow-green-900/10 active:scale-95 transition-all"
                                                         >
                                                             <Check className="w-4 h-4" /> Aprovar
                                                         </button>
                                                         <button
                                                             onClick={() => handleRejectCompany(company.id)}
-                                                            className="flex-1 bg-red-50 text-red-600 py-2 rounded-lg font-medium flex items-center justify-center gap-2 border border-red-100"
+                                                            className="flex-1 bg-white text-red-600 py-3.5 rounded-xl font-bold text-xs flex items-center justify-center gap-2 border border-red-100 hover:bg-red-50 active:scale-95 transition-all"
                                                         >
                                                             <X className="w-4 h-4" /> Rejeitar
                                                         </button>
@@ -410,9 +417,9 @@ export default function SuperAdminDashboard() {
                                                 {company.status !== 'pending' && (
                                                     <button
                                                         onClick={() => handleDeleteCompany(company.id)}
-                                                        className="w-full flex items-center justify-center gap-2 py-2 text-sm text-red-600 bg-red-50 rounded-lg hover:bg-red-100 transition-colors"
+                                                        className="w-full flex items-center justify-center gap-2 py-3 text-xs font-bold text-red-600 bg-red-50/50 hover:bg-red-50 rounded-xl transition-colors border border-red-50"
                                                     >
-                                                        <Trash2 className="w-4 h-4" /> Excluir Empresa
+                                                        <Trash2 className="w-4 h-4" /> Excluir Registro
                                                     </button>
                                                 )}
                                             </div>

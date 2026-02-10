@@ -55,11 +55,10 @@ export function DashboardPage({
   });
 
   return (
-    <div className="space-y-8 animate-in fade-in duration-500">
+    <div className="space-y-6 md:space-y-8 animate-in fade-in duration-500 px-1 md:px-0">
       {/* Info section removed as emails are now handled via Gmail SMTP */}
 
-
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-6">
         <StatCard
           title="Clientes"
           value={stats.totalClients.toString()}
@@ -90,7 +89,7 @@ export function DashboardPage({
           trend="up"
           trendValue="Recuperado" />
 
-        <div className={`${stats.overdueCredits > 0 ? 'animate-pulse-subtle ring-2 ring-red-100' : ''} rounded-xl`}>
+        <div className={`${stats.overdueCredits > 0 ? 'animate-pulse-subtle ring-2 ring-red-100 col-span-2 md:col-span-1' : 'col-span-2 md:col-span-1'} rounded-xl`}>
           <StatCard
             title="Créditos Atrasados"
             value={stats.overdueCredits.toString()}
@@ -101,19 +100,19 @@ export function DashboardPage({
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        <div className="lg:col-span-2 space-y-8">
-          <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
-            <div className="flex items-center justify-between mb-6">
-              <h3 className="text-lg font-bold text-[#1B1B1B] font-montserrat">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 md:gap-8">
+        <div className="lg:col-span-2 space-y-6 md:space-y-8">
+          <div className="bg-white p-4 md:p-6 rounded-xl border border-gray-200 shadow-sm">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+              <h3 className="text-base md:text-lg font-bold text-[#1B1B1B] font-montserrat">
                 Desempenho de Empréstimos
               </h3>
-              <select className="text-sm border-gray-200 rounded-lg text-gray-500">
+              <select className="text-xs md:text-sm border-gray-200 rounded-lg text-gray-500 p-2 bg-gray-50 outline-none focus:ring-2 focus:ring-[#40916C]">
                 <option>Últimos 6 meses</option>
                 <option>Este ano</option>
               </select>
             </div>
-            <div className="h-[300px] w-full">
+            <div className="h-[220px] md:h-[300px] w-full">
               <ResponsiveContainer width="100%" height="100%">
                 <LineChart data={chartData}>
                   <CartesianGrid
@@ -124,17 +123,18 @@ export function DashboardPage({
                     dataKey="name"
                     axisLine={false}
                     tickLine={false}
-                    tick={{ fill: '#9CA3AF' }}
+                    tick={{ fill: '#9CA3AF', fontSize: 10 }}
                     dy={10} />
                   <YAxis
                     axisLine={false}
                     tickLine={false}
-                    tick={{ fill: '#9CA3AF' }} />
+                    tick={{ fill: '#9CA3AF', fontSize: 10 }} />
                   <Tooltip
                     contentStyle={{
                       borderRadius: '8px',
                       border: 'none',
-                      boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)'
+                      boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)',
+                      fontSize: '12px'
                     }} />
                   <Line
                     type="monotone"
@@ -153,8 +153,8 @@ export function DashboardPage({
             </div>
           </div>
 
-          <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
-            <h3 className="text-lg font-bold text-[#1B1B1B] font-montserrat mb-4 flex items-center gap-2">
+          <div className="bg-white p-4 md:p-6 rounded-xl border border-gray-200 shadow-sm">
+            <h3 className="text-base md:text-lg font-bold text-[#1B1B1B] font-montserrat mb-4 flex items-center gap-2">
               <CheckCircle className="w-5 h-5 text-green-500" />
               Clientes em Dia (Sem Dívidas)
             </h3>
@@ -163,7 +163,7 @@ export function DashboardPage({
                 paidClients.map((client) => (
                   <span
                     key={client.id}
-                    className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-green-50 text-green-700 border border-green-100">
+                    className="inline-flex items-center px-3 py-1 rounded-full text-[10px] md:text-xs font-medium bg-green-50 text-green-700 border border-green-100">
                     {client.name}
                   </span>
                 ))
@@ -181,22 +181,22 @@ export function DashboardPage({
         </div>
       </div>
 
-      <div className="grid grid-cols-1 gap-8">
+      <div className="grid grid-cols-1 gap-6 md:gap-8">
         <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
-          <div className="p-6 border-b border-gray-100 flex items-center justify-between">
-            <h3 className="text-lg font-bold text-[#1B1B1B] font-montserrat">
+          <div className="p-4 md:p-6 border-b border-gray-100 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <h3 className="text-base md:text-lg font-bold text-[#1B1B1B] font-montserrat">
               Créditos Recentes
             </h3>
-            <div className="flex flex-col sm:flex-row gap-2">
+            <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
               <button
                 onClick={onNewClient}
-                className="px-4 py-2 text-sm font-semibold text-[#1B3A2D] bg-[#D8F3DC] rounded-xl hover:bg-[#b7e4c0] transition-all flex items-center justify-center gap-2 active:scale-95">
+                className="w-full sm:w-auto px-6 py-3.5 md:py-2 text-sm font-bold text-[#1B3A2D] bg-[#D8F3DC] rounded-xl hover:bg-[#b7e4c0] transition-all flex items-center justify-center gap-2 active:scale-95 shadow-sm">
                 <Plus className="w-4 h-4" />
                 Novo Cliente
               </button>
               <button
                 onClick={onNewCredit}
-                className="px-4 py-2 text-sm font-semibold text-white bg-[#1B3A2D] rounded-xl hover:bg-[#2D6A4F] transition-all flex items-center justify-center gap-2 shadow-sm active:scale-95">
+                className="w-full sm:w-auto px-6 py-3.5 md:py-2 text-sm font-bold text-white bg-[#1B3A2D] rounded-xl hover:bg-[#2D6A4F] transition-all flex items-center justify-center gap-2 shadow-lg shadow-green-900/20 active:scale-95">
                 <Plus className="w-4 h-4" />
                 Novo Crédito
               </button>

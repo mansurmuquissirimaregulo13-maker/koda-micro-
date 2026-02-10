@@ -142,19 +142,19 @@ export function ClientsPage({ searchTerm = '' }: ClientsPageProps) {
   ];
 
   return (
-    <div className="space-y-6 animate-in fade-in duration-500">
+    <div className="space-y-6 md:space-y-8 animate-in fade-in duration-500 px-1 md:px-0">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h2 className="text-2xl font-bold text-[#1B1B1B] font-montserrat">
+          <h2 className="text-xl md:text-2xl font-bold text-[#1B1B1B] font-montserrat tracking-tight">
             Gestão de Clientes
           </h2>
-          <p className="text-gray-500 text-sm">
+          <p className="text-gray-500 text-xs md:text-sm">
             Visualize e faça a gestão da sua base de clientes.
           </p>
         </div>
         <button
           onClick={handleAddNew}
-          className="flex items-center justify-center gap-2 px-4 py-2 bg-[#1B3A2D] text-white rounded-lg hover:bg-[#2D6A4F] transition-all shadow-lg shadow-green-900/10 font-medium"
+          className="w-full sm:w-auto flex items-center justify-center gap-2 px-6 py-3.5 md:py-2 bg-[#1B3A2D] text-white rounded-xl hover:bg-[#2D6A4F] transition-all shadow-lg shadow-green-900/20 font-bold text-sm"
         >
           <Plus className="w-4 h-4" />
           Novo Cliente

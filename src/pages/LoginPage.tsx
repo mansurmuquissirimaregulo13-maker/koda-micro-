@@ -62,16 +62,16 @@ export function LoginPage() {
   };
 
   return (
-    <div className="min-h-[100dvh] bg-[#F7F7F2] flex items-center justify-center p-4">
-      <div className="bg-white w-full max-w-md rounded-2xl shadow-xl border border-gray-200 relative z-10 transition-all">
-        <div className="bg-[#1B3A2D] p-8 text-center rounded-t-2xl">
-          <div className="w-16 h-16 bg-white/10 rounded-2xl flex items-center justify-center mx-auto mb-4">
-            <CreditCard className="w-8 h-8 text-white" />
+    <div className="min-h-[100dvh] bg-[#F7F7F2] flex items-center justify-center p-4 md:p-6 lg:p-8">
+      <div className="bg-white w-full max-w-md rounded-3xl shadow-2xl border border-gray-100 relative z-10 transition-all overflow-hidden">
+        <div className="bg-[#1B3A2D] p-10 md:p-8 text-center">
+          <div className="w-16 h-16 md:w-16 md:h-16 bg-white/10 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-inner ring-1 ring-white/20">
+            <CreditCard className="w-8 h-8 text-white text-opacity-90" />
           </div>
-          <h1 className="text-2xl font-bold text-white font-montserrat">
+          <h1 className="text-2xl md:text-2xl font-bold text-white font-montserrat tracking-tight">
             Koda Microcrédito
           </h1>
-          <p className="text-green-100 text-sm mt-2">
+          <p className="text-green-100/70 text-sm mt-2 font-medium">
             Gestão de Microcrédito Simplificada
           </p>
         </div>

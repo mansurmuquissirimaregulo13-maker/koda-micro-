@@ -1,4 +1,3 @@
-
 @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&display=swap');
 
 @tailwind base;
@@ -18,6 +17,10 @@ body {
   color: #1B1B1B;
   min-height: 100dvh;
   touch-action: manipulation;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+  -webkit-tap-highlight-color: transparent;
 }
 
 /* Custom Scrollbar */
@@ -41,8 +44,13 @@ body {
 
 /* Animations */
 @keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
 }
 
 .fade-in {
@@ -50,10 +58,41 @@ body {
 }
 
 @keyframes pulse-subtle {
-  0%, 100% { box-shadow: 0 0 0 0 rgba(220, 38, 38, 0); }
-  50% { box-shadow: 0 0 0 4px rgba(220, 38, 38, 0.1); }
+
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(220, 38, 38, 0);
+  }
+
+  50% {
+    box-shadow: 0 0 0 4px rgba(220, 38, 38, 0.1);
+  }
 }
 
 .animate-pulse-subtle {
   animation: pulse-subtle 2s infinite;
+}
+
+/* Mobile Optimizations */
+@layer base {
+
+  input,
+  select,
+  textarea,
+  button {
+    @apply text-base;
+    /* Prevents iOS auto-zoom on focus */
+  }
+
+  /* Improved hit targets for small screens */
+  button,
+  a {
+    @apply cursor-pointer;
+  }
+}
+
+@media (max-width: 640px) {
+  .max-h-mobile-card {
+    max-height: calc(100vh - 200px);
+  }
 }
