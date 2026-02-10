@@ -151,6 +151,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                 options: {
                     data: {
                         full_name: fullName,
+                        company_name: companyName, // Added to be used by the handle_new_user trigger
                     }
                 }
             });
@@ -160,49 +161,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                 throw error;
             }
 
-            if (data.user && companyName) {
-                console.log('User created, creating company:', companyName);
-                let companyId = null;
-
-                // 1. Criar a empresa
-                const { data: companyData, error: companyError } = await supabase
-                    .from('companies')
-                    .insert({
-                        name: companyName,
-                        owner_id: data.user.id,
-                        status: 'pending'
-                    })
-                    .select()
-                    .maybeSingle();
-
-                if (companyError) {
-                    console.error('Company Creation Error:', companyError);
-                    throw companyError;
-                }
-                companyId = companyData.id;
-
-                // 2. Atualizar o perfil
-                const { error: updateError } = await supabase
-                    .from('user_profiles')
-                    .update({
-                        company_id: companyId,
-                        role: 'admin',
-                        status: 'pending' // Force pending status
-                    })
-                    .eq('id', data.user.id);
-
-                if (updateError) {
-                    console.error('Profile Update Error:', updateError);
-                    throw updateError;
-                }
+            if (data.user) {
+                console.log('User created. Database trigger will handle profile and company creation.');
 
                 // 3. Notificar via Email (Fail-safe)
                 try {
-                    // Use absolute URL to ensure it works on localhost too (if pointing to prod API)
                     const baseUrl = import.meta.env.VITE_API_URL || window.location.origin;
                     const emailApiUrl = `${baseUrl}/api/send-email`;
-                    console.log('Sending emails to:', emailApiUrl);
-                    console.log('Sending emails via relative path:', emailApiUrl);
 
                     // Notificar Admin (Mansur)
                     await fetch(emailApiUrl, {
