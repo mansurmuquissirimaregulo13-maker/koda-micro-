@@ -142,7 +142,7 @@ export function SignUpPage() {
                                     type="text"
                                     className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#40916C] focus:border-transparent outline-none appearance-none text-base bg-white"
                                     style={{ fontSize: '16px' }}
-                                    placeholder={accountType === 'microcredit' ? 'Ex: Koda Microfinanças' : 'Ex: Grupo de Poupança Xitique'}
+                                    placeholder={accountType === 'microcredit' ? 'Ex: Koda Microfinanças' : 'Ex: Grupo de Poupança'}
                                     value={companyName}
                                     onChange={(e) => setCompanyName(e.target.value)}
                                 />

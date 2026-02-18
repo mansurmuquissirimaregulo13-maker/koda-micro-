@@ -88,7 +88,7 @@ export function SavingsGroupsPage() {
                         Grupos de Poupança
                     </h2>
                     <p className="text-gray-500 text-sm">
-                        Participe de xitiques e poupe em conjunto.
+                        Poupe em conjunto com segurança e transparência.
                     </p>
                 </div>
                 <button

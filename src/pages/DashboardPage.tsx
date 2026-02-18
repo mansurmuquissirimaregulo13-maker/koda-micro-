@@ -92,19 +92,35 @@ export function DashboardPage({
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 md:gap-8">
           <div className="lg:col-span-2 space-y-6 md:space-y-8">
             <div className="bg-white p-4 md:p-6 rounded-xl border border-gray-200 shadow-sm">
-              <h3 className="text-base md:text-lg font-bold text-[#1B1B1B] font-montserrat mb-4">
-                Grupos Recentes
-              </h3>
-              <DataTable
-                data={savingsGroups.slice(0, 5)}
-                searchable={false}
-                columns={[
-                  { header: 'Grupo', accessor: (g) => g.name },
-                  { header: 'Contribuição', accessor: (g) => formatMZN(g.contributionAmount) },
-                  { header: 'Periodicidade', accessor: (g) => g.periodicity === 'monthly' ? 'Mensal' : 'Semanal' },
-                  { header: 'Status', accessor: (g) => g.status === 'active' ? 'Ativo' : 'Fechado' }
-                ]}
-              />
+              <div className="flex items-center justify-between mb-6">
+                <h3 className="text-base md:text-lg font-bold text-[#1B1B1B] font-montserrat">
+                  Atividade do Grupo
+                </h3>
+                <span className="px-3 py-1 bg-green-50 text-green-700 rounded-full text-xs font-bold">
+                  {savingsGroups[0]?.name || 'Nenhum grupo ativo'}
+                </span>
+              </div>
+
+              <div className="space-y-6">
+                <div>
+                  <h4 className="text-xs font-bold text-gray-400 uppercase mb-3">Últimas Contribuições</h4>
+                  <DataTable
+                    data={contributions.slice(0, 5)}
+                    searchable={false}
+                    columns={[
+                      {
+                        header: 'Membro',
+                        accessor: (c) => {
+                          const client = clients.find(cl => cl.id === c.memberId);
+                          return client?.name || 'Desconhecido';
+                        }
+                      },
+                      { header: 'Valor', accessor: (c) => formatMZN(c.amount) },
+                      { header: 'Data', accessor: (c) => formatDate(c.date) }
+                    ]}
+                  />
+                </div>
+              </div>
             </div>
           </div>
 
@@ -125,6 +141,30 @@ export function DashboardPage({
                     {formatMZN(stats.activeGroups > 0 ? stats.totalSavings / stats.activeGroups : 0)}
                   </span>
                 </div>
+              </div>
+            </div>
+
+            <div className="bg-white p-4 md:p-6 rounded-xl border border-gray-200 shadow-sm mt-6">
+              <h3 className="text-base font-bold text-[#1B1B1B] font-montserrat mb-4">
+                Membros Ativos
+              </h3>
+              <div className="space-y-3">
+                {savingsGroups[0] && groupMembers
+                  .filter(m => m.groupId === savingsGroups[0].id)
+                  .slice(0, 5)
+                  .map(member => (
+                    <div key={member.id} className="flex items-center justify-between p-2 hover:bg-gray-50 rounded-lg transition-colors">
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center text-[10px] font-bold">
+                          {member.name?.substring(0, 1)}
+                        </div>
+                        <span className="text-sm font-medium">{member.name}</span>
+                      </div>
+                      <span className={`text-[10px] px-2 py-0.5 rounded-full ${member.role === 'admin' ? 'bg-purple-50 text-purple-600' : 'bg-gray-50 text-gray-600'}`}>
+                        {member.role === 'admin' ? 'Admin' : 'Membro'}
+                      </span>
+                    </div>
+                  ))}
               </div>
             </div>
           </div>
