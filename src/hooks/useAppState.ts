@@ -6,7 +6,15 @@ import {
   calculateCurrentDebt
 } from
   '../utils/helpers';
-import { Client, Credit, Payment } from '../types';
+import {
+  Client,
+  Credit,
+  Payment,
+  SavingsGroup,
+  SavingsGroupMember,
+  SavingsContribution,
+  SavingsLoan
+} from '../types';
 import { useAuth } from './useAuth';
 
 export function useAppState() {
@@ -14,6 +22,10 @@ export function useAppState() {
   const [clients, setClients] = useState<Client[]>([]);
   const [credits, setCredits] = useState<Credit[]>([]);
   const [payments, setPayments] = useState<Payment[]>([]);
+  const [savingsGroups, setSavingsGroups] = useState<SavingsGroup[]>([]);
+  const [groupMembers, setGroupMembers] = useState<SavingsGroupMember[]>([]);
+  const [contributions, setContributions] = useState<SavingsContribution[]>([]);
+  const [savingsLoans, setSavingsLoans] = useState<SavingsLoan[]>([]);
   const [loading, setLoading] = useState(true);
 
   const companyId = profile?.company_id;
@@ -34,16 +46,26 @@ export function useAppState() {
       let clientsQuery = supabase.from('clients').select('*');
       let creditsQuery = supabase.from('credits').select('*');
       let paymentsQuery = supabase.from('payments').select('*');
+      let savingsGroupsQuery = supabase.from('savings_groups').select('*');
+      let membersQuery = supabase.from('savings_group_members').select('*');
+      let contributionsQuery = supabase.from('savings_contributions').select('*');
+      let loansQuery = supabase.from('savings_loans').select('*');
 
       if (!isSystemAdmin) {
         clientsQuery = clientsQuery.eq('company_id', companyId);
         creditsQuery = creditsQuery.eq('company_id', companyId);
         paymentsQuery = paymentsQuery.eq('company_id', companyId);
+        savingsGroupsQuery = savingsGroupsQuery.eq('company_id', companyId);
+        // Members, contributions, etc. are linked via IDs, company filter applies to base group
       }
 
       const { data: clientsData } = await clientsQuery;
       const { data: creditsData } = await creditsQuery;
       const { data: paymentsData } = await paymentsQuery;
+      const { data: savingsGroupsData } = await savingsGroupsQuery;
+      const { data: membersData } = await membersQuery;
+      const { data: contributionsData } = await contributionsQuery;
+      const { data: loansData } = await loansQuery;
 
       if (clientsData) {
         setClients(clientsData.map((c: any) => ({
@@ -86,6 +108,68 @@ export function useAppState() {
           type: p.payment_type as 'partial' | 'total',
           description: p.notes,
           proof: p.proof_url
+        })));
+      }
+
+      if (savingsGroupsData) {
+        setSavingsGroups(savingsGroupsData.map((g: any) => ({
+          id: g.id,
+          companyId: g.company_id,
+          name: g.name,
+          description: g.description,
+          contributionAmount: g.contribution_amount,
+          periodicity: g.periodicity,
+          startDate: g.start_date,
+          endDate: g.end_date,
+          lateFee: g.late_fee,
+          interestRate: g.interest_rate,
+          maxLoanPerMember: g.max_loan_per_member,
+          memberLimit: g.member_limit,
+          status: g.status,
+          createdAt: g.created_at,
+          createdBy: g.created_by
+        })));
+      }
+
+      if (membersData) {
+        setGroupMembers(membersData.map((m: any) => ({
+          id: m.id,
+          groupId: m.group_id,
+          userId: m.user_id,
+          name: m.name,
+          role: m.role,
+          status: m.status,
+          joinedAt: m.joined_at
+        })));
+      }
+
+      if (contributionsData) {
+        setContributions(contributionsData.map((c: any) => ({
+          id: c.id,
+          memberId: c.member_id,
+          amount: c.amount,
+          periodIndex: c.period_index,
+          paymentDate: c.payment_date,
+          status: c.status,
+          lateFeePaid: c.late_fee_paid,
+          notes: c.notes
+        })));
+      }
+
+      if (loansData) {
+        setSavingsLoans(loansData.map((l: any) => ({
+          id: l.id,
+          groupId: l.group_id,
+          memberId: l.member_id,
+          amount: l.amount,
+          interestRate: l.interest_rate,
+          termMonths: l.term_months,
+          status: l.status,
+          requestedAt: l.requested_at,
+          approvedAt: l.approved_at,
+          approvedBy: l.approved_by,
+          totalPayable: l.total_payable,
+          remainingAmount: l.remaining_amount
         })));
       }
     } catch (error) {
@@ -326,6 +410,112 @@ export function useAppState() {
       sort((a, b) => b.daysOverdue - a.daysOverdue); // Sort by most overdue
   };
 
+  // Savings Actions
+  const addSavingsGroup = async (groupData: Omit<SavingsGroup, 'id' | 'createdAt' | 'status' | 'createdBy'>) => {
+    try {
+      const { data, error } = await supabase.from('savings_groups').insert([{
+        company_id: companyId,
+        name: groupData.name,
+        description: groupData.description,
+        contribution_amount: groupData.contributionAmount,
+        periodicity: groupData.periodicity,
+        start_date: groupData.startDate,
+        end_date: groupData.endDate,
+        late_fee: groupData.lateFee,
+        interest_rate: groupData.interestRate,
+        max_loan_per_member: groupData.maxLoanPerMember,
+        member_limit: groupData.memberLimit,
+        created_by: profile?.id
+      }]).select().maybeSingle();
+
+      if (error) throw error;
+      if (data) fetchData();
+      return data;
+    } catch (error) {
+      console.error('Error adding savings group:', error);
+      throw error;
+    }
+  };
+
+  const joinGroup = async (groupId: string) => {
+    if (!profile) return;
+    try {
+      const { data, error } = await supabase.from('savings_group_members').insert([{
+        group_id: groupId,
+        user_id: profile.id,
+        name: profile.full_name,
+        role: 'member',
+        status: 'pending'
+      }]).select().maybeSingle();
+
+      if (error) throw error;
+      if (data) fetchData();
+      return data;
+    } catch (error) {
+      console.error('Error joining group:', error);
+      throw error;
+    }
+  };
+
+  const addContribution = async (contributionData: Omit<SavingsContribution, 'id' | 'paymentDate' | 'status'>) => {
+    try {
+      const { data, error } = await supabase.from('savings_contributions').insert([{
+        member_id: contributionData.memberId,
+        amount: contributionData.amount,
+        period_index: contributionData.periodIndex,
+        status: 'paid',
+        late_fee_paid: contributionData.lateFeePaid,
+        notes: contributionData.notes
+      }]).select().maybeSingle();
+
+      if (error) throw error;
+      if (data) fetchData();
+      return data;
+    } catch (error) {
+      console.error('Error adding contribution:', error);
+      throw error;
+    }
+  };
+
+  const requestLoan = async (loanData: Omit<SavingsLoan, 'id' | 'requestedAt' | 'status' | 'approvedAt' | 'approvedBy' | 'totalPayable' | 'remainingAmount'>) => {
+    try {
+      const totalPayable = loanData.amount + (loanData.amount * (loanData.interestRate / 100));
+      const { data, error } = await supabase.from('savings_loans').insert([{
+        group_id: loanData.groupId,
+        member_id: loanData.memberId,
+        amount: loanData.amount,
+        interest_rate: loanData.interestRate,
+        term_months: loanData.termMonths,
+        total_payable: totalPayable,
+        remaining_amount: totalPayable,
+        status: 'pending'
+      }]).select().maybeSingle();
+
+      if (error) throw error;
+      if (data) fetchData();
+      return data;
+    } catch (error) {
+      console.error('Error requesting loan:', error);
+      throw error;
+    }
+  };
+
+  const approveLoan = async (loanId: string) => {
+    try {
+      const { error } = await supabase.from('savings_loans').update({
+        status: 'approved',
+        approved_at: new Date().toISOString(),
+        approved_by: profile?.id
+      }).eq('id', loanId);
+
+      if (error) throw error;
+      fetchData();
+    } catch (error) {
+      console.error('Error approving loan:', error);
+      throw error;
+    }
+  };
+
   // Statistics
   const stats = {
     totalClients: clients.length,
@@ -334,13 +524,18 @@ export function useAppState() {
     ).length,
     totalLent: credits.reduce((sum, c) => sum + c.amount, 0),
     overdueCredits: credits.filter((c) => c.status === 'overdue').length,
-    totalCollected: payments.reduce((sum, p) => sum + p.amount, 0)
+    totalCollected: payments.reduce((sum, p) => sum + p.amount, 0),
+    totalSavings: contributions.reduce((sum, c) => sum + c.amount, 0)
   };
 
   return {
     clients,
     credits,
     payments,
+    savingsGroups,
+    groupMembers,
+    contributions,
+    savingsLoans,
     loading,
     addClient,
     updateClient,
@@ -348,6 +543,11 @@ export function useAppState() {
     addCredit,
     updateCreditStatus,
     addPayment,
+    addSavingsGroup,
+    joinGroup,
+    addContribution,
+    requestLoan,
+    approveLoan,
     getClientCredits,
     getClientPayments,
     getCreditPayments,
@@ -355,6 +555,7 @@ export function useAppState() {
     getOverdueCreditsWithDetails,
     stats,
     isAdmin,
-    isSystemAdmin
+    isSystemAdmin,
+    profile
   };
 }

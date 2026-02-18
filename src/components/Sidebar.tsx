@@ -54,6 +54,12 @@ export function Sidebar({ currentPage, onNavigate, isOpen }: SidebarProps) {
       icon: MessageSquare,
       path: '/messages',
     },
+    {
+      id: 'savings-groups',
+      label: 'Grupos de Poupança',
+      icon: Users,
+      path: '/savings-groups',
+    },
   ];
 
   const otherItems = [

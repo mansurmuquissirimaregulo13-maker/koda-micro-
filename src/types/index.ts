@@ -38,3 +38,57 @@ export interface Payment {
     description?: string;
     proof?: string;
 }
+
+export interface SavingsGroup {
+    id: string;
+    companyId?: string;
+    name: string;
+    description?: string;
+    contributionAmount: number;
+    periodicity: 'weekly' | 'monthly';
+    startDate: string;
+    endDate?: string;
+    lateFee: number;
+    interestRate: number;
+    maxLoanPerMember: number;
+    memberLimit?: number;
+    status: 'active' | 'closed';
+    createdAt: string;
+    createdBy: string;
+}
+
+export interface SavingsGroupMember {
+    id: string;
+    groupId: string;
+    userId: string;
+    name?: string;
+    role: 'admin' | 'member';
+    status: 'pending' | 'approved' | 'rejected';
+    joinedAt: string;
+}
+
+export interface SavingsContribution {
+    id: string;
+    memberId: string;
+    amount: number;
+    periodIndex: number;
+    paymentDate: string;
+    status: 'paid' | 'overdue';
+    lateFeePaid: number;
+    notes?: string;
+}
+
+export interface SavingsLoan {
+    id: string;
+    groupId: string;
+    memberId: string;
+    amount: number;
+    interestRate: number;
+    termMonths: number;
+    status: 'pending' | 'approved' | 'rejected' | 'paid' | 'overdue';
+    requestedAt: string;
+    approvedAt?: string;
+    approvedBy?: string;
+    totalPayable: number;
+    remainingAmount: number;
+}

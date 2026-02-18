@@ -10,6 +10,7 @@ import { SettingsPage } from '../pages/SettingsPage';
 import { AdminUsersPage } from '../pages/AdminUsersPage';
 import { SupportPage } from '../pages/SupportPage';
 import { MessagesPage } from '../pages/MessagesPage';
+import { SavingsGroupsPage } from '../pages/SavingsGroupsPage';
 import SuperAdminDashboard from '../pages/SuperAdminDashboard';
 import { LoadingScreen } from './LoadingScreen';
 import { Modal } from './Modal';
@@ -79,6 +80,8 @@ export function DashboardLayout() {
                 return <SupportPage />;
             case 'messages':
                 return <MessagesPage />;
+            case 'savings-groups':
+                return <SavingsGroupsPage />;
             case 'admin/dashboard':
                 return <SuperAdminDashboard />;
             case 'admin/users':
@@ -109,6 +112,8 @@ export function DashboardLayout() {
                 return 'Suporte';
             case 'messages':
                 return 'Centro de Mensagens';
+            case 'savings-groups':
+                return 'Grupos de Poupança';
             case 'admin/dashboard':
                 return 'Painel de Gestão Admin';
             case 'admin/users':

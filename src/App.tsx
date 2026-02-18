@@ -79,6 +79,14 @@ export function App() {
               </ProtectedRoute>
             }
           />
+          <Route
+            path="/savings-groups"
+            element={
+              <ProtectedRoute>
+                <DashboardLayout />
+              </ProtectedRoute>
+            }
+          />
 
           {/* Admin Routes */}
           <Route
