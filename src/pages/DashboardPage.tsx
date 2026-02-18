@@ -2,14 +2,12 @@ import {
   Users,
   CreditCard,
   Banknote,
-  AlertCircle,
   Plus,
   CheckCircle,
   DollarSign,
   PiggyBank,
   TrendingUp,
-  Wallet,
-  LayoutGrid
+  AlertCircle
 } from 'lucide-react';
 
 import { StatCard } from '../components/StatCard';
@@ -37,7 +35,7 @@ export function DashboardPage({
   onNewClient,
   onNewCredit
 }: DashboardPageProps) {
-  const { stats, credits, clients, company, savingsGroups, contributions, savingsLoans } = useAppState();
+  const { stats, credits, clients, company, savingsGroups, groupMembers, contributions } = useAppState();
 
   const isSavings = company?.type === 'savings';
 
@@ -65,28 +63,28 @@ export function DashboardPage({
       <div className="space-y-6 md:space-y-8 animate-in fade-in duration-500 px-1 md:px-0">
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-6">
           <StatCard
-            title="Membros"
-            value={stats.totalClients.toString()}
-            icon={Users}
-            color="bg-blue-500" />
-
-          <StatCard
-            title="Grupos Ativos"
-            value={stats.activeGroups.toString()}
-            icon={LayoutGrid}
+            title="Entradas do Mês"
+            value={formatMZN(stats.monthEntries || 0)}
+            icon={TrendingUp}
             color="bg-green-500" />
 
           <StatCard
-            title="Fundo Total"
-            value={formatMZN(stats.totalSavings)}
+            title="Caixa Disponível"
+            value={formatMZN(stats.remanescente || 0)}
             icon={PiggyBank}
-            color="bg-purple-500" />
+            color="bg-blue-500" />
 
           <StatCard
-            title="Empréstimos"
-            value={stats.totalInternalLoans.toString()}
-            icon={Wallet}
-            color="bg-emerald-600" />
+            title="Total em Dívida"
+            value={formatMZN(stats.totalDebt || 0)}
+            icon={AlertCircle}
+            color="bg-amber-500" />
+
+          <StatCard
+            title="Membros"
+            value={stats.totalClients.toString()}
+            icon={Users}
+            color="bg-[#1B3A2D]" />
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 md:gap-8">
@@ -116,7 +114,7 @@ export function DashboardPage({
                         }
                       },
                       { header: 'Valor', accessor: (c) => formatMZN(c.amount) },
-                      { header: 'Data', accessor: (c) => formatDate(c.date) }
+                      { header: 'Data', accessor: (c) => formatDate(c.paymentDate) }
                     ]}
                   />
                 </div>
@@ -146,26 +144,55 @@ export function DashboardPage({
 
             <div className="bg-white p-4 md:p-6 rounded-xl border border-gray-200 shadow-sm mt-6">
               <h3 className="text-base font-bold text-[#1B1B1B] font-montserrat mb-4">
-                Membros Ativos
+                Posição Financeira dos Membros
               </h3>
-              <div className="space-y-3">
-                {savingsGroups[0] && groupMembers
-                  .filter(m => m.groupId === savingsGroups[0].id)
-                  .slice(0, 5)
-                  .map(member => (
-                    <div key={member.id} className="flex items-center justify-between p-2 hover:bg-gray-50 rounded-lg transition-colors">
-                      <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center text-[10px] font-bold">
-                          {member.name?.substring(0, 1)}
+              <DataTable<any>
+                data={groupMembers.filter((m: any) => m.groupId === savingsGroups[0]?.id)}
+                searchable={false}
+                columns={[
+                  {
+                    header: 'Membro',
+                    accessor: (m) => (
+                      <div className="flex items-center gap-2">
+                        <div className="w-6 h-6 bg-gray-100 rounded-full flex items-center justify-center text-[8px] font-bold">
+                          {m.name?.substring(0, 1)}
                         </div>
-                        <span className="text-sm font-medium">{member.name}</span>
+                        <span className="text-sm">{m.name}</span>
                       </div>
-                      <span className={`text-[10px] px-2 py-0.5 rounded-full ${member.role === 'admin' ? 'bg-purple-50 text-purple-600' : 'bg-gray-50 text-gray-600'}`}>
-                        {member.role === 'admin' ? 'Admin' : 'Membro'}
+                    )
+                  },
+                  {
+                    header: 'Poupança',
+                    accessor: (m) => {
+                      const totalC = contributions
+                        .filter(c => c.memberId === m.id)
+                        .reduce((sum, c) => sum + c.amount, 0);
+                      return formatMZN(totalC);
+                    }
+                  },
+                  {
+                    header: 'Juros Ganhos',
+                    accessor: (m) => (
+                      <span className="text-green-600">
+                        {formatMZN(m.earnedInterest || 0)}
                       </span>
-                    </div>
-                  ))}
-              </div>
+                    )
+                  },
+                  {
+                    header: 'Valor Total',
+                    accessor: (m) => {
+                      const totalC = contributions
+                        .filter(c => c.memberId === m.id)
+                        .reduce((sum, c) => sum + c.amount, 0);
+                      return (
+                        <span className="font-bold text-[#1B3A2D]">
+                          {formatMZN(totalC + (m.earnedInterest || 0))}
+                        </span>
+                      );
+                    }
+                  }
+                ]}
+              />
             </div>
           </div>
         </div>

@@ -65,6 +65,7 @@ export interface SavingsGroupMember {
     role: 'admin' | 'member';
     status: 'pending' | 'approved' | 'rejected';
     joinedAt: string;
+    earnedInterest?: number;
 }
 
 export interface SavingsContribution {

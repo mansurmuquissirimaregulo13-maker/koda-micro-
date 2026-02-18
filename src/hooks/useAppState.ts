@@ -147,7 +147,8 @@ export function useAppState() {
           name: m.name,
           role: m.role,
           status: m.status,
-          joinedAt: m.joined_at
+          joinedAt: m.joined_at,
+          earnedInterest: m.earned_interest || 0
         })));
       }
 
@@ -524,6 +525,50 @@ export function useAppState() {
     }
   };
 
+  const distributeInterest = async (groupId: string, amount: number) => {
+    try {
+      // 1. Get all members of the group
+      const groupMems = groupMembers.filter(m => m.groupId === groupId && m.status === 'approved');
+      if (groupMems.length === 0) return;
+
+      // 2. Calculate sum of individual contributions for these members
+      const memberContributions = groupMems.map(m => {
+        const total = contributions
+          .filter(c => c.memberId === m.id)
+          .reduce((sum, c) => sum + c.amount, 0);
+        return { id: m.id, total };
+      });
+
+      const totalGroupSavings = memberContributions.reduce((sum, m) => sum + m.total, 0);
+      if (totalGroupSavings === 0) return;
+
+      // 3. Update each member's earned_interest proportionally
+      for (const mc of memberContributions) {
+        const share = (mc.total / totalGroupSavings) * amount;
+        const currentMember = groupMems.find(m => m.id === mc.id);
+        const newEarned = (currentMember?.earnedInterest || 0) + share;
+
+        await supabase
+          .from('savings_group_members')
+          .update({ earned_interest: newEarned })
+          .eq('id', mc.id);
+      }
+
+      // 4. Record yield
+      await supabase.from('savings_yields').insert([{
+        group_id: groupId,
+        amount: amount,
+        source_type: 'loan_interest',
+        distributed: true
+      }]);
+
+      fetchData();
+    } catch (error) {
+      console.error('Error distributing interest:', error);
+      throw error;
+    }
+  };
+
   // Statistics
   const stats = {
     totalClients: clients.length,
@@ -536,7 +581,16 @@ export function useAppState() {
     totalSavings: contributions.reduce((sum, c) => sum + c.amount, 0),
     totalInternalLoans: savingsLoans.length,
     activeGroups: savingsGroups.filter(g => g.status === 'active').length,
-    pendingContributions: 0 // Placeholder for future logic
+    pendingContributions: 0,
+    monthEntries: contributions
+      .filter(c => new Date(c.paymentDate).getMonth() === new Date().getMonth())
+      .reduce((sum, c) => sum + c.amount, 0),
+    remanescente: contributions.reduce((sum, c) => sum + c.amount, 0) -
+      savingsLoans.filter(l => l.status === 'approved' || l.status === 'overdue').reduce((sum, l) => sum + l.amount, 0) +
+      0, // Add repayments here when installments are implemented
+    totalDebt: savingsLoans
+      .filter(l => l.status === 'approved' || l.status === 'overdue')
+      .reduce((sum, l) => sum + l.remainingAmount, 0)
   };
 
   return {
@@ -559,6 +613,7 @@ export function useAppState() {
     addContribution,
     requestLoan,
     approveLoan,
+    distributeInterest,
     getClientCredits,
     getClientPayments,
     getCreditPayments,
