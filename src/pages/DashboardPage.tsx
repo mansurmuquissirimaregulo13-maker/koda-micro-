@@ -6,6 +6,10 @@ import {
   Plus,
   CheckCircle,
   DollarSign,
+  PiggyBank,
+  TrendingUp,
+  Wallet,
+  LayoutGrid
 } from 'lucide-react';
 
 import { StatCard } from '../components/StatCard';
@@ -33,7 +37,9 @@ export function DashboardPage({
   onNewClient,
   onNewCredit
 }: DashboardPageProps) {
-  const { stats, credits, clients } = useAppState();
+  const { stats, credits, clients, company, savingsGroups, contributions, savingsLoans } = useAppState();
+
+  const isSavings = company?.type === 'savings';
 
   const chartData = [
     { name: 'Jan', value: 25000 },
@@ -53,6 +59,79 @@ export function DashboardPage({
       clientCredits.every((c) => c.status === 'paid')
     );
   });
+
+  if (isSavings) {
+    return (
+      <div className="space-y-6 md:space-y-8 animate-in fade-in duration-500 px-1 md:px-0">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-6">
+          <StatCard
+            title="Membros"
+            value={stats.totalClients.toString()}
+            icon={Users}
+            color="bg-blue-500" />
+
+          <StatCard
+            title="Grupos Ativos"
+            value={stats.activeGroups.toString()}
+            icon={LayoutGrid}
+            color="bg-green-500" />
+
+          <StatCard
+            title="Fundo Total"
+            value={formatMZN(stats.totalSavings)}
+            icon={PiggyBank}
+            color="bg-purple-500" />
+
+          <StatCard
+            title="Empréstimos"
+            value={stats.totalInternalLoans.toString()}
+            icon={Wallet}
+            color="bg-emerald-600" />
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 md:gap-8">
+          <div className="lg:col-span-2 space-y-6 md:space-y-8">
+            <div className="bg-white p-4 md:p-6 rounded-xl border border-gray-200 shadow-sm">
+              <h3 className="text-base md:text-lg font-bold text-[#1B1B1B] font-montserrat mb-4">
+                Grupos Recentes
+              </h3>
+              <DataTable
+                data={savingsGroups.slice(0, 5)}
+                searchable={false}
+                columns={[
+                  { header: 'Grupo', accessor: (g) => g.name },
+                  { header: 'Contribuição', accessor: (g) => formatMZN(g.contributionAmount) },
+                  { header: 'Periodicidade', accessor: (g) => g.periodicity === 'monthly' ? 'Mensal' : 'Semanal' },
+                  { header: 'Status', accessor: (g) => g.status === 'active' ? 'Ativo' : 'Fechado' }
+                ]}
+              />
+            </div>
+          </div>
+
+          <div className="lg:col-span-1">
+            <div className="bg-white p-4 md:p-6 rounded-xl border border-gray-200 shadow-sm h-full">
+              <h3 className="text-base md:text-lg font-bold text-[#1B1B1B] font-montserrat mb-4 flex items-center gap-2">
+                <TrendingUp className="w-5 h-5 text-green-500" />
+                Resumo de Poupança
+              </h3>
+              <div className="space-y-4">
+                <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
+                  <span className="text-sm text-gray-500">Total de Contribuições</span>
+                  <span className="font-bold text-[#1B3A2D]">{contributions.length}</span>
+                </div>
+                <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
+                  <span className="text-sm text-gray-500">Média por Grupo</span>
+                  <span className="font-bold text-[#1B3A2D]">
+                    {formatMZN(stats.activeGroups > 0 ? stats.totalSavings / stats.activeGroups : 0)}
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6 md:space-y-8 animate-in fade-in duration-500 px-1 md:px-0">

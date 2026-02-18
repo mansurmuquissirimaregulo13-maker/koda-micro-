@@ -26,6 +26,7 @@ export function useAppState() {
   const [groupMembers, setGroupMembers] = useState<SavingsGroupMember[]>([]);
   const [contributions, setContributions] = useState<SavingsContribution[]>([]);
   const [savingsLoans, setSavingsLoans] = useState<SavingsLoan[]>([]);
+  const [company, setCompany] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
   const companyId = profile?.company_id;
@@ -50,12 +51,14 @@ export function useAppState() {
       let membersQuery = supabase.from('savings_group_members').select('*');
       let contributionsQuery = supabase.from('savings_contributions').select('*');
       let loansQuery = supabase.from('savings_loans').select('*');
+      let companyQuery = supabase.from('companies').select('*');
 
       if (!isSystemAdmin) {
         clientsQuery = clientsQuery.eq('company_id', companyId);
         creditsQuery = creditsQuery.eq('company_id', companyId);
         paymentsQuery = paymentsQuery.eq('company_id', companyId);
         savingsGroupsQuery = savingsGroupsQuery.eq('company_id', companyId);
+        companyQuery = companyQuery.eq('id', companyId);
         // Members, contributions, etc. are linked via IDs, company filter applies to base group
       }
 
@@ -66,6 +69,11 @@ export function useAppState() {
       const { data: membersData } = await membersQuery;
       const { data: contributionsData } = await contributionsQuery;
       const { data: loansData } = await loansQuery;
+      const { data: companyData } = await companyQuery;
+
+      if (companyData && companyData[0]) {
+        setCompany(companyData[0]);
+      }
 
       if (clientsData) {
         setClients(clientsData.map((c: any) => ({
@@ -525,7 +533,10 @@ export function useAppState() {
     totalLent: credits.reduce((sum, c) => sum + c.amount, 0),
     overdueCredits: credits.filter((c) => c.status === 'overdue').length,
     totalCollected: payments.reduce((sum, p) => sum + p.amount, 0),
-    totalSavings: contributions.reduce((sum, c) => sum + c.amount, 0)
+    totalSavings: contributions.reduce((sum, c) => sum + c.amount, 0),
+    totalInternalLoans: savingsLoans.length,
+    activeGroups: savingsGroups.filter(g => g.status === 'active').length,
+    pendingContributions: 0 // Placeholder for future logic
   };
 
   return {
@@ -556,6 +567,7 @@ export function useAppState() {
     stats,
     isAdmin,
     isSystemAdmin,
-    profile
+    profile,
+    company
   };
 }

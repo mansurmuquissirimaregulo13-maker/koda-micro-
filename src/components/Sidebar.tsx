@@ -12,6 +12,8 @@ import {
   MessageSquare,
 } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
+import { useAppState } from '../hooks/useAppState';
+import { PiggyBank } from 'lucide-react';
 
 interface SidebarProps {
   currentPage: string;
@@ -21,7 +23,10 @@ interface SidebarProps {
 
 export function Sidebar({ currentPage, onNavigate, isOpen }: SidebarProps) {
   const { signOut, isSystemAdmin } = useAuth();
+  const { company } = useAppState();
   const navigate = useNavigate();
+
+  const isSavings = company?.type === 'savings';
 
   const menuItems = [
     {
@@ -60,7 +65,15 @@ export function Sidebar({ currentPage, onNavigate, isOpen }: SidebarProps) {
       icon: Users,
       path: '/savings-groups',
     },
-  ];
+  ].filter(item => {
+    if (isSavings) {
+      // Hide Credits for Savings groups
+      return item.id !== 'credits';
+    } else {
+      // Hide Savings Groups for Microcredit
+      return item.id !== 'savings-groups';
+    }
+  });
 
   const otherItems = [
     {
@@ -108,14 +121,14 @@ export function Sidebar({ currentPage, onNavigate, isOpen }: SidebarProps) {
         {/* Logo Area */}
         <div className="p-8 flex items-center gap-4">
           <div className="w-10 h-10 bg-white/10 rounded-xl flex items-center justify-center shadow-inner">
-            <CreditCard className="w-6 h-6 text-white" />
+            {isSavings ? <PiggyBank className="w-6 h-6 text-white" /> : <CreditCard className="w-6 h-6 text-white" />}
           </div>
           <div>
             <span className="text-xl font-bold font-montserrat tracking-tight block">
               Koda
             </span>
-            <span className="text-[10px] text-green-300 font-medium uppercase tracking-[0.2em]">
-              Microcrédito
+            <span className={`text-[10px] ${isSavings ? 'text-emerald-300' : 'text-green-300'} font-medium uppercase tracking-[0.2em]`}>
+              {isSavings ? 'Poupança' : 'Microcrédito'}
             </span>
           </div>
         </div>

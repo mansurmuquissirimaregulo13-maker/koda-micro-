@@ -19,7 +19,7 @@ interface AuthContextType {
     profile: UserProfile | null;
     loading: boolean;
     signIn: (email: string, password: string) => Promise<{ user: User | null }>;
-    signUp: (email: string, password: string, fullName: string, companyName?: string) => Promise<void>;
+    signUp: (email: string, password: string, fullName: string, companyName?: string, accountType?: 'microcredit' | 'savings') => Promise<void>;
     signOut: () => Promise<void>;
     isAdmin: boolean;
     isSystemAdmin: boolean;
@@ -142,7 +142,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         return { user: data.user };
     };
 
-    const signUp = async (email: string, password: string, fullName: string, companyName?: string) => {
+    const signUp = async (email: string, password: string, fullName: string, companyName?: string, accountType: 'microcredit' | 'savings' = 'microcredit') => {
         try {
             console.log('Starting sign up process for:', email);
             const { data, error } = await supabase.auth.signUp({
@@ -152,6 +152,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                     data: {
                         full_name: fullName,
                         company_name: companyName, // Added to be used by the handle_new_user trigger
+                        account_type: accountType,
                     }
                 }
             });
