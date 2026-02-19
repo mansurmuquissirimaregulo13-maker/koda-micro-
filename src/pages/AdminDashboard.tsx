@@ -303,6 +303,7 @@ export function AdminDashboard() {
                                     </td>
                                 </tr>
                             ) : (
+                                // eslint-disable-next-line @typescript-eslint/no-explicit-any
                                 (activeTab === 'companies' ? filteredCompanies : filteredUsers).map((item: any) => (
                                     <tr key={item.id} className="hover:bg-gray-50/50 transition-colors">
                                         <td className="px-6 py-4 whitespace-nowrap">

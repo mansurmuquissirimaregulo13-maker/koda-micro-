@@ -185,7 +185,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                     console.warn('Email notification system error (non-blocking):', notifyErr);
                 }
             }
-        } catch (error: any) {
+        } catch (error: unknown) {
             console.error('SignUp Critical Error:', error);
             throw error;
         }

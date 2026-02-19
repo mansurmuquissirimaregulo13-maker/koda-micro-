@@ -48,9 +48,9 @@ export function useAppState() {
       let creditsQuery = supabase.from('credits').select('*');
       let paymentsQuery = supabase.from('payments').select('*');
       let savingsGroupsQuery = supabase.from('savings_groups').select('*');
-      let membersQuery = supabase.from('savings_group_members').select('*');
-      let contributionsQuery = supabase.from('savings_contributions').select('*');
-      let loansQuery = supabase.from('savings_loans').select('*');
+      const membersQuery = supabase.from('savings_group_members').select('*');
+      const contributionsQuery = supabase.from('savings_contributions').select('*');
+      const loansQuery = supabase.from('savings_loans').select('*');
       let companyQuery = supabase.from('companies').select('*');
 
       if (!isSystemAdmin) {
