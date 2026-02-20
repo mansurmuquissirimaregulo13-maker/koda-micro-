@@ -1,3 +1,4 @@
+import { useMemo } from 'react';
 import {
   Users,
   CreditCard,
@@ -9,6 +10,7 @@ import {
   TrendingUp,
   AlertCircle
 } from 'lucide-react';
+import { SavingsGroupMember } from '../types';
 
 import { StatCard } from '../components/StatCard';
 import { AlertsPanel } from '../components/AlertsPanel';
@@ -39,14 +41,32 @@ export function DashboardPage({
 
   const isSavings = company?.type === 'savings';
 
-  const chartData = [
-    { name: 'Jan', value: 25000 },
-    { name: 'Fev', value: 45000 },
-    { name: 'Mar', value: 35000 },
-    { name: 'Abr', value: 80000 },
-    { name: 'Mai', value: 60000 },
-    { name: 'Jun', value: 95000 }
-  ];
+  // Calculate dynamic chart data based on credits
+  const chartData = useMemo(() => {
+    const last6Months = Array.from({ length: 6 }, (_, i) => {
+      const date = new Date();
+      date.setMonth(date.getMonth() - (5 - i));
+      return {
+        name: date.toLocaleDateString('pt-BR', { month: 'short' }),
+        month: date.getMonth(),
+        year: date.getFullYear(),
+        value: 0
+      };
+    });
+
+    credits.forEach(credit => {
+      const creditDate = new Date(credit.startDate);
+      const m = creditDate.getMonth();
+      const y = creditDate.getFullYear();
+
+      const monthData = last6Months.find(d => d.month === m && d.year === y);
+      if (monthData) {
+        monthData.value += credit.amount;
+      }
+    });
+
+    return last6Months;
+  }, [credits]);
 
   const recentCredits = credits.slice(0, 5);
   const overdueCredits = credits.filter((c) => c.status === 'overdue');
@@ -130,11 +150,11 @@ export function DashboardPage({
               </h3>
               <div className="space-y-4">
                 <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
-                  <span className="text-sm text-gray-500">Total de Contribuições</span>
+                  <span className="text-sm text-gray-500 font-medium">Total de Contribuições</span>
                   <span className="font-bold text-[#1B3A2D]">{contributions.length}</span>
                 </div>
                 <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
-                  <span className="text-sm text-gray-500">Média por Grupo</span>
+                  <span className="text-sm text-gray-500 font-medium">Média por Grupo</span>
                   <span className="font-bold text-[#1B3A2D]">
                     {formatMZN(stats.activeGroups > 0 ? stats.totalSavings / stats.activeGroups : 0)}
                   </span>
@@ -144,10 +164,10 @@ export function DashboardPage({
 
             <div className="bg-white p-4 md:p-6 rounded-xl border border-gray-200 shadow-sm mt-6">
               <h3 className="text-base font-bold text-[#1B1B1B] font-montserrat mb-4">
-                Posição Financeira dos Membros
+                <span>Posição Financeira dos Membros</span>
               </h3>
-              <DataTable<any>
-                data={groupMembers.filter((m: any) => m.groupId === savingsGroups[0]?.id)}
+              <DataTable<SavingsGroupMember>
+                data={groupMembers.filter((m: SavingsGroupMember) => m.groupId === savingsGroups[0]?.id)}
                 searchable={false}
                 columns={[
                   {

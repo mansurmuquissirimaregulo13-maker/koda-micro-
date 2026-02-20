@@ -61,7 +61,7 @@ export function Sidebar({ currentPage, onNavigate, isOpen }: SidebarProps) {
     },
     {
       id: 'savings-groups',
-      label: 'Grupos de Poupança',
+      label: isSavings ? 'Membros' : 'Grupos de Poupança',
       icon: Users,
       path: '/savings-groups',
     },
@@ -125,10 +125,10 @@ export function Sidebar({ currentPage, onNavigate, isOpen }: SidebarProps) {
           </div>
           <div>
             <span className="text-xl font-bold font-montserrat tracking-tight block">
-              Koda
+              <span>Koda</span>
             </span>
             <span className={`text-[10px] ${isSavings ? 'text-emerald-300' : 'text-green-300'} font-medium uppercase tracking-[0.2em]`}>
-              {isSavings ? 'Poupança' : 'Microcrédito'}
+              <span>{isSavings ? 'Poupança' : 'Microcrédito'}</span>
             </span>
           </div>
         </div>

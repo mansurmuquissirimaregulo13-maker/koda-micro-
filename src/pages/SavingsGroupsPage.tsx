@@ -48,23 +48,26 @@ export function SavingsGroupsPage() {
     const handleCreateGroup = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         const formData = new FormData(e.currentTarget);
+        console.log('Tentando criar grupo:', Object.fromEntries(formData));
 
         try {
-            await addSavingsGroup({
+            const result = await addSavingsGroup({
                 name: formData.get('name') as string,
                 description: formData.get('description') as string,
                 contributionAmount: Number(formData.get('amount')),
                 periodicity: formData.get('periodicity') as 'weekly' | 'monthly',
                 startDate: formData.get('startDate') as string,
                 lateFee: Number(formData.get('lateFee')),
-                interestRate: Number(formData.get('interestRate')),
+                interestRate: Number(formData.get('interestRate') || 0),
                 maxLoanPerMember: Number(formData.get('maxLoanPerMember')),
                 memberLimit: formData.get('memberLimit') ? Number(formData.get('memberLimit')) : undefined,
-            });
+            } as any);
+            console.log('Resultado da criação:', result);
             setIsCreateModalOpen(false);
             toast.success('Grupo criado com sucesso!');
-        } catch (error) {
-            toast.error('Erro ao criar o grupo.');
+        } catch (error: any) {
+            console.error('Erro detalhado ao criar grupo:', error);
+            toast.error(`Erro ao criar o grupo: ${error.message || 'Erro desconhecido'}`);
         }
     };
 
@@ -85,7 +88,7 @@ export function SavingsGroupsPage() {
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>
                     <h2 className="text-2xl font-bold text-[#1B1B1B] font-montserrat tracking-tight">
-                        Grupos de Poupança
+                        Gestão de Poupança
                     </h2>
                     <p className="text-gray-500 text-sm">
                         Poupe em conjunto com segurança e transparência.
@@ -95,7 +98,7 @@ export function SavingsGroupsPage() {
                     onClick={() => setIsCreateModalOpen(true)}
                     className="w-full sm:w-auto flex items-center justify-center gap-2 px-6 py-2.5 bg-[#1B3A2D] text-white rounded-xl hover:bg-[#2D6A4F] transition-all shadow-lg shadow-green-900/20 font-bold text-sm">
                     <Plus className="w-4 h-4" />
-                    Criar Novo Grupo
+                    Novo Grupo
                 </button>
             </div>
 
@@ -181,7 +184,9 @@ export function SavingsGroupsPage() {
                                     </div>
                                     <div className="flex items-center gap-2 text-gray-600">
                                         <Calendar className="w-4 h-4 opacity-50" />
-                                        <span className="text-xs font-medium capitalize">{group.periodicity}</span>
+                                        <span className="text-xs font-medium capitalize">
+                                            {group.periodicity === 'weekly' ? 'Semanal' : 'Mensal'}
+                                        </span>
                                     </div>
                                     <div className="flex items-center gap-2 text-gray-600">
                                         <Users className="w-4 h-4 opacity-50" />

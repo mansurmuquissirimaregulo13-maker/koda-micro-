@@ -66,6 +66,9 @@ export interface SavingsGroupMember {
     status: 'pending' | 'approved' | 'rejected';
     joinedAt: string;
     earnedInterest?: number;
+    initialSavings?: number;
+    initialDebt?: number;
+    customInterestRate?: number;
 }
 
 export interface SavingsContribution {

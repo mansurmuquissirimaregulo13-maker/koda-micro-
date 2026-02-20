@@ -29,14 +29,19 @@ export function SavingsGroupDetails({ groupId, onBack }: SavingsGroupDetailsProp
         contributions,
         savingsLoans,
         profile,
+        allProfiles,
         addContribution,
         requestLoan,
-        approveLoan
+        approveLoan,
+        manuallyAddMember
     } = useAppState();
 
     const [activeTab, setActiveTab] = useState<'overview' | 'members' | 'contributions' | 'loans'>('overview');
     const [isContributionModalOpen, setIsContributionModalOpen] = useState(false);
     const [isLoanModalOpen, setIsLoanModalOpen] = useState(false);
+    const [isAddMemberModalOpen, setIsAddMemberModalOpen] = useState(false);
+    const [memberSearchTerm, setMemberSearchTerm] = useState('');
+    const [selectedUserForMember, setSelectedUserForMember] = useState<any>(null);
 
     const group = useMemo(() =>
         savingsGroups.find(g => g.id === groupId),
@@ -76,6 +81,29 @@ export function SavingsGroupDetails({ groupId, onBack }: SavingsGroupDetailsProp
         setIsContributionModalOpen(false);
     };
 
+    const handleAddMember = async (e: React.FormEvent<HTMLFormElement>) => {
+        e.preventDefault();
+        if (!selectedUserForMember) return;
+        const formData = new FormData(e.currentTarget);
+
+        try {
+            await manuallyAddMember({
+                groupId: group.id,
+                userId: selectedUserForMember.id,
+                name: selectedUserForMember.full_name,
+                initialSavings: Number(formData.get('initialSavings')),
+                initialDebt: Number(formData.get('initialDebt')),
+                customInterestRate: formData.get('customInterestRate') ? Number(formData.get('customInterestRate')) : undefined,
+            });
+            setIsAddMemberModalOpen(false);
+            setSelectedUserForMember(null);
+            setMemberSearchTerm('');
+            toast.success('Membro adicionado com sucesso!');
+        } catch (error) {
+            toast.error('Erro ao adicionar membro.');
+        }
+    };
+
     const handleRequestLoan = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         if (!myMembership) return;
@@ -91,7 +119,11 @@ export function SavingsGroupDetails({ groupId, onBack }: SavingsGroupDetailsProp
         setIsLoanModalOpen(false);
     };
 
-    const totalFund = groupContributions.reduce((sum, c) => sum + c.amount, 0);
+    const totalFund = useMemo(() => {
+        const contributionsSum = groupContributions.reduce((sum, c) => sum + c.amount, 0);
+        const initialSavingsSum = members.reduce((sum, m) => sum + (m.initialSavings || 0), 0);
+        return contributionsSum + initialSavingsSum;
+    }, [groupContributions, members]);
 
     return (
         <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
@@ -167,10 +199,11 @@ export function SavingsGroupDetails({ groupId, onBack }: SavingsGroupDetailsProp
                                 <div className="relative z-10">
                                     <p className="text-xs font-bold text-green-300 uppercase tracking-widest mb-1">Minha Poupança</p>
                                     <p className="text-3xl font-black">{formatMZN(
-                                        groupContributions.filter(c => c.memberId === myMembership?.id).reduce((sum, c) => sum + c.amount, 0)
+                                        (groupContributions.filter(c => c.memberId === myMembership?.id).reduce((sum, c) => sum + c.amount, 0)) +
+                                        (myMembership?.initialSavings || 0)
                                     )}</p>
                                     <p className="mt-4 text-xs font-medium text-green-200">
-                                        {groupContributions.filter(c => c.memberId === myMembership?.id).length} contribuições realizadas
+                                        {groupContributions.filter(c => c.memberId === myMembership?.id).length} quotas pagas + Saldo inicial
                                     </p>
                                 </div>
                                 <Wallet className="absolute -right-4 -bottom-4 w-32 h-32 text-white/5 rotate-12" />
@@ -254,57 +287,136 @@ export function SavingsGroupDetails({ groupId, onBack }: SavingsGroupDetailsProp
             )}
 
             {activeTab === 'members' && (
-                <div className="bg-white rounded-3xl border border-gray-100 shadow-sm overflow-hidden">
-                    <DataTable
-                        data={members}
-                        columns={[
-                            {
-                                header: 'Membro',
-                                accessor: (m) => (
-                                    <div className="flex items-center gap-3">
-                                        <div className="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center font-bold text-xs">
-                                            {m.name?.substring(0, 1)}
+                <div className="space-y-4">
+                    {isAdmin && (
+                        <div className="flex justify-end">
+                            <button
+                                onClick={() => setIsAddMemberModalOpen(true)}
+                                className="flex items-center gap-2 px-4 py-2 bg-[#1B3A2D] text-white rounded-lg text-sm font-bold hover:bg-[#2D6A4F] transition-all">
+                                <Plus className="w-4 h-4" />
+                                Adicionar Membro
+                            </button>
+                        </div>
+                    )}
+                    <div className="bg-white rounded-3xl border border-gray-100 shadow-sm overflow-hidden">
+                        <DataTable
+                            data={members}
+                            columns={[
+                                {
+                                    header: 'Membro',
+                                    accessor: (m) => (
+                                        <div className="flex items-center gap-3">
+                                            <div className="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center font-bold text-xs uppercase">
+                                                {m.name?.substring(0, 1)}
+                                            </div>
+                                            <div>
+                                                <p className="font-bold text-sm">{m.name}</p>
+                                                <p className="text-[10px] text-gray-400 capitalize">{m.role === 'admin' ? 'Administrador' : 'Membro'}</p>
+                                            </div>
                                         </div>
-                                        <span className="font-bold">{m.name}</span>
-                                    </div>
-                                )
-                            },
-                            {
-                                header: 'Função',
-                                accessor: (m) => (
-                                    <span className={`px-2 py-1 rounded-md text-[10px] font-bold uppercase ${m.role === 'admin' ? 'bg-purple-100 text-purple-700' : 'bg-gray-100 text-gray-700'
-                                        }`}>
-                                        {m.role === 'admin' ? 'Administrador' : 'Membro'}
-                                    </span>
-                                )
-                            },
-                            {
-                                header: 'Status',
-                                accessor: (m) => (
-                                    <div className="flex items-center gap-2">
-                                        {m.status === 'approved' ? (
-                                            <CheckCircle className="w-4 h-4 text-green-500" />
-                                        ) : (
-                                            <Clock className="w-4 h-4 text-amber-500" />
-                                        )}
-                                        <span className="text-xs font-medium capitalize">{m.status}</span>
-                                    </div>
-                                )
-                            },
-                            {
-                                header: 'Data de Adesão',
-                                accessor: (m) => formatDate(m.joinedAt)
-                            }
-                        ]}
-                    />
+                                    )
+                                },
+                                {
+                                    header: 'Poupança',
+                                    accessor: (m) => (
+                                        <div className="text-sm">
+                                            <p className="font-bold text-green-600">{formatMZN(m.initialSavings || 0)}</p>
+                                            <p className="text-[10px] text-gray-400">Saldo Inicial</p>
+                                        </div>
+                                    )
+                                },
+                                {
+                                    header: 'Dívida',
+                                    accessor: (m) => (
+                                        <div className="text-sm">
+                                            <p className="font-bold text-red-600">{formatMZN(m.initialDebt || 0)}</p>
+                                            <p className="text-[10px] text-gray-400">Dívida Inicial</p>
+                                        </div>
+                                    )
+                                },
+                                {
+                                    header: 'Status',
+                                    accessor: (m) => (
+                                        <div className="flex items-center gap-2">
+                                            {m.status === 'approved' ? (
+                                                <CheckCircle className="w-4 h-4 text-green-500" />
+                                            ) : (
+                                                <Clock className="w-4 h-4 text-amber-500" />
+                                            )}
+                                            <span className="text-xs font-medium capitalize">
+                                                {m.status === 'approved' ? 'Aprovado' : m.status === 'pending' ? 'Pendente' : 'Rejeitado'}
+                                            </span>
+                                        </div>
+                                    )
+                                },
+                                {
+                                    header: 'Data Adesão',
+                                    accessor: (m) => formatDate(m.joinedAt)
+                                }
+                            ]}
+                        />
+                    </div>
                 </div>
             )}
 
             {activeTab === 'contributions' && (
-                <div className="bg-white rounded-3xl border border-gray-100 shadow-sm overflow-hidden text-center py-20">
-                    <Wallet className="w-12 h-12 text-gray-200 mx-auto mb-4" />
-                    <h3 className="text-lg font-bold text-gray-900">Histórico de Poupança</h3>
-                    <p className="text-gray-500 text-sm">Visualização detalhada das contribuições em breve.</p>
+                <div className="bg-white rounded-3xl border border-gray-100 shadow-sm overflow-hidden">
+                    <DataTable
+                        data={groupContributions}
+                        columns={[
+                            {
+                                header: 'Membro',
+                                accessor: (c) => {
+                                    const member = members.find(m => m.id === c.memberId);
+                                    return (
+                                        <div className="flex items-center gap-3">
+                                            <div className="w-8 h-8 bg-gray-50 rounded-full flex items-center justify-center font-bold text-xs text-green-700">
+                                                {member?.name?.substring(0, 1)}
+                                            </div>
+                                            <span className="font-medium text-gray-900">{member?.name}</span>
+                                        </div>
+                                    );
+                                }
+                            },
+                            {
+                                header: 'Valor',
+                                accessor: (c) => (
+                                    <span className="font-bold text-green-600">
+                                        {formatMZN(c.amount)}
+                                    </span>
+                                )
+                            },
+                            {
+                                header: 'Data do Pagamento',
+                                accessor: (c) => formatDate(c.paymentDate)
+                            },
+                            {
+                                header: 'Status',
+                                accessor: (c) => (
+                                    <span className={`px-2 py-1 rounded-md text-[10px] font-bold uppercase ${c.status === 'paid' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
+                                        }`}>
+                                        {c.status === 'paid' ? 'Pago' : 'Em Atraso'}
+                                    </span>
+                                )
+                            },
+                            {
+                                header: 'Notas',
+                                accessor: (c) => (
+                                    <span className="text-xs text-gray-500 italic">
+                                        {c.notes || '-'}
+                                    </span>
+                                )
+                            }
+                        ]}
+                        searchPlaceholder="Buscar por membro..."
+                    />
+                    {groupContributions.length === 0 && (
+                        <div className="py-20 text-center">
+                            <Wallet className="w-12 h-12 text-gray-200 mx-auto mb-4" />
+                            <h3 className="text-lg font-bold text-gray-900">Nenhum histórico encontrado</h3>
+                            <p className="text-gray-500 text-sm">Ainda não foram registradas contribuições neste grupo.</p>
+                        </div>
+                    )}
                 </div>
             )}
 
@@ -338,10 +450,13 @@ export function SavingsGroupDetails({ groupId, onBack }: SavingsGroupDetailsProp
                                     header: 'Status',
                                     accessor: (l) => (
                                         <span className={`px-2 py-1 rounded-md text-[10px] font-bold uppercase ${l.status === 'approved' ? 'bg-green-100 text-green-700' :
-                                                l.status === 'pending' ? 'bg-amber-100 text-amber-700' :
-                                                    'bg-red-100 text-red-700'
+                                            l.status === 'pending' ? 'bg-amber-100 text-amber-700' :
+                                                'bg-red-100 text-red-700'
                                             }`}>
-                                            {l.status}
+                                            {l.status === 'approved' ? 'Aprovado' :
+                                                l.status === 'pending' ? 'Pendente' :
+                                                    l.status === 'rejected' ? 'Rejeitado' :
+                                                        l.status === 'paid' ? 'Pago' : 'Atrasado'}
                                         </span>
                                     )
                                 },
@@ -382,10 +497,22 @@ export function SavingsGroupDetails({ groupId, onBack }: SavingsGroupDetailsProp
                         <p className="text-2xl font-black text-[#1B3A2D]">{formatMZN(group.contributionAmount)}</p>
                     </div>
                     <div>
+                        <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">Método de Pagamento</label>
+                        <select
+                            name="paymentMethod"
+                            required
+                            className="w-full bg-gray-50 border border-gray-100 rounded-xl p-3 outline-none focus:ring-2 focus:ring-[#40916C]">
+                            <option value="mpesa">M-Pesa</option>
+                            <option value="emola">e-Mola</option>
+                            <option value="cash">Dinheiro (Mão)</option>
+                            <option value="bank">Transferência Bancária</option>
+                        </select>
+                    </div>
+                    <div>
                         <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">Observações</label>
                         <textarea
                             name="notes"
-                            className="w-full bg-gray-50 border border-gray-100 rounded-xl p-3 outline-none focus:ring-2 focus:ring-[#40916C] min-h-[100px]"
+                            className="w-full bg-gray-50 border border-gray-100 rounded-xl p-3 outline-none focus:ring-2 focus:ring-[#40916C] min-h-[80px]"
                             placeholder="Alguma nota sobre o pagamento?"
                         />
                     </div>
@@ -448,6 +575,104 @@ export function SavingsGroupDetails({ groupId, onBack }: SavingsGroupDetailsProp
                             type="submit"
                             className="px-4 py-2 text-sm font-medium text-white bg-[#1B3A2D] rounded-lg hover:bg-[#2D6A4F]">
                             Confirmar Solicitação
+                        </button>
+                    </div>
+                </form>
+            </Modal>
+            <Modal
+                isOpen={isAddMemberModalOpen}
+                onClose={() => setIsAddMemberModalOpen(false)}
+                title="Adicionar Novo Membro">
+                <form onSubmit={handleAddMember} className="space-y-4">
+                    <div className="relative">
+                        <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">Pesquisar Pessoa</label>
+                        <div className="relative">
+                            <input
+                                type="text"
+                                value={memberSearchTerm}
+                                onChange={(e) => setMemberSearchTerm(e.target.value)}
+                                placeholder="Nome ou email..."
+                                className="w-full bg-gray-50 border border-gray-100 rounded-xl p-3 pl-10 outline-none focus:ring-2 focus:ring-[#40916C]"
+                            />
+                            <Users className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                        </div>
+
+                        {memberSearchTerm && !selectedUserForMember && (
+                            <div className="absolute z-50 w-full mt-1 bg-white border border-gray-100 rounded-xl shadow-xl max-h-48 overflow-y-auto">
+                                {allProfiles
+                                    .filter(u =>
+                                        (u.full_name?.toLowerCase().includes(memberSearchTerm.toLowerCase()) ||
+                                            u.email?.toLowerCase().includes(memberSearchTerm.toLowerCase())) &&
+                                        !members.some(m => m.userId === u.id)
+                                    )
+                                    .map(user => (
+                                        <button
+                                            key={user.id}
+                                            type="button"
+                                            onClick={() => {
+                                                setSelectedUserForMember(user);
+                                                setMemberSearchTerm(user.full_name || user.email);
+                                            }}
+                                            className="w-full text-left px-4 py-3 hover:bg-gray-50 border-b border-gray-50 last:border-0 transition-colors">
+                                            <p className="text-sm font-bold text-gray-900">{user.full_name}</p>
+                                            <p className="text-xs text-gray-500">{user.email}</p>
+                                        </button>
+                                    ))}
+                            </div>
+                        )}
+                    </div>
+
+                    {selectedUserForMember && (
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 animate-in fade-in slide-in-from-top-2 duration-300">
+                            <div>
+                                <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">Popou tanto (Saldo)</label>
+                                <input
+                                    name="initialSavings"
+                                    type="number"
+                                    required
+                                    defaultValue="0"
+                                    className="w-full bg-gray-50 border border-gray-100 rounded-xl p-3 outline-none focus:ring-2 focus:ring-[#40916C]"
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">Deveu tanto (Dívida)</label>
+                                <input
+                                    name="initialDebt"
+                                    type="number"
+                                    required
+                                    defaultValue="0"
+                                    className="w-full bg-gray-50 border border-gray-100 rounded-xl p-3 outline-none focus:ring-2 focus:ring-[#40916C]"
+                                />
+                            </div>
+                            <div className="sm:col-span-2">
+                                <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">Taxa Personalizada (%)</label>
+                                <input
+                                    name="customInterestRate"
+                                    type="number"
+                                    step="0.1"
+                                    placeholder={`Padrão do grupo: ${group.interestRate}%`}
+                                    className="w-full bg-gray-50 border border-gray-100 rounded-xl p-3 outline-none focus:ring-2 focus:ring-[#40916C]"
+                                />
+                            </div>
+                        </div>
+                    )}
+
+                    <div className="flex justify-end gap-3 pt-4 border-t border-gray-50">
+                        <button
+                            type="button"
+                            onClick={() => {
+                                setIsAddMemberModalOpen(false);
+                                setSelectedUserForMember(null);
+                                setMemberSearchTerm('');
+                            }}
+                            className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50">
+                            Cancelar
+                        </button>
+                        <button
+                            type="submit"
+                            disabled={!selectedUserForMember}
+                            className={`px-4 py-2 text-sm font-medium text-white rounded-lg transition-all ${selectedUserForMember ? 'bg-[#1B3A2D] hover:bg-[#2D6A4F]' : 'bg-gray-300 cursor-not-allowed'}`}>
+                            Confirmar Membro
                         </button>
                     </div>
                 </form>

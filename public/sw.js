@@ -1,8 +1,7 @@
-const CACHE_NAME = 'koda-cache-v1';
+const CACHE_NAME = 'koda-cache-v2';
 const urlsToCache = [
     '/',
     '/index.html',
-    '/src/index.tsx',
     '/manifest.json'
 ];
 
@@ -13,6 +12,21 @@ self.addEventListener('install', (event) => {
                 console.log('Opened cache');
                 return cache.addAll(urlsToCache);
             })
+    );
+});
+
+self.addEventListener('activate', (event) => {
+    event.waitUntil(
+        caches.keys().then((cacheNames) => {
+            return Promise.all(
+                cacheNames.map((cacheName) => {
+                    if (cacheName !== CACHE_NAME) {
+                        console.log('Deleting old cache:', cacheName);
+                        return caches.delete(cacheName);
+                    }
+                })
+            );
+        })
     );
 });
 

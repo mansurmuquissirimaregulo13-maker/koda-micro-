@@ -1,4 +1,6 @@
 import { Search, Bell, Menu } from 'lucide-react';
+import { useAppState } from '../hooks/useAppState';
+
 interface TopBarProps {
   onMenuClick: () => void;
   title?: string;
@@ -7,6 +9,9 @@ interface TopBarProps {
 }
 
 export function TopBar({ onMenuClick, title = 'Dashboard', onSearch, onNotification }: TopBarProps) {
+  const { company } = useAppState();
+  const isSavings = company?.type === 'savings';
+
   return (
     <header className="bg-white border-b border-gray-200 h-16 px-4 lg:px-8 flex items-center justify-between sticky top-0 z-40">
       <div className="flex items-center gap-4">
@@ -17,7 +22,7 @@ export function TopBar({ onMenuClick, title = 'Dashboard', onSearch, onNotificat
         </button>
 
         <h1 className="text-xl font-bold text-[#1B1B1B] font-montserrat hidden sm:block">
-          <span>Koda Microcrédito</span>
+          <span>{isSavings ? 'Koda Poupança' : 'Koda Microcrédito'}</span>
         </h1>
         <p className="text-sm text-gray-500 hidden sm:block">
           <span>{title}</span>

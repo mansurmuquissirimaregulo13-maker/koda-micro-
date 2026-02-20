@@ -27,6 +27,7 @@ export function useAppState() {
   const [contributions, setContributions] = useState<SavingsContribution[]>([]);
   const [savingsLoans, setSavingsLoans] = useState<SavingsLoan[]>([]);
   const [company, setCompany] = useState<any>(null);
+  const [allProfiles, setAllProfiles] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   const companyId = profile?.company_id;
@@ -52,6 +53,7 @@ export function useAppState() {
       const contributionsQuery = supabase.from('savings_contributions').select('*');
       const loansQuery = supabase.from('savings_loans').select('*');
       let companyQuery = supabase.from('companies').select('*');
+      const profilesQuery = supabase.from('user_profiles').select('*');
 
       if (!isSystemAdmin) {
         clientsQuery = clientsQuery.eq('company_id', companyId);
@@ -70,9 +72,14 @@ export function useAppState() {
       const { data: contributionsData } = await contributionsQuery;
       const { data: loansData } = await loansQuery;
       const { data: companyData } = await companyQuery;
+      const { data: profilesData } = await profilesQuery;
 
       if (companyData && companyData[0]) {
         setCompany(companyData[0]);
+      }
+
+      if (profilesData) {
+        setAllProfiles(profilesData);
       }
 
       if (clientsData) {
@@ -148,7 +155,10 @@ export function useAppState() {
           role: m.role,
           status: m.status,
           joinedAt: m.joined_at,
-          earnedInterest: m.earned_interest || 0
+          earnedInterest: m.earned_interest || 0,
+          initialSavings: m.initial_savings || 0,
+          initialDebt: m.initial_debt || 0,
+          customInterestRate: m.custom_interest_rate
         })));
       }
 
@@ -454,7 +464,9 @@ export function useAppState() {
         user_id: profile.id,
         name: profile.full_name,
         role: 'member',
-        status: 'pending'
+        status: 'pending',
+        initial_savings: 0,
+        initial_debt: 0
       }]).select().maybeSingle();
 
       if (error) throw error;
@@ -462,6 +474,35 @@ export function useAppState() {
       return data;
     } catch (error) {
       console.error('Error joining group:', error);
+      throw error;
+    }
+  };
+
+  const manuallyAddMember = async (memberData: {
+    groupId: string;
+    userId: string;
+    name: string;
+    initialSavings: number;
+    initialDebt: number;
+    customInterestRate?: number;
+  }) => {
+    try {
+      const { data, error } = await supabase.from('savings_group_members').insert([{
+        group_id: memberData.groupId,
+        user_id: memberData.userId,
+        name: memberData.name,
+        role: 'member',
+        status: 'approved',
+        initial_savings: memberData.initialSavings,
+        initial_debt: memberData.initialDebt,
+        custom_interest_rate: memberData.customInterestRate
+      }]).select().maybeSingle();
+
+      if (error) throw error;
+      if (data) fetchData();
+      return data;
+    } catch (error) {
+      console.error('Error manually adding member:', error);
       throw error;
     }
   };
@@ -599,6 +640,7 @@ export function useAppState() {
     payments,
     savingsGroups,
     groupMembers,
+    allProfiles,
     contributions,
     savingsLoans,
     loading,
@@ -610,6 +652,7 @@ export function useAppState() {
     addPayment,
     addSavingsGroup,
     joinGroup,
+    manuallyAddMember,
     addContribution,
     requestLoan,
     approveLoan,

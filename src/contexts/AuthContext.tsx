@@ -12,6 +12,7 @@ interface UserProfile {
     created_at: string;
     approved_at: string | null;
     approved_by: string | null;
+    account_type?: 'microcredit' | 'savings';
 }
 
 interface AuthContextType {
@@ -34,8 +35,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
+        console.log('AuthContext: Checking initial session...');
         // Check active session
         supabase.auth.getSession().then(({ data: { session } }) => {
+            console.log('AuthContext: Initial session check result:', session ? 'User logged in' : 'No session');
             setUser(session?.user ?? null);
             if (session?.user) {
                 loadProfile(session.user.id);
