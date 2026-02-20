@@ -88,10 +88,10 @@ export function SavingsGroupsPage() {
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>
                     <h2 className="text-2xl font-bold text-[#1B1B1B] font-montserrat tracking-tight">
-                        Gestão de Poupança
+                        Membros
                     </h2>
                     <p className="text-gray-500 text-sm">
-                        Poupe em conjunto com segurança e transparência.
+                        Gerencie os membros e suas participações com transparência.
                     </p>
                 </div>
                 <button

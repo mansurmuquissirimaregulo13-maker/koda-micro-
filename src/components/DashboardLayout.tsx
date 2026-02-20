@@ -21,7 +21,9 @@ import { toast } from 'sonner';
 
 export function DashboardLayout() {
     const location = useLocation();
-    const { addClient, addCredit, clients, isSystemAdmin, loading } = useAppState();
+    const { addClient, addCredit, clients, isSystemAdmin, loading, company } = useAppState();
+
+    const isSavings = company?.type === 'savings';
 
     // Determine current path
     let currentPath = location.pathname.replace('/', '');
@@ -113,7 +115,7 @@ export function DashboardLayout() {
             case 'messages':
                 return 'Centro de Mensagens';
             case 'savings-groups':
-                return 'Grupos de Poupança';
+                return isSavings ? 'Membros' : 'Grupos de Poupança';
             case 'admin/dashboard':
                 return 'Painel de Gestão Admin';
             case 'admin/users':

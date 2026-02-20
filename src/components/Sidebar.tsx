@@ -61,16 +61,16 @@ export function Sidebar({ currentPage, onNavigate, isOpen }: SidebarProps) {
     },
     {
       id: 'savings-groups',
-      label: isSavings ? 'Membros' : 'Grupos de Poupança',
+      label: 'Membros',
       icon: Users,
       path: '/savings-groups',
     },
   ].filter(item => {
     if (isSavings) {
-      // Hide Credits for Savings groups
-      return item.id !== 'credits';
+      // For Savings: show Membros (savings-groups) and hide Clientes/Credits
+      return item.id !== 'credits' && item.id !== 'clients';
     } else {
-      // Hide Savings Groups for Microcredit
+      // For Microcredit: show Clientes (clients) and hide Savings Groups
       return item.id !== 'savings-groups';
     }
   });
