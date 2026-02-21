@@ -566,6 +566,66 @@ export function useAppState() {
     }
   };
 
+  const repaySavingsLoan = async (repaymentData: {
+    loanId: string;
+    amount: number;
+    notes?: string;
+  }) => {
+    try {
+      const loan = savingsLoans.find(l => l.id === repaymentData.loanId);
+      if (!loan) throw new Error('Empréstimo não encontrado');
+
+      const newRemaining = Math.max(0, loan.remainingAmount - repaymentData.amount);
+      const newStatus = newRemaining === 0 ? 'paid' : loan.status;
+
+      const { error: updateError } = await supabase
+        .from('savings_loans')
+        .update({
+          remaining_amount: newRemaining,
+          status: newStatus
+        })
+        .eq('id', loan.id);
+
+      if (updateError) throw updateError;
+
+      // Record repayment entry in savings_loan_installments
+      await supabase.from('savings_loan_installments').insert([{
+        loan_id: loan.id,
+        amount: repaymentData.amount,
+        paid_at: new Date().toISOString(),
+        status: 'paid'
+      }]);
+
+      fetchData();
+    } catch (error) {
+      console.error('Error repaying savings loan:', error);
+      throw error;
+    }
+  };
+
+  const registerYield = async (yieldData: {
+    groupId: string;
+    amount: number;
+    sourceType: 'loan_interest' | 'extra';
+    notes?: string;
+  }) => {
+    try {
+      const { data, error } = await supabase.from('savings_yields').insert([{
+        group_id: yieldData.groupId,
+        amount: yieldData.amount,
+        source_type: yieldData.sourceType,
+        distributed: false
+      }]).select().maybeSingle();
+
+      if (error) throw error;
+      fetchData();
+      return data;
+    } catch (error) {
+      console.error('Error registering yield:', error);
+      throw error;
+    }
+  };
+
   const distributeInterest = async (groupId: string, amount: number) => {
     try {
       // 1. Get all members of the group
@@ -656,6 +716,8 @@ export function useAppState() {
     addContribution,
     requestLoan,
     approveLoan,
+    repaySavingsLoan,
+    registerYield,
     distributeInterest,
     getClientCredits,
     getClientPayments,

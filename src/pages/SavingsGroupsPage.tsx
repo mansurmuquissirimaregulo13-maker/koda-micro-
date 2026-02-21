@@ -34,6 +34,19 @@ export function SavingsGroupsPage() {
         return groupMembers.some(m => m.groupId === groupId && m.userId === profile?.id);
     };
 
+    const isAdminMember = (groupId: string) => {
+        return groupMembers.some(m => m.groupId === groupId && m.userId === profile?.id && m.role === 'admin');
+    };
+
+    // Auto-select if only one group exists and user is admin/owner
+    if (view === 'list' && savingsGroups.length === 1) {
+        const singleGroup = savingsGroups[0];
+        if (isAdminMember(singleGroup.id)) {
+            setSelectedGroup(singleGroup);
+            setView('details');
+        }
+    }
+
     const getMemberStatus = (groupId: string) => {
         const membership = groupMembers.find(m => m.groupId === groupId && m.userId === profile?.id);
         return membership?.status;

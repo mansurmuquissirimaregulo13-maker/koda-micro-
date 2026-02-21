@@ -30,7 +30,7 @@ export function DashboardLayout() {
     if (!currentPath && isSystemAdmin) {
         currentPath = 'admin/dashboard';
     } else if (!currentPath) {
-        currentPath = 'dashboard';
+        currentPath = isSavings ? 'savings-groups' : 'dashboard';
     }
 
     // Fallback para caminhos antigos ou tratamentos especiais

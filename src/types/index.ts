@@ -96,3 +96,21 @@ export interface SavingsLoan {
     totalPayable: number;
     remainingAmount: number;
 }
+export interface SavingsLoanPayment {
+    id: string;
+    loanId: string;
+    amount: number;
+    paymentDate: string;
+    notes?: string;
+}
+
+export interface SavingsYield {
+    id: string;
+    groupId: string;
+    amount: number;
+    sourceType: string;
+    paymentDate?: string;
+    distributed: boolean;
+    notes?: string;
+    createdAt?: string;
+}
