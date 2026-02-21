@@ -13,6 +13,14 @@
   <link rel="manifest" href="/manifest.json">
   <meta name="theme-color" content="#1B3A2D">
   <title>Koda Admin - Gestão de Microcréditos</title>
+  <script>
+    window.addEventListener('error', function (e) {
+      document.body.innerHTML += '<div style="position:fixed;top:0;left:0;right:0;background:#ff4444;color:white;padding:20px;z-index:9999;box-sizing:border-box;"><h1 style="color:white;font-size:18px">FALHA CRÍTICA (Erro Lógico):</h1><pre style="white-space:pre-wrap;font-size:12px">' + (e.error ? e.error.stack : e.message) + '</pre></div>';
+    });
+    window.addEventListener('unhandledrejection', function (e) {
+      document.body.innerHTML += '<div style="position:fixed;top:0;left:0;right:0;background:#bb0000;color:white;padding:20px;z-index:9999;box-sizing:border-box;"><h1 style="color:white;font-size:18px">FALHA DE REDE/PROMISE:</h1><pre style="white-space:pre-wrap;font-size:12px">' + (e.reason ? (e.reason.stack || e.reason) : 'Unknown') + '</pre></div>';
+    });
+  </script>
 </head>
 
 <body>
