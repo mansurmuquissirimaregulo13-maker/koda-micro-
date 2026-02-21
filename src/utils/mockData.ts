@@ -115,6 +115,7 @@ export const mockPayments: Payment[] = [
     amount: 10000,
     date: '2024-01-01',
     type: 'partial',
+    method: 'mpesa',
     description: 'Pagamento inicial via M-Pesa'
   },
   {
@@ -123,6 +124,7 @@ export const mockPayments: Payment[] = [
     amount: 18750,
     date: '2024-02-01',
     type: 'total',
+    method: 'cash',
     description: 'Quitação antecipada em dinheiro'
   },
   {
@@ -131,5 +133,7 @@ export const mockPayments: Payment[] = [
     amount: 20000,
     date: '2024-02-15',
     type: 'partial',
+    method: 'bank',
     description: 'Parcela 1 e 2 via transferência'
-  }];
+  }
+];

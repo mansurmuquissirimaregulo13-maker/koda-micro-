@@ -6,7 +6,9 @@ export interface Client {
     phone: string;
     email: string;
     address: string;
+    neighborhood?: string;
     photo?: string;
+    biPhoto?: string;
     registeredAt: string;
     notes?: string;
     residenceProof?: string;
@@ -35,6 +37,7 @@ export interface Payment {
     amount: number;
     date: string;
     type: 'partial' | 'total';
+    method: 'emola' | 'mpesa' | 'bank' | 'cash';
     description?: string;
     proof?: string;
 }

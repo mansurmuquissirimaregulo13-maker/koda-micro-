@@ -22,7 +22,7 @@ interface ClientsPageProps {
 }
 
 export function ClientsPage({ searchTerm = '' }: ClientsPageProps) {
-  const { clients, addClient, updateClient, deleteClient, credits } = useAppState();
+  const { clients, addClient, updateClient, deleteClient, credits, payments } = useAppState();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedClient, setSelectedClient] = useState<Client | null>(null);
   const [viewingClient, setViewingClient] = useState<Client | null>(null);
@@ -202,80 +202,143 @@ export function ClientsPage({ searchTerm = '' }: ClientsPageProps) {
         onClose={() => setViewingClient(null)}
         title="Detalhes do Cliente"
       >
-        {viewingClient && (
-          <div className="space-y-8 py-4">
-            <div className="flex items-center gap-6">
-              <div className="w-20 h-20 rounded-full bg-gray-100 flex items-center justify-center text-3xl font-bold text-[#1B3A2D] border-4 border-white shadow-sm">
-                {viewingClient.name.charAt(0)}
+        {viewingClient && (() => {
+          // Calculations
+          const clientCredits = (credits as any[]).filter((c: any) => c.clientId === viewingClient.id);
+          const creditIds = clientCredits.map(c => c.id);
+          const clientPayments = (payments as any[]).filter(p => p.creditId && creditIds.includes(p.creditId));
+
+          const totalLent = clientCredits.reduce((sum, c) => sum + (c.totalToPay || 0), 0);
+          const totalPaid = clientPayments.reduce((sum, p) => sum + (p.amount || 0), 0);
+          const currentDebt = totalLent - totalPaid;
+
+          return (
+            <div className="space-y-6 py-4 max-h-[70vh] overflow-y-auto pr-2">
+              <div className="flex items-center gap-6">
+                <div className="w-20 h-20 rounded-full bg-gray-100 flex items-center justify-center text-3xl font-bold text-[#1B3A2D] border-4 border-white shadow-sm overflow-hidden">
+                  {viewingClient.biPhoto ? (
+                    <div className="w-full h-full bg-gray-200 flex flex-col items-center justify-center text-xs text-gray-400">
+                      <FileText className="w-6 h-6 mb-1 text-[#40916C]" /> BI
+                    </div>
+                  ) : viewingClient.name.charAt(0)}
+                </div>
+                <div>
+                  <h3 className="text-2xl font-bold text-[#1B1B1B]">
+                    {viewingClient.name}
+                  </h3>
+                  <div className="flex flex-wrap gap-4 mt-2">
+                    <div className="flex items-center gap-2 text-gray-500 bg-gray-50 px-3 py-1 rounded-full text-sm">
+                      <Mail className="w-4 h-4" />
+                      {viewingClient.email || 'Sem email'}
+                    </div>
+                    <div className="flex items-center gap-2 text-gray-500 bg-gray-50 px-3 py-1 rounded-full text-sm">
+                      <Phone className="w-4 h-4" />
+                      {viewingClient.phone || 'Sem telefone'}
+                    </div>
+                  </div>
+                </div>
               </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div className="p-4 bg-gray-50 rounded-xl border border-gray-100">
+                  <div className="flex items-center gap-2 text-gray-500 text-xs mb-1">
+                    <FileText className="w-4 h-4 text-[#40916C]" />
+                    BI
+                  </div>
+                  <div className="font-semibold text-md truncate">{viewingClient.bi}</div>
+                </div>
+                <div className="p-4 bg-gray-50 rounded-xl border border-gray-100">
+                  <div className="flex items-center gap-2 text-gray-500 text-xs mb-1">
+                    <div className="w-4 h-4 text-[#40916C]">📍</div>
+                    Bairro
+                  </div>
+                  <div className="font-semibold text-md truncate">{viewingClient.neighborhood || 'Não informado'}</div>
+                </div>
+                <div className="p-4 bg-gray-50 rounded-xl border border-gray-100">
+                  <div className="flex items-center gap-2 text-gray-500 text-xs mb-1">
+                    <Clock className="w-4 h-4 text-[#40916C]" />
+                    Membro desde
+                  </div>
+                  <div className="font-semibold text-md truncate">
+                    {formatDate(viewingClient.registeredAt)}
+                  </div>
+                </div>
+              </div>
+
+              {/* Financial Summary */}
               <div>
-                <h3 className="text-2xl font-bold text-[#1B1B1B]">
-                  {viewingClient.name}
-                </h3>
-                <div className="flex flex-wrap gap-4 mt-2">
-                  <div className="flex items-center gap-2 text-gray-500 bg-gray-50 px-3 py-1 rounded-full text-sm">
-                    <Mail className="w-4 h-4" />
-                    {viewingClient.email}
+                <h4 className="font-semibold text-[#1B1B1B] mb-3 flex items-center gap-2">
+                  💰 Resumo Financeiro
+                </h4>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                  <div className="p-4 bg-blue-50/50 rounded-xl border border-blue-100">
+                    <div className="text-gray-500 text-xs mb-1">Total (Deveu Tanto)</div>
+                    <div className="font-bold text-lg text-blue-900">{formatMZN(totalLent)}</div>
                   </div>
-                  <div className="flex items-center gap-2 text-gray-500 bg-gray-50 px-3 py-1 rounded-full text-sm">
-                    <Phone className="w-4 h-4" />
-                    {viewingClient.phone}
+                  <div className="p-4 bg-green-50/50 rounded-xl border border-green-100">
+                    <div className="text-gray-500 text-xs mb-1">Total Pago (Colocou Tanto)</div>
+                    <div className="font-bold text-lg text-green-700">{formatMZN(totalPaid)}</div>
+                  </div>
+                  <div className="p-4 bg-red-50/50 rounded-xl border border-red-100">
+                    <div className="text-gray-500 text-xs mb-1">Total em Dívida (A Dever)</div>
+                    <div className="font-bold text-lg text-red-700">{formatMZN(currentDebt)}</div>
                   </div>
                 </div>
               </div>
-            </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="p-4 bg-gray-50 rounded-xl border border-gray-100">
-                <div className="flex items-center gap-2 text-gray-500 text-sm mb-1">
-                  <FileText className="w-4 h-4" />
-                  BI
-                </div>
-                <div className="font-semibold text-lg">{viewingClient.bi}</div>
-              </div>
-              <div className="p-4 bg-gray-50 rounded-xl border border-gray-100">
-                <div className="flex items-center gap-2 text-gray-500 text-sm mb-1">
-                  <Clock className="w-4 h-4" />
-                  Membro desde
-                </div>
-                <div className="font-semibold text-lg">
-                  {formatDate(viewingClient.registeredAt)}
-                </div>
-              </div>
-            </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
 
-            <div>
-              <h4 className="font-semibold text-[#1B1B1B] mb-4 flex items-center gap-2">
-                Histórico de Créditos
-              </h4>
-              <div className="space-y-3">
-                {(credits as any[])
-                  .filter((c: any) => c.clientId === viewingClient.id)
-                  .map((credit: any) => (
-                    <div
-                      key={credit.id}
-                      className="flex items-center justify-between p-4 bg-white border border-gray-100 rounded-xl hover:border-[#40916C]/30 transition-colors"
-                    >
-                      <div>
-                        <div className="font-medium text-gray-900">
-                          {formatMZN(credit.amount)}
+                {/* Credits List */}
+                <div>
+                  <h4 className="font-semibold text-[#1B1B1B] mb-3 flex items-center gap-2 text-sm">
+                    📜 Últimos Créditos
+                  </h4>
+                  <div className="space-y-2">
+                    {clientCredits.slice(0, 3).map((credit: any) => (
+                      <div key={credit.id} className="p-3 bg-white border border-gray-200 rounded-lg shadow-sm">
+                        <div className="flex justify-between items-center mb-1">
+                          <span className="font-semibold text-sm">{formatMZN(credit.totalToPay)}</span>
+                          <CreditStatusBadge status={credit.status} />
                         </div>
-                        <div className="text-xs text-gray-500">
-                          Início: {formatDate(credit.startDate)}
+                        <div className="text-xs text-gray-500">Início: {formatDate(credit.startDate)}</div>
+                      </div>
+                    ))}
+                    {clientCredits.length === 0 && (
+                      <div className="text-center py-4 bg-gray-50 rounded-lg text-gray-400 text-xs">Sem créditos.</div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Payments History */}
+                <div>
+                  <h4 className="font-semibold text-[#1B1B1B] mb-3 flex items-center gap-2 text-sm">
+                    💸 Histórico de Pagamentos
+                  </h4>
+                  <div className="space-y-2 max-h-48 overflow-y-auto pr-1">
+                    {clientPayments.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()).map((payment: any) => (
+                      <div key={payment.id} className="p-3 bg-white border border-gray-200 rounded-lg shadow-sm flex justify-between items-center">
+                        <div>
+                          <div className="font-medium text-sm text-green-700">+{formatMZN(payment.amount)}</div>
+                          <div className="text-[10px] text-gray-500">{formatDate(payment.date)}</div>
+                        </div>
+                        <div className="text-xs font-medium bg-gray-100 text-gray-600 px-2 py-1 rounded">
+                          {payment.method === 'emola' ? 'eMola' :
+                            payment.method === 'mpesa' ? 'M-Pesa' :
+                              payment.method === 'bank' ? 'Transf.' :
+                                payment.method === 'cash' ? 'Em Mão' : 'Desconhecido'}
                         </div>
                       </div>
-                      <CreditStatusBadge status={credit.status} />
-                    </div>
-                  ))}
-                {credits.filter((c: any) => c.clientId === viewingClient.id).length === 0 && (
-                  <div className="text-center py-8 bg-gray-50 rounded-xl border border-dashed border-gray-200">
-                    <p className="text-gray-400 text-sm">Nenhum crédito registado.</p>
+                    ))}
+                    {clientPayments.length === 0 && (
+                      <div className="text-center py-4 bg-gray-50 rounded-lg text-gray-400 text-xs">Sem pagamentos.</div>
+                    )}
                   </div>
-                )}
+                </div>
+
               </div>
             </div>
-          </div>
-        )}
+          );
+        })()}
       </Modal>
     </div>
   );

@@ -90,7 +90,9 @@ export function useAppState() {
           phone: c.phone || '',
           email: c.email || '',
           address: c.address || '',
+          neighborhood: c.neighborhood || '',
           photo: c.photo_url,
+          biPhoto: c.bi_photo_url,
           registeredAt: c.created_at,
           notes: c.notes,
           residenceProof: c.residence_proof_url
@@ -121,6 +123,7 @@ export function useAppState() {
           amount: p.amount,
           date: p.payment_date,
           type: p.payment_type as 'partial' | 'total',
+          method: p.payment_method as 'emola' | 'mpesa' | 'bank' | 'cash' || 'cash',
           description: p.notes,
           proof: p.proof_url
         })));
@@ -216,7 +219,9 @@ export function useAppState() {
         phone: clientData.phone,
         email: clientData.email,
         address: clientData.address,
+        neighborhood: clientData.neighborhood,
         photo_url: clientData.photo,
+        bi_photo_url: clientData.biPhoto,
         notes: clientData.notes,
         residence_proof_url: clientData.residenceProof,
         company_id: companyId
@@ -350,6 +355,7 @@ export function useAppState() {
         amount: paymentData.amount,
         payment_date: paymentData.date,
         payment_type: paymentData.type,
+        payment_method: paymentData.method,
         notes: paymentData.description,
         proof_url: paymentData.proof,
         company_id: companyId

@@ -21,6 +21,7 @@ export function PaymentForm({
   const [amount, setAmount] = useState('');
   const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
   const [type, setType] = useState<'partial' | 'total'>('partial');
+  const [method, setMethod] = useState<'emola' | 'mpesa' | 'bank' | 'cash'>('cash');
   const [description, setDescription] = useState('');
 
   const existingPayments = getCreditPayments(credit.id) as any[];
@@ -32,6 +33,7 @@ export function PaymentForm({
       amount: parseFloat(amount),
       date,
       type,
+      method,
       description
     });
   };
@@ -137,6 +139,21 @@ export function PaymentForm({
               value={date}
               onChange={(e) => setDate(e.target.value)}
             />
+          </div>
+
+          <div className="space-y-2">
+            <label className="text-sm font-medium text-gray-700">
+              Método de Pagamento
+            </label>
+            <select
+              value={method}
+              onChange={(e) => setMethod(e.target.value as any)}
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#40916C] focus:border-transparent outline-none bg-white">
+              <option value="cash">Numerário (Em Mão)</option>
+              <option value="emola">e-Mola</option>
+              <option value="mpesa">M-Pesa</option>
+              <option value="bank">Transferência Bancária</option>
+            </select>
           </div>
 
           <div className="space-y-2">

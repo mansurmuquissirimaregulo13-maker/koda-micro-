@@ -19,8 +19,10 @@ export function ClientForm({
     phone: initialData?.phone || '',
     email: initialData?.email || '',
     address: initialData?.address || '',
+    neighborhood: initialData?.neighborhood || '',
     notes: initialData?.notes || '',
-    residenceProof: initialData?.residenceProof || ''
+    residenceProof: initialData?.residenceProof || '',
+    biPhoto: initialData?.biPhoto || ''
   });
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -28,11 +30,11 @@ export function ClientForm({
     onSubmit(formData);
   };
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>, field: 'residenceProof' | 'biPhoto') => {
     if (e.target.files && e.target.files[0]) {
       setFormData({
         ...formData,
-        residenceProof: e.target.files[0].name
+        [field]: e.target.files[0].name
       });
     }
   };
@@ -125,7 +127,25 @@ export function ClientForm({
             placeholder="Endereço completo..." />
         </div>
 
-        <div className="col-span-1 md:col-span-2 space-y-2">
+        <div className="space-y-2">
+          <label className="text-sm font-medium text-gray-700">
+            Bairro
+          </label>
+          <input
+            required
+            type="text"
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#40916C] focus:border-transparent outline-none"
+            value={formData.neighborhood}
+            onChange={(e) =>
+              setFormData({
+                ...formData,
+                neighborhood: e.target.value
+              })
+            }
+            placeholder="Ex: Bairro Central" />
+        </div>
+
+        <div className="col-span-1 md:col-span-1 space-y-2">
           <label className="text-sm font-medium text-gray-700">
             Comprovativo de Residência
           </label>
@@ -158,7 +178,46 @@ export function ClientForm({
               <input
                 type="file"
                 className="hidden"
-                onChange={handleFileChange}
+                onChange={(e) => handleFileChange(e, 'residenceProof')}
+                accept=".pdf,.jpg,.jpeg,.png" />
+            </label>
+          </div>
+        </div>
+
+        <div className="col-span-1 md:col-span-1 space-y-2">
+          <label className="text-sm font-medium text-gray-700">
+            Foto do BI
+          </label>
+          <div className="flex items-center justify-center w-full">
+            <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100 transition-colors">
+              <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                {formData.biPhoto ? (
+                  <>
+                    <FileText className="w-8 h-8 text-[#40916C] mb-2" />
+                    <p className="text-sm text-gray-500 font-medium">
+                      {formData.biPhoto}
+                    </p>
+                    <p className="text-xs text-gray-400 mt-1">
+                      Clique para alterar
+                    </p>
+                  </>
+                ) : (
+                  <>
+                    <Upload className="w-8 h-8 text-gray-400 mb-2" />
+                    <p className="text-sm text-gray-500">
+                      <span className="font-semibold">Clique para enviar</span>{' '}
+                      ou arraste
+                    </p>
+                    <p className="text-xs text-gray-500">
+                      PDF, PNG, JPG (MAX. 5MB)
+                    </p>
+                  </>
+                )}
+              </div>
+              <input
+                type="file"
+                className="hidden"
+                onChange={(e) => handleFileChange(e, 'biPhoto')}
                 accept=".pdf,.jpg,.jpeg,.png" />
             </label>
           </div>
