@@ -6,7 +6,6 @@ dotenv.config();
 const SUPABASE_URL = process.env.VITE_SUPABASE_URL || 'https://ujszmgrmutidovbhnfvl.supabase.co';
 const EDGE_FUNCTION_URL = `${SUPABASE_URL}/functions/v1/whatsapp-service`;
 
-/* global process */
 export default async function handler(req, res) {
     // CORS support
     res.setHeader('Access-Control-Allow-Origin', '*');

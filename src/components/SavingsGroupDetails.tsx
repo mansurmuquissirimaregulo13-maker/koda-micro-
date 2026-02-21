@@ -37,6 +37,7 @@ export function SavingsGroupDetails({ groupId, onBack }: SavingsGroupDetailsProp
         approveLoan,
         repaySavingsLoan,
         registerYield,
+        distributeInterest,
         manuallyAddMember
     } = useAppState();
 
@@ -46,6 +47,7 @@ export function SavingsGroupDetails({ groupId, onBack }: SavingsGroupDetailsProp
     const [isAddMemberModalOpen, setIsAddMemberModalOpen] = useState(false);
     const [isRepayModalOpen, setIsRepayModalOpen] = useState(false);
     const [isYieldModalOpen, setIsYieldModalOpen] = useState(false);
+    const [isDistributeModalOpen, setIsDistributeModalOpen] = useState(false);
     const [selectedLoanForRepay, setSelectedLoanForRepay] = useState<any>(null);
     const [memberSearchTerm, setMemberSearchTerm] = useState('');
     const [selectedUserForMember, setSelectedUserForMember] = useState<any>(null);
@@ -73,6 +75,11 @@ export function SavingsGroupDetails({ groupId, onBack }: SavingsGroupDetailsProp
     }, [savingsLoans, members]);
 
     const isAdmin = myMembership?.role === 'admin';
+    const totalFund = useMemo(() => {
+        const contributionsSum = (groupContributions as any[]).reduce((sum: any, c: any) => sum + c.amount, 0);
+        const initialSavingsSum = (members as any[]).reduce((sum: any, m: any) => sum + (m.initialSavings || 0), 0);
+        return contributionsSum + initialSavingsSum;
+    }, [groupContributions, members]);
 
     if (!group) return <div>Grupo não encontrado.</div>;
 
@@ -164,11 +171,21 @@ export function SavingsGroupDetails({ groupId, onBack }: SavingsGroupDetailsProp
         }
     };
 
-    const totalFund = useMemo(() => {
-        const contributionsSum = (groupContributions as any[]).reduce((sum: any, c: any) => sum + c.amount, 0);
-        const initialSavingsSum = (members as any[]).reduce((sum: any, m: any) => sum + (m.initialSavings || 0), 0);
-        return contributionsSum + initialSavingsSum;
-    }, [groupContributions, members]);
+    const handleDistributeInterest = async (e: React.FormEvent<HTMLFormElement>) => {
+        e.preventDefault();
+        const formData = new FormData(e.currentTarget);
+        const amount = Number(formData.get('amount'));
+
+        if (amount <= 0) return;
+
+        try {
+            await distributeInterest(group.id, amount);
+            setIsDistributeModalOpen(false);
+            toast.success('Lucros distribuídos com sucesso!');
+        } catch (error) {
+            toast.error('Erro ao distribuir lucros.');
+        }
+    };
 
     return (
         <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
@@ -578,7 +595,7 @@ export function SavingsGroupDetails({ groupId, onBack }: SavingsGroupDetailsProp
                                 <p className="text-xs text-gray-500 mt-2">Lucros registados mas ainda não distribuídos.</p>
                             </div>
                             <button
-                                onClick={() => toast.info('Funcionalidade de distribuição em massa em breve')}
+                                onClick={() => setIsDistributeModalOpen(true)}
                                 className="mt-6 w-full py-3 bg-gray-50 border border-gray-100 rounded-xl text-sm font-bold text-gray-600 hover:bg-blue-50 hover:text-blue-700 transition-all flex items-center justify-center gap-2">
                                 <Percent className="w-4 h-4" />
                                 Distribuir Lucros
@@ -898,6 +915,43 @@ export function SavingsGroupDetails({ groupId, onBack }: SavingsGroupDetailsProp
                             type="submit"
                             className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700">
                             Registar Ganho
+                        </button>
+                    </div>
+                </form>
+            </Modal>
+
+            <Modal
+                isOpen={isDistributeModalOpen}
+                onClose={() => setIsDistributeModalOpen(false)}
+                title="Distribuir Lucros pelos Membros">
+                <form onSubmit={handleDistributeInterest} className="space-y-4">
+                    <div className="p-4 bg-blue-50 rounded-xl border border-blue-100">
+                        <p className="text-xs text-blue-800 font-medium">
+                            O valor será distribuído proporcionalmente à poupança acumulada de cada membro do grupo.
+                        </p>
+                    </div>
+                    <div>
+                        <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">Valor a Distribuir (MZN)</label>
+                        <input
+                            name="amount"
+                            type="number"
+                            required
+                            min="1"
+                            placeholder="Ex: 500.00"
+                            className="w-full bg-gray-50 border border-gray-100 rounded-xl p-3 outline-none focus:ring-2 focus:ring-[#40916C]"
+                        />
+                    </div>
+                    <div className="flex justify-end gap-3 pt-4 border-t border-gray-50">
+                        <button
+                            type="button"
+                            onClick={() => setIsDistributeModalOpen(false)}
+                            className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50">
+                            Cancelar
+                        </button>
+                        <button
+                            type="submit"
+                            className="px-4 py-2 text-sm font-medium text-white bg-[#1B3A2D] rounded-lg hover:bg-[#2D6A4F]">
+                            Confirmar Distribuição
                         </button>
                     </div>
                 </form>

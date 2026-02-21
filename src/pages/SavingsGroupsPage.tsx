@@ -30,12 +30,10 @@ export function SavingsGroupsPage() {
     );
 
     // Check if current user is member of a group
-    // @ts-ignore
     const isMember = (groupId: any) => {
         return (groupMembers as any[]).some((m: any) => m.groupId === groupId && m.userId === (profile as any)?.id);
     };
 
-    // @ts-ignore
     const isAdminMember = (groupId: any) => {
         return (groupMembers as any[]).some((m: any) => m.groupId === groupId && m.userId === (profile as any)?.id && m.role === 'admin');
     };
