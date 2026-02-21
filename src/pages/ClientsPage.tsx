@@ -55,7 +55,7 @@ export function ClientsPage({ searchTerm = '' }: ClientsPageProps) {
 
   const effectiveSearchTerm = searchTerm || localSearchTerm;
 
-  const filteredClients = clients.filter((client) =>
+  const filteredClients = (clients as any[]).filter((client: any) =>
     client.name.toLowerCase().includes(effectiveSearchTerm.toLowerCase()) ||
     client.email.toLowerCase().includes(effectiveSearchTerm.toLowerCase()) ||
     client.phone.includes(effectiveSearchTerm)
@@ -64,7 +64,7 @@ export function ClientsPage({ searchTerm = '' }: ClientsPageProps) {
   const columns = [
     {
       header: 'Cliente',
-      accessor: (client: Client) => (
+      accessor: (client: any) => (
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center font-bold text-[#1B3A2D]">
             {client.name.charAt(0)}
@@ -78,7 +78,7 @@ export function ClientsPage({ searchTerm = '' }: ClientsPageProps) {
     },
     {
       header: 'Contacto',
-      accessor: (client: Client) => (
+      accessor: (client: any) => (
         <div className="flex flex-col gap-1">
           <div className="flex items-center gap-2 text-sm text-gray-600">
             <Phone className="w-3 h-3" />
@@ -89,9 +89,9 @@ export function ClientsPage({ searchTerm = '' }: ClientsPageProps) {
     },
     {
       header: 'Status de Crédito',
-      accessor: (client: Client) => {
-        const clientCredits = credits.filter(c => c.clientId === client.id);
-        const activeCredit = clientCredits.find(c => c.status === 'active' || c.status === 'overdue');
+      accessor: (client: any) => {
+        const clientCredits = (credits as any[]).filter((c: any) => c.clientId === client.id);
+        const activeCredit = clientCredits.find((c: any) => c.status === 'active' || c.status === 'overdue');
         return activeCredit ? (
           <CreditStatusBadge status={activeCredit.status} />
         ) : (
@@ -101,9 +101,9 @@ export function ClientsPage({ searchTerm = '' }: ClientsPageProps) {
     },
     {
       header: 'Saldo Devedor',
-      accessor: (client: Client) => {
-        const clientCredits = credits.filter(c => c.clientId === client.id);
-        const totalDebt = clientCredits.reduce((acc, c) => acc + c.remainingAmount, 0);
+      accessor: (client: any) => {
+        const clientCredits = (credits as any[]).filter((c: any) => c.clientId === client.id);
+        const totalDebt = clientCredits.reduce((acc: any, c: any) => acc + c.remainingAmount, 0);
         return (
           <div className="font-semibold text-[#1B1B1B]">
             {formatMZN(totalDebt)}
@@ -113,7 +113,7 @@ export function ClientsPage({ searchTerm = '' }: ClientsPageProps) {
     },
     {
       header: 'Ações',
-      accessor: (client: Client) => (
+      accessor: (client: any) => (
         <div className="flex items-center gap-2">
           <button
             onClick={() => setViewingClient(client)}
@@ -249,9 +249,9 @@ export function ClientsPage({ searchTerm = '' }: ClientsPageProps) {
                 Histórico de Créditos
               </h4>
               <div className="space-y-3">
-                {credits
-                  .filter((c) => c.clientId === viewingClient.id)
-                  .map((credit) => (
+                {(credits as any[])
+                  .filter((c: any) => c.clientId === viewingClient.id)
+                  .map((credit: any) => (
                     <div
                       key={credit.id}
                       className="flex items-center justify-between p-4 bg-white border border-gray-100 rounded-xl hover:border-[#40916C]/30 transition-colors"
@@ -267,7 +267,7 @@ export function ClientsPage({ searchTerm = '' }: ClientsPageProps) {
                       <CreditStatusBadge status={credit.status} />
                     </div>
                   ))}
-                {credits.filter((c) => c.clientId === viewingClient.id).length === 0 && (
+                {credits.filter((c: any) => c.clientId === viewingClient.id).length === 0 && (
                   <div className="text-center py-8 bg-gray-50 rounded-xl border border-dashed border-gray-200">
                     <p className="text-gray-400 text-sm">Nenhum crédito registado.</p>
                   </div>

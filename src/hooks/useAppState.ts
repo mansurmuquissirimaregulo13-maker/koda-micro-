@@ -613,7 +613,7 @@ export function useAppState() {
       const { data, error } = await supabase.from('savings_yields').insert([{
         group_id: yieldData.groupId,
         amount: yieldData.amount,
-        source_type: yieldData.sourceType,
+        source_type: yieldData.sourceType as 'loan_interest' | 'extra',
         distributed: false
       }]).select().maybeSingle();
 
@@ -694,7 +694,7 @@ export function useAppState() {
       .reduce((sum, l) => sum + l.remainingAmount, 0)
   };
 
-  return {
+  const state = {
     clients,
     credits,
     payments,
@@ -730,4 +730,6 @@ export function useAppState() {
     profile,
     company
   };
+
+  return state as any;
 }

@@ -30,7 +30,7 @@ export function MessagesPage() {
     const getPreview = (client: Client) => {
         let msg = templates[selectedType];
         if (selectedType === "overdue") {
-            const credit = credits.find(c => c.clientId === client.id && c.status === "overdue");
+            const credit = credits.find((c: any) => c.clientId === client.id && c.status === "overdue");
             const days = credit ? getDaysOverdue(credit.endDate) : 0;
             const amount = credit ? formatMZN(credit.remainingAmount) : "MZN 0,00";
             msg = msg.replace("{{dias}}", days.toString()).replace("{{valor}}", amount);
@@ -43,7 +43,7 @@ export function MessagesPage() {
         setSending(true);
         const toastId = toast.loading("Enviando mensagens...");
         try {
-            const targetClients = selectedClientId === "all" ? clients : clients.filter(c => c.id === selectedClientId);
+            const targetClients = selectedClientId === "all" ? clients : clients.filter((c: any) => c.id === selectedClientId);
             let success = 0;
             for (const client of targetClients) {
                 const res = await fetch(`${API_URL}/send-message`, {
@@ -107,7 +107,7 @@ export function MessagesPage() {
                         >
                             <option value="all">Todos os Clientes ({clients.length})</option>
                             <optgroup label="Individuais">
-                                {clients.map(client => (
+                                {clients.map((client: any) => (
                                     <option key={client.id} value={client.id}>{client.name}</option>
                                 ))}
                             </optgroup>
@@ -132,7 +132,7 @@ export function MessagesPage() {
                             <div className="bg-white p-4 rounded-t-xl rounded-bl-xl shadow-sm max-w-[85%] relative animate-in slide-in-from-bottom-2 duration-300">
                                 <p className="text-sm text-gray-800 leading-relaxed whitespace-pre-wrap">
                                     {clients.length > 0
-                                        ? getPreview(selectedClientId === "all" ? clients[0] : (clients.find(c => c.id === selectedClientId) || clients[0]))
+                                        ? getPreview(selectedClientId === "all" ? clients[0] : (clients.find((c: any) => c.id === selectedClientId) || clients[0]))
                                         : "Selecione um cliente para ver a previa."
                                     }
                                 </p>

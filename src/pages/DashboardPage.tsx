@@ -54,7 +54,7 @@ export function DashboardPage({
       };
     });
 
-    credits.forEach(credit => {
+    credits.forEach((credit: any) => {
       const creditDate = new Date(credit.startDate);
       const m = creditDate.getMonth();
       const y = creditDate.getFullYear();
@@ -69,12 +69,12 @@ export function DashboardPage({
   }, [credits]);
 
   const recentCredits = credits.slice(0, 5);
-  const overdueCredits = credits.filter((c) => c.status === 'overdue');
-  const paidClients = clients.filter((client) => {
-    const clientCredits = credits.filter((c) => c.clientId === client.id);
+  const overdueCredits = credits.filter((c: any) => c.status === 'overdue');
+  const paidClients = clients.filter((client: any) => {
+    const clientCredits = credits.filter((c: any) => c.clientId === client.id);
     return (
       clientCredits.length > 0 &&
-      clientCredits.every((c) => c.status === 'paid')
+      clientCredits.every((c: any) => c.status === 'paid')
     );
   });
 
@@ -128,13 +128,13 @@ export function DashboardPage({
                     columns={[
                       {
                         header: 'Membro',
-                        accessor: (c) => {
-                          const client = clients.find(cl => cl.id === c.memberId);
+                        accessor: (c: any) => {
+                          const client = clients.find((cl: any) => cl.id === c.memberId);
                           return client?.name || 'Desconhecido';
                         }
                       },
-                      { header: 'Valor', accessor: (c) => formatMZN(c.amount) },
-                      { header: 'Data', accessor: (c) => formatDate(c.paymentDate) }
+                      { header: 'Valor', accessor: (c: any) => formatMZN(c.amount) },
+                      { header: 'Data', accessor: (c: any) => formatDate(c.paymentDate) }
                     ]}
                   />
                 </div>
@@ -183,10 +183,10 @@ export function DashboardPage({
                   },
                   {
                     header: 'Poupança',
-                    accessor: (m) => {
+                    accessor: (m: any) => {
                       const totalC = contributions
-                        .filter(c => c.memberId === m.id)
-                        .reduce((sum, c) => sum + c.amount, 0);
+                        .filter((c: any) => c.memberId === m.id)
+                        .reduce((sum: number, c: any) => sum + c.amount, 0);
                       return formatMZN(totalC);
                     }
                   },
@@ -200,10 +200,10 @@ export function DashboardPage({
                   },
                   {
                     header: 'Valor Total',
-                    accessor: (m) => {
+                    accessor: (m: any) => {
                       const totalC = contributions
-                        .filter(c => c.memberId === m.id)
-                        .reduce((sum, c) => sum + c.amount, 0);
+                        .filter((c: any) => c.memberId === m.id)
+                        .reduce((sum: number, c: any) => sum + c.amount, 0);
                       return (
                         <span className="font-bold text-[#1B3A2D]">
                           {formatMZN(totalC + (m.earnedInterest || 0))}
@@ -326,7 +326,7 @@ export function DashboardPage({
             </h3>
             <div className="flex flex-wrap gap-2">
               {paidClients.length > 0 ? (
-                paidClients.map((client) => (
+                paidClients.map((client: any) => (
                   <span
                     key={client.id}
                     className="inline-flex items-center px-3 py-1 rounded-full text-[10px] md:text-xs font-medium bg-green-50 text-green-700 border border-green-100">
@@ -375,8 +375,8 @@ export function DashboardPage({
             columns={[
               {
                 header: 'Cliente',
-                accessor: (credit) => {
-                  const client = clients.find((c) => c.id === credit.clientId);
+                accessor: (credit: any) => {
+                  const client = clients.find((c: any) => c.id === credit.clientId);
                   return (
                     <span className="font-medium text-gray-900">
                       {client?.name || 'Desconhecido'}
@@ -386,15 +386,15 @@ export function DashboardPage({
               },
               {
                 header: 'Valor',
-                accessor: (credit) => formatMZN(credit.amount)
+                accessor: (credit: any) => formatMZN(credit.amount)
               },
               {
                 header: 'Status',
-                accessor: (credit) => <CreditStatusBadge status={credit.status} />
+                accessor: (credit: any) => <CreditStatusBadge status={credit.status} />
               },
               {
                 header: 'Data Início',
-                accessor: (credit) => formatDate(credit.startDate)
+                accessor: (credit: any) => formatDate(credit.startDate)
               }]
             } />
         </div>

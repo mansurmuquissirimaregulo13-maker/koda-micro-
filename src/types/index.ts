@@ -108,7 +108,7 @@ export interface SavingsYield {
     id: string;
     groupId: string;
     amount: number;
-    sourceType: string;
+    sourceType: 'loan_interest' | 'extra';
     paymentDate?: string;
     distributed: boolean;
     notes?: string;

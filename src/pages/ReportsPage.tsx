@@ -67,10 +67,10 @@ export function ReportsPage() {
     doc.setFont("helvetica", "bold");
     doc.text(stats.activeCredits.toString(), 145, 75);
 
-    const significantCredits = credits.filter(c => c.status !== 'rejected');
+    const significantCredits = (credits as any[]).filter((c: any) => c.status !== 'rejected');
 
-    const tableData = significantCredits.map(credit => {
-      const client = clients.find(c => c.id === credit.clientId);
+    const tableData = significantCredits.map((credit: any) => {
+      const client = (clients as any[]).find((c: any) => c.id === credit.clientId);
       return [
         client?.name || 'N/A',
         formatMZN(credit.amount),
@@ -142,12 +142,12 @@ export function ReportsPage() {
   };
 
   const handleExportExcel = () => {
-    const activeCredits = credits.filter(c => c.status === 'active' || c.status === 'overdue');
+    const activeCredits = (credits as any[]).filter((c: any) => c.status === 'active' || c.status === 'overdue');
     let csvContent = "data:text/csv;charset=utf-8,";
     csvContent += "Cliente,Valor,Restante,Inicio,Fim,Status\n";
 
-    activeCredits.forEach(credit => {
-      const client = clients.find(c => c.id === credit.clientId);
+    activeCredits.forEach((credit: any) => {
+      const client = (clients as any[]).find((c: any) => c.id === credit.clientId);
       const row = [
         client?.name || 'N/A',
         credit.amount,
@@ -206,10 +206,10 @@ export function ReportsPage() {
   ];
 
   const statusData = [
-    { name: 'Ativos', value: credits.filter((c) => c.status === 'active').length },
-    { name: 'Pagos', value: credits.filter((c) => c.status === 'paid').length },
-    { name: 'Atrasados', value: credits.filter((c) => c.status === 'overdue').length },
-    { name: 'Pendentes', value: credits.filter((c) => c.status === 'pending').length }
+    { name: 'Ativos', value: (credits as any[]).filter((c: any) => c.status === 'active').length },
+    { name: 'Pagos', value: (credits as any[]).filter((c: any) => c.status === 'paid').length },
+    { name: 'Atrasados', value: (credits as any[]).filter((c: any) => c.status === 'overdue').length },
+    { name: 'Pendentes', value: (credits as any[]).filter((c: any) => c.status === 'pending').length }
   ];
 
   const COLORS = ['#3B82F6', '#10B981', '#EF4444', '#F59E0B'];

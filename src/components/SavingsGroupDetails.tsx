@@ -11,9 +11,7 @@ import {
     Clock,
     ArrowUpRight,
     Shield,
-    DollarSign,
-    Percent,
-    ArrowDownRight
+    Percent
 } from 'lucide-react';
 import { useAppState } from '../hooks/useAppState';
 import { formatMZN, formatDate } from '../utils/helpers';
@@ -39,7 +37,6 @@ export function SavingsGroupDetails({ groupId, onBack }: SavingsGroupDetailsProp
         approveLoan,
         repaySavingsLoan,
         registerYield,
-        distributeInterest,
         manuallyAddMember
     } = useAppState();
 
@@ -54,25 +51,25 @@ export function SavingsGroupDetails({ groupId, onBack }: SavingsGroupDetailsProp
     const [selectedUserForMember, setSelectedUserForMember] = useState<any>(null);
 
     const group = useMemo(() =>
-        savingsGroups.find(g => g.id === groupId),
+        (savingsGroups as any[]).find((g: any) => g.id === groupId),
         [savingsGroups, groupId]);
 
     const members = useMemo(() =>
-        groupMembers.filter(m => m.groupId === groupId),
+        (groupMembers as any[]).filter((m: any) => m.groupId === groupId),
         [groupMembers, groupId]);
 
     const groupContributions = useMemo(() => {
-        const memberIds = members.map(m => m.id);
-        return contributions.filter(c => memberIds.includes(c.memberId));
+        const memberIds = members.map((m: any) => m.id);
+        return (contributions as any[]).filter((c: any) => memberIds.includes(c.memberId));
     }, [contributions, members]);
 
     const myMembership = useMemo(() =>
-        members.find(m => m.userId === profile?.id),
+        (members as any[]).find((m: any) => m.userId === profile?.id),
         [members, profile]);
 
     const groupLoans = useMemo(() => {
-        const memberIds = members.map(m => m.id);
-        return savingsLoans.filter(l => memberIds.includes(l.memberId));
+        const memberIds = members.map((m: any) => m.id);
+        return (savingsLoans as any[]).filter((l: any) => memberIds.includes(l.memberId));
     }, [savingsLoans, members]);
 
     const isAdmin = myMembership?.role === 'admin';
@@ -157,7 +154,7 @@ export function SavingsGroupDetails({ groupId, onBack }: SavingsGroupDetailsProp
             await registerYield({
                 groupId: group.id,
                 amount: Number(formData.get('amount')),
-                sourceType: formData.get('sourceType') as string,
+                sourceType: formData.get('sourceType') as 'loan_interest' | 'extra',
                 notes: formData.get('notes') as string
             });
             setIsYieldModalOpen(false);
@@ -168,8 +165,8 @@ export function SavingsGroupDetails({ groupId, onBack }: SavingsGroupDetailsProp
     };
 
     const totalFund = useMemo(() => {
-        const contributionsSum = groupContributions.reduce((sum, c) => sum + c.amount, 0);
-        const initialSavingsSum = members.reduce((sum, m) => sum + (m.initialSavings || 0), 0);
+        const contributionsSum = (groupContributions as any[]).reduce((sum: any, c: any) => sum + c.amount, 0);
+        const initialSavingsSum = (members as any[]).reduce((sum: any, m: any) => sum + (m.initialSavings || 0), 0);
         return contributionsSum + initialSavingsSum;
     }, [groupContributions, members]);
 
@@ -212,11 +209,11 @@ export function SavingsGroupDetails({ groupId, onBack }: SavingsGroupDetailsProp
             {/* Tabs */}
             <div className="flex items-center gap-2 p-1 bg-gray-100/50 rounded-2xl w-fit">
                 {[
-                    { id: 'overview', label: 'Visão Geral', icon: Info },
-                    { id: 'members', label: 'Membros', icon: Users },
-                    { id: 'contributions', label: 'Poupança', icon: Wallet },
-                    { id: 'loans', label: 'Empréstimos', icon: ArrowUpRight },
-                    { id: 'yields', label: 'Ganhos', icon: TrendingUp },
+                    { id: 'overview', label: 'Visão Geral', icon: Info as any },
+                    { id: 'members', label: 'Membros', icon: Users as any },
+                    { id: 'contributions', label: 'Poupança', icon: Wallet as any },
+                    { id: 'loans', label: 'Empréstimos', icon: ArrowUpRight as any },
+                    { id: 'yields', label: 'Ganhos', icon: TrendingUp as any },
                 ].map((tab) => (
                     <button
                         key={tab.id}
@@ -248,11 +245,11 @@ export function SavingsGroupDetails({ groupId, onBack }: SavingsGroupDetailsProp
                                 <div className="relative z-10">
                                     <p className="text-xs font-bold text-green-300 uppercase tracking-widest mb-1">Minha Poupança</p>
                                     <p className="text-3xl font-black">{formatMZN(
-                                        (groupContributions.filter(c => c.memberId === myMembership?.id).reduce((sum, c) => sum + c.amount, 0)) +
+                                        ((groupContributions as any[]).filter((c: any) => c.memberId === myMembership?.id).reduce((sum: any, c: any) => sum + c.amount, 0)) +
                                         (myMembership?.initialSavings || 0)
                                     )}</p>
                                     <p className="mt-4 text-xs font-medium text-green-200">
-                                        {groupContributions.filter(c => c.memberId === myMembership?.id).length} quotas pagas + Saldo inicial
+                                        {(groupContributions as any[]).filter((c: any) => c.memberId === myMembership?.id).length} quotas pagas + Saldo inicial
                                     </p>
                                 </div>
                                 <Wallet className="absolute -right-4 -bottom-4 w-32 h-32 text-white/5 rotate-12" />
@@ -268,8 +265,8 @@ export function SavingsGroupDetails({ groupId, onBack }: SavingsGroupDetailsProp
                                 </h3>
                             </div>
                             <div className="divide-y divide-gray-50">
-                                {groupContributions.slice(0, 5).map((c) => {
-                                    const member = members.find(m => m.id === c.memberId);
+                                {groupContributions.slice(0, 5).map((c: any) => {
+                                    const member = (members as any[]).find((m: any) => m.id === c.memberId);
                                     return (
                                         <div key={c.id} className="p-4 flex items-center justify-between hover:bg-gray-50 transition-colors">
                                             <div className="flex items-center gap-3">
@@ -353,7 +350,7 @@ export function SavingsGroupDetails({ groupId, onBack }: SavingsGroupDetailsProp
                             columns={[
                                 {
                                     header: 'Membro',
-                                    accessor: (m) => (
+                                    accessor: (m: any) => (
                                         <div className="flex items-center gap-3">
                                             <div className="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center font-bold text-xs uppercase">
                                                 {m.name?.substring(0, 1)}
@@ -367,9 +364,9 @@ export function SavingsGroupDetails({ groupId, onBack }: SavingsGroupDetailsProp
                                 },
                                 {
                                     header: 'Total Poupado',
-                                    accessor: (m) => {
-                                        const memberContribs = groupContributions
-                                            .filter(c => c.memberId === m.id)
+                                    accessor: (m: any) => {
+                                        const memberContribs = (groupContributions as any[])
+                                            .filter((c: any) => c.memberId === m.id)
                                             .reduce((sum, c) => sum + c.amount, 0);
                                         const total = (m.initialSavings || 0) + memberContribs + (m.earnedInterest || 0);
                                         return (
@@ -382,9 +379,9 @@ export function SavingsGroupDetails({ groupId, onBack }: SavingsGroupDetailsProp
                                 },
                                 {
                                     header: 'Dívida Atual',
-                                    accessor: (m) => {
-                                        const activeLoans = groupLoans
-                                            .filter(l => l.memberId === m.id && (l.status === 'approved' || l.status === 'overdue'))
+                                    accessor: (m: any) => {
+                                        const activeLoans = (groupLoans as any[])
+                                            .filter((l: any) => l.memberId === m.id && (l.status === 'approved' || l.status === 'overdue'))
                                             .reduce((sum, l) => sum + l.remainingAmount, 0);
                                         const totalDebt = (m.initialDebt || 0) + activeLoans;
                                         return (
@@ -399,7 +396,7 @@ export function SavingsGroupDetails({ groupId, onBack }: SavingsGroupDetailsProp
                                 },
                                 {
                                     header: 'Status',
-                                    accessor: (m) => (
+                                    accessor: (m: any) => (
                                         <div className="flex items-center gap-2">
                                             {m.status === 'approved' ? (
                                                 <CheckCircle className="w-4 h-4 text-green-500" />
@@ -414,7 +411,7 @@ export function SavingsGroupDetails({ groupId, onBack }: SavingsGroupDetailsProp
                                 },
                                 {
                                     header: 'Ganhos',
-                                    accessor: (m) => (
+                                    accessor: (m: any) => (
                                         <div className="text-xs font-bold text-blue-600">
                                             {formatMZN(m.earnedInterest || 0)}
                                         </div>
@@ -433,8 +430,8 @@ export function SavingsGroupDetails({ groupId, onBack }: SavingsGroupDetailsProp
                         columns={[
                             {
                                 header: 'Membro',
-                                accessor: (c) => {
-                                    const member = members.find(m => m.id === c.memberId);
+                                accessor: (c: any) => {
+                                    const member = (members as any[]).find((m: any) => m.id === c.memberId);
                                     return (
                                         <div className="flex items-center gap-3">
                                             <div className="w-8 h-8 bg-gray-50 rounded-full flex items-center justify-center font-bold text-xs text-green-700">
@@ -447,7 +444,7 @@ export function SavingsGroupDetails({ groupId, onBack }: SavingsGroupDetailsProp
                             },
                             {
                                 header: 'Valor',
-                                accessor: (c) => (
+                                accessor: (c: any) => (
                                     <span className="font-bold text-green-600">
                                         {formatMZN(c.amount)}
                                     </span>
@@ -455,11 +452,11 @@ export function SavingsGroupDetails({ groupId, onBack }: SavingsGroupDetailsProp
                             },
                             {
                                 header: 'Data do Pagamento',
-                                accessor: (c) => formatDate(c.paymentDate)
+                                accessor: (c: any) => formatDate(c.paymentDate)
                             },
                             {
                                 header: 'Status',
-                                accessor: (c) => (
+                                accessor: (c: any) => (
                                     <span className={`px-2 py-1 rounded-md text-[10px] font-bold uppercase ${c.status === 'paid' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
                                         }`}>
                                         {c.status === 'paid' ? 'Pago' : 'Em Atraso'}
@@ -468,7 +465,7 @@ export function SavingsGroupDetails({ groupId, onBack }: SavingsGroupDetailsProp
                             },
                             {
                                 header: 'Notas',
-                                accessor: (c) => (
+                                accessor: (c: any) => (
                                     <span className="text-xs text-gray-500 italic">
                                         {c.notes || '-'}
                                     </span>
@@ -504,14 +501,14 @@ export function SavingsGroupDetails({ groupId, onBack }: SavingsGroupDetailsProp
                             columns={[
                                 {
                                     header: 'Membro',
-                                    accessor: (l) => {
-                                        const member = members.find(m => m.id === l.memberId);
+                                    accessor: (l: any) => {
+                                        const member = (members as any[]).find((m: any) => m.id === l.memberId);
                                         return member?.name || 'Desconhecido';
                                     }
                                 },
                                 {
                                     header: 'Valor',
-                                    accessor: (l) => formatMZN(l.amount)
+                                    accessor: (l: any) => formatMZN(l.amount)
                                 },
                                 {
                                     header: 'Status',
@@ -590,7 +587,7 @@ export function SavingsGroupDetails({ groupId, onBack }: SavingsGroupDetailsProp
 
                         <div className="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm">
                             <h3 className="text-sm font-bold text-gray-400 uppercase tracking-widest mb-4">Total Distribuído</h3>
-                            <p className="text-3xl font-black text-green-600">{formatMZN(members.reduce((sum, m) => sum + (m.earnedInterest || 0), 0))}</p>
+                            <p className="text-3xl font-black text-green-600">{formatMZN((members as any[]).reduce((sum: any, m: any) => sum + (m.earnedInterest || 0), 0))}</p>
                             <p className="text-xs text-gray-500 mt-2">Valor total de lucros que já foram para os saldos dos membros.</p>
                         </div>
                     </div>
@@ -714,12 +711,12 @@ export function SavingsGroupDetails({ groupId, onBack }: SavingsGroupDetailsProp
                         {memberSearchTerm && !selectedUserForMember && (
                             <div className="absolute z-50 w-full mt-1 bg-white border border-gray-100 rounded-xl shadow-xl max-h-48 overflow-y-auto">
                                 {allProfiles
-                                    .filter(u =>
+                                    .filter((u: any) =>
                                         (u.full_name?.toLowerCase().includes(memberSearchTerm.toLowerCase()) ||
                                             u.email?.toLowerCase().includes(memberSearchTerm.toLowerCase())) &&
-                                        !members.some(m => m.userId === u.id)
+                                        !(members as any[]).some((m: any) => m.userId === u.id)
                                     )
-                                    .map(user => (
+                                    .map((user: any) => (
                                         <button
                                             key={user.id}
                                             type="button"

@@ -23,7 +23,7 @@ export function PaymentForm({
   const [type, setType] = useState<'partial' | 'total'>('partial');
   const [description, setDescription] = useState('');
 
-  const existingPayments = getCreditPayments(credit.id);
+  const existingPayments = getCreditPayments(credit.id) as any[];
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();

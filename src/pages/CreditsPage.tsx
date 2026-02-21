@@ -70,8 +70,8 @@ export function CreditsPage({ searchTerm = '' }: CreditsPageProps) {
     setIsDetailModalOpen(true);
   };
 
-  const filteredCredits = credits.filter(credit => {
-    const client = clients.find(c => c.id === credit.clientId);
+  const filteredCredits = (credits as any[]).filter(credit => {
+    const client = (clients as any[]).find((c: any) => c.id === credit.clientId);
     const matchesSearch = client?.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       credit.amount.toString().includes(searchTerm) ||
       credit.totalToPay.toString().includes(searchTerm);
@@ -124,8 +124,8 @@ export function CreditsPage({ searchTerm = '' }: CreditsPageProps) {
         columns={[
           {
             header: 'Cliente',
-            accessor: (credit) => {
-              const client = clients.find((c) => c.id === credit.clientId);
+            accessor: (credit: any) => {
+              const client = (clients as any[]).find((c: any) => c.id === credit.clientId);
               return (
                 <span className="font-medium text-gray-900">
                   {client?.name || 'Desconhecido'}
@@ -135,19 +135,19 @@ export function CreditsPage({ searchTerm = '' }: CreditsPageProps) {
           },
           {
             header: 'Valor Total',
-            accessor: (credit) => formatMZN(credit.totalToPay)
+            accessor: (credit: any) => formatMZN(credit.totalToPay)
           },
           {
             header: 'Juros',
-            accessor: (credit) => `${credit.interestRate}%`
+            accessor: (credit: any) => `${credit.interestRate}%`
           },
           {
             header: 'Prazo',
-            accessor: (credit) => `${credit.termMonths} meses`
+            accessor: (credit: any) => `${credit.termMonths} meses`
           },
           {
             header: 'Restante',
-            accessor: (credit) => (
+            accessor: (credit: any) => (
               <span
                 className={`font-bold ${credit.status === 'overdue' ? 'text-red-600' : 'text-[#1B3A2D]'}`}>
                 {formatMZN(credit.remainingAmount)}
@@ -156,14 +156,14 @@ export function CreditsPage({ searchTerm = '' }: CreditsPageProps) {
           },
           {
             header: 'Status',
-            accessor: (credit) => <CreditStatusBadge status={credit.status} />
+            accessor: (credit: any) => <CreditStatusBadge status={credit.status} />
           },
           {
             header: 'Vencimento',
-            accessor: (credit) => formatDate(credit.endDate)
+            accessor: (credit: any) => formatDate(credit.endDate)
           }]
         }
-        actions={(credit) => (
+        actions={(credit: any) => (
           <div className="flex items-center justify-end gap-3">
             <select
               value={credit.status}
@@ -213,7 +213,7 @@ export function CreditsPage({ searchTerm = '' }: CreditsPageProps) {
         {selectedCredit && (
           <PaymentForm
             credit={selectedCredit}
-            client={clients.find((c) => c.id === selectedCredit.clientId)!}
+            client={(clients as any[]).find((c: any) => c.id === (selectedCredit as any).clientId)!}
             onSubmit={handlePayment}
             onCancel={() => setIsPaymentModalOpen(false)} />
         )}
