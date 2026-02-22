@@ -9,7 +9,6 @@ import {
   LogOut,
   ChevronRight,
   Shield,
-  MessageSquare,
 } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
 import { useAppState } from '../hooks/useAppState';
@@ -54,18 +53,13 @@ export function Sidebar({ currentPage, onNavigate, isOpen }: SidebarProps) {
       path: '/reports',
     },
     {
-      id: 'messages',
-      label: 'Mensagens',
-      icon: MessageSquare,
-      path: '/messages',
-    },
-    {
       id: 'savings-groups',
       label: 'Membros',
       icon: Users,
       path: '/savings-groups',
     },
   ].filter(item => {
+
     if (isSavings) {
       // For Savings: show Membros (savings-groups) and hide Clientes/Credits
       return item.id !== 'credits' && item.id !== 'clients';

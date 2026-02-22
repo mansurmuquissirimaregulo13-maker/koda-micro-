@@ -1,98 +1,42 @@
-import React, { useState, useEffect } from 'react';
+import { useState } from 'react';
 import {
     Users,
-    Plus,
     TrendingUp,
     Target,
     Search,
     ArrowRight,
-    Shield,
-    Calendar,
     Wallet
 } from 'lucide-react';
 import { useAppState } from '../hooks/useAppState';
 import { formatMZN, formatDate } from '../utils/helpers';
-import { Modal } from '../components/Modal';
 import { SavingsGroupDetails } from '../components/SavingsGroupDetails';
-import { toast } from 'sonner';
 
 export function SavingsGroupsPage() {
-    const { savingsGroups, groupMembers, profile, joinGroup, addSavingsGroup } = useAppState() as any;
+    const { clients } = useAppState() as any;
     const [searchTerm, setSearchTerm] = useState('');
-    const [selectedGroup, setSelectedGroup] = useState<any>(null);
+    const [selectedMember, setSelectedMember] = useState<any>(null);
     const [view, setView] = useState<'list' | 'details'>('list');
-    const [isJoinModalOpen, setIsJoinModalOpen] = useState(false);
-    const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
 
-    // Filter groups
-    const filteredGroups = (savingsGroups as any[]).filter((g: any) =>
-        g.name.toLowerCase().includes(searchTerm.toLowerCase())
+    // Mapear os Clientes (do microcrédito) para o conceito de Membros de Poupança
+    const membersList = clients || [];
+
+    // Filter members
+    const filteredMembers = membersList.filter((m: any) =>
+        m.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (m.bi && m.bi.toLowerCase().includes(searchTerm.toLowerCase()))
     );
 
-    // Check if current user is member of a group
-    const isMember = (groupId: any) => {
-        return (groupMembers as any[]).some((m: any) => m.groupId === groupId && m.userId === (profile as any)?.id);
-    };
+    // Mock calculations that will eventually be pulled from individual real transactions (credits/savings)
+    const mockedTotalSavedByAll = membersList.length * 12500;
+    const mockedTotalGivenInLoans = membersList.length * 8000;
 
-    const isAdminMember = (groupId: any) => {
-        return (groupMembers as any[]).some((m: any) => m.groupId === groupId && m.userId === (profile as any)?.id && m.role === 'admin');
-    };
-
-    // Auto-select if only one group exists and user is admin/owner
-    useEffect(() => {
-        if (view === 'list' && (savingsGroups as any[])?.length === 1) {
-            const singleGroup = (savingsGroups as any[])[0];
-            if (isAdminMember(singleGroup.id)) {
-                setSelectedGroup(singleGroup);
-                setView('details');
-            }
-        }
-    }, [view, savingsGroups, groupMembers, profile]);
-
-    const getMemberStatus = (groupId: any) => {
-        const membership = (groupMembers as any[]).find((m: any) => m.groupId === groupId && m.userId === profile?.id);
-        return membership?.status;
-    };
-
-    const handleJoinRequest = async (groupId: any) => {
-        await joinGroup(groupId);
-        setIsJoinModalOpen(false);
-        toast.success('Solicitação enviada com sucesso!');
-    };
-
-    const handleCreateGroup = async (e: React.FormEvent<HTMLFormElement>) => {
-        e.preventDefault();
-        const formData = new FormData(e.currentTarget);
-        console.log('Tentando criar grupo:', Object.fromEntries(formData));
-
-        try {
-            const result = await addSavingsGroup({
-                name: formData.get('name') as string,
-                description: formData.get('description') as string,
-                contributionAmount: Number(formData.get('amount')),
-                periodicity: formData.get('periodicity') as 'weekly' | 'monthly',
-                startDate: formData.get('startDate') as string,
-                lateFee: Number(formData.get('lateFee')),
-                interestRate: Number(formData.get('interestRate') || 0),
-                maxLoanPerMember: Number(formData.get('maxLoanPerMember')),
-                memberLimit: formData.get('memberLimit') ? Number(formData.get('memberLimit')) : undefined,
-            } as any);
-            console.log('Resultado da criação:', result);
-            setIsCreateModalOpen(false);
-            toast.success('Grupo criado com sucesso!');
-        } catch (error: any) {
-            console.error('Erro detalhado ao criar grupo:', error);
-            toast.error(`Erro ao criar o grupo: ${error.message || 'Erro desconhecido'}`);
-        }
-    };
-
-    if (view === 'details' && selectedGroup) {
+    if (view === 'details' && selectedMember) {
         return (
             <SavingsGroupDetails
-                groupId={selectedGroup.id}
+                memberId={selectedMember.id} // Passar o ID do membro em vez de GroupId
                 onBack={() => {
                     setView('list');
-                    setSelectedGroup(null);
+                    setSelectedMember(null);
                 }}
             />
         );
@@ -106,15 +50,9 @@ export function SavingsGroupsPage() {
                         Membros
                     </h2>
                     <p className="text-gray-500 text-sm">
-                        Gerencie os membros e suas participações com transparência.
+                        Gerencie as poupanças e empréstimos individuais de cada membro.
                     </p>
                 </div>
-                <button
-                    onClick={() => setIsCreateModalOpen(true)}
-                    className="w-full sm:w-auto flex items-center justify-center gap-2 px-6 py-2.5 bg-[#1B3A2D] text-white rounded-xl hover:bg-[#2D6A4F] transition-all shadow-lg shadow-green-900/20 font-bold text-sm">
-                    <Plus className="w-4 h-4" />
-                    Novo Grupo
-                </button>
             </div>
 
             {/* Stats Overview */}
@@ -124,9 +62,9 @@ export function SavingsGroupsPage() {
                         <Users className="w-6 h-6" />
                     </div>
                     <div>
-                        <p className="text-xs font-bold text-gray-400 uppercase tracking-wider">Meus Grupos</p>
+                        <p className="text-xs font-bold text-gray-400 uppercase tracking-wider">Total de Membros</p>
                         <p className="text-2xl font-black text-gray-900">
-                            {(groupMembers as any[]).filter((m: any) => m.userId === profile?.id).length}
+                            {membersList.length}
                         </p>
                     </div>
                 </div>
@@ -135,8 +73,8 @@ export function SavingsGroupsPage() {
                         <TrendingUp className="w-6 h-6" />
                     </div>
                     <div>
-                        <p className="text-xs font-bold text-gray-400 uppercase tracking-wider">Total Poupado</p>
-                        <p className="text-2xl font-black text-gray-900">{formatMZN(0)}</p>
+                        <p className="text-xs font-bold text-gray-400 uppercase tracking-wider">Total Poupado (Global)</p>
+                        <p className="text-2xl font-black text-gray-900">{formatMZN(mockedTotalSavedByAll)}</p>
                     </div>
                 </div>
                 <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm flex items-center gap-4">
@@ -144,8 +82,8 @@ export function SavingsGroupsPage() {
                         <Target className="w-6 h-6" />
                     </div>
                     <div>
-                        <p className="text-xs font-bold text-gray-400 uppercase tracking-wider">Próxima Contribuição</p>
-                        <p className="text-sm font-bold text-gray-900">Nenhuma pendente</p>
+                        <p className="text-xs font-bold text-gray-400 uppercase tracking-wider">Acumulado em Empréstimos</p>
+                        <p className="text-2xl font-black text-gray-900">{formatMZN(mockedTotalGivenInLoans)}</p>
                     </div>
                 </div>
             </div>
@@ -155,173 +93,91 @@ export function SavingsGroupsPage() {
                 <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 group-focus-within:text-[#40916C] transition-colors" />
                 <input
                     type="text"
-                    placeholder="Procurar grupos pelo nome..."
+                    placeholder="Procurar membro pelo nome ou BI..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                     className="w-full pl-12 pr-4 py-3.5 bg-white border border-gray-100 rounded-2xl outline-none focus:ring-2 focus:ring-[#40916C] shadow-sm transition-all"
                 />
             </div>
 
-            {/* Groups Grid */}
+            {/* Members Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {(filteredGroups as any[]).map((group: any) => {
-                    const status = getMemberStatus(group.id);
-                    const isUserIn = isMember(group.id);
+                {(filteredMembers as any[]).map((member: any) => {
+                    // Mock data for the cards, logic will move to the details view later
+                    const memberTotalSaved = 0;
+                    const memberTotalDebt = 0;
 
                     return (
                         <div
-                            key={group.id}
+                            key={member.id}
                             className="group bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 overflow-hidden flex flex-col">
                             <div className="p-6 flex-1">
                                 <div className="flex justify-between items-start mb-4">
-                                    <div className="w-10 h-10 bg-green-50 rounded-lg flex items-center justify-center text-green-700 font-bold">
-                                        {group.name.substring(0, 1)}
-                                    </div>
-                                    {isUserIn && (
-                                        <span className={`px-2 py-1 rounded-md text-[10px] font-bold uppercase ${status === 'approved' ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'
-                                            }`}>
-                                            {status === 'approved' ? 'Membro' : 'Pendente'}
-                                        </span>
+                                    {member.photo ? (
+                                        <img src={member.photo} alt={member.name} className="w-12 h-12 rounded-lg object-cover" />
+                                    ) : (
+                                        <div className="w-12 h-12 bg-green-50 rounded-lg flex items-center justify-center text-green-700 font-bold text-xl">
+                                            {member.name.substring(0, 1)}
+                                        </div>
                                     )}
                                 </div>
 
                                 <h3 className="text-lg font-bold text-gray-900 mb-1 leading-tight group-hover:text-[#40916C] transition-colors">
-                                    {group.name}
+                                    {member.name}
                                 </h3>
                                 <p className="text-gray-500 text-sm line-clamp-2 mb-4">
-                                    {group.description || 'Sem descrição.'}
+                                    {member.phone || 'Sem contacto telefónico'}
                                 </p>
 
                                 <div className="grid grid-cols-2 gap-4 py-4 border-t border-gray-50">
-                                    <div className="flex items-center gap-2 text-gray-600">
-                                        <Wallet className="w-4 h-4 opacity-50" />
-                                        <span className="text-xs font-medium">{formatMZN(group.contributionAmount)}</span>
+                                    <div className="flex flex-col">
+                                        <span className="text-xs font-bold text-gray-400 uppercase">Poupou Tanto</span>
+                                        <p className="text-sm font-bold text-green-600 flex items-center gap-1">
+                                            <Wallet className="w-3 h-3" />
+                                            {formatMZN(memberTotalSaved)}
+                                        </p>
                                     </div>
-                                    <div className="flex items-center gap-2 text-gray-600">
-                                        <Calendar className="w-4 h-4 opacity-50" />
-                                        <span className="text-xs font-medium capitalize">
-                                            {group.periodicity === 'weekly' ? 'Semanal' : 'Mensal'}
-                                        </span>
-                                    </div>
-                                    <div className="flex items-center gap-2 text-gray-600">
-                                        <Users className="w-4 h-4 opacity-50" />
-                                        <span className="text-xs font-medium">{group.memberLimit ? `${group.memberLimit} máx.` : 'Ilimitado'}</span>
-                                    </div>
-                                    <div className="flex items-center gap-2 text-gray-600">
-                                        <Shield className="w-4 h-4 opacity-50" />
-                                        <span className="text-xs font-medium">{group.interestRate}% juros</span>
+                                    <div className="flex flex-col">
+                                        <span className="text-xs font-bold text-gray-400 uppercase">A Dever</span>
+                                        <p className="text-sm font-bold text-red-600 flex items-center gap-1">
+                                            <TrendingUp className="w-3 h-3" />
+                                            {formatMZN(memberTotalDebt)}
+                                        </p>
                                     </div>
                                 </div>
                             </div>
 
                             <div className="p-4 bg-gray-50 border-t border-gray-100 flex items-center justify-between">
                                 <div>
-                                    <p className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">Início</p>
-                                    <p className="text-xs font-bold text-gray-700">{formatDate(group.startDate)}</p>
+                                    <p className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">Registado em</p>
+                                    <p className="text-xs font-bold text-gray-700">{formatDate(member.registeredAt || new Date().toISOString())}</p>
                                 </div>
-                                {isUserIn ? (
-                                    <button
-                                        onClick={() => {
-                                            setSelectedGroup(group);
-                                            setView('details');
-                                        }}
-                                        className="flex items-center gap-2 text-xs font-bold text-[#1B3A2D] hover:underline">
-                                        Ver Detalhes
-                                        <ArrowRight className="w-3 h-3" />
-                                    </button>
-                                ) : (
-                                    <button
-                                        onClick={() => {
-                                            setSelectedGroup(group);
-                                            setIsJoinModalOpen(true);
-                                        }}
-                                        className="px-4 py-2 bg-white border border-gray-200 rounded-lg text-xs font-bold text-gray-700 hover:bg-[#1B3A2D] hover:text-white transition-all">
-                                        Aderir
-                                    </button>
-                                )}
+                                <button
+                                    onClick={() => {
+                                        setSelectedMember(member);
+                                        setView('details');
+                                    }}
+                                    className="flex items-center gap-2 text-xs font-bold text-[#1B3A2D] hover:underline">
+                                    Ver Ficha
+                                    <ArrowRight className="w-3 h-3" />
+                                </button>
                             </div>
                         </div>
                     );
                 })}
 
-                {filteredGroups.length === 0 && (
+                {filteredMembers.length === 0 && (
                     <div className="col-span-full py-20 text-center">
                         <div className="w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-4">
                             <Users className="w-10 h-10 text-gray-300" />
                         </div>
-                        <h3 className="text-xl font-bold text-gray-900 mb-2">Nenhum grupo encontrado</h3>
+                        <h3 className="text-xl font-bold text-gray-900 mb-2">Nenhum membro encontrado</h3>
                         <p className="text-gray-500 max-w-xs mx-auto">
-                            Não existem grupos de poupança que correspondam à sua pesquisa.
+                            Não existem membros de poupança que correspondam à sua pesquisa.
                         </p>
                     </div>
                 )}
             </div>
-
-            {/* Join Group Modal */}
-            <Modal
-                isOpen={isJoinModalOpen}
-                onClose={() => setIsJoinModalOpen(false)}
-                title="Aderir ao Grupo">
-                <div className="space-y-4">
-                    <p className="text-sm text-gray-600">
-                        Deseja enviar uma solicitação para participar do grupo <span className="font-bold text-gray-900">{selectedGroup?.name}</span>?
-                    </p>
-                    <div className="flex justify-end gap-3 pt-4 border-t border-gray-50">
-                        <button
-                            onClick={() => setIsJoinModalOpen(false)}
-                            className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg">
-                            Cancelar
-                        </button>
-                        <button
-                            onClick={() => selectedGroup && handleJoinRequest(selectedGroup.id)}
-                            className="px-4 py-2 text-sm font-medium text-white bg-[#1B3A2D] rounded-lg">
-                            Confirmar Solicitação
-                        </button>
-                    </div>
-                </div>
-            </Modal>
-
-            {/* Create Group Modal */}
-            <Modal
-                isOpen={isCreateModalOpen}
-                onClose={() => setIsCreateModalOpen(false)}
-                title="Criar Novo Grupo de Poupança">
-                <form onSubmit={handleCreateGroup} className="space-y-4">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div className="md:col-span-2">
-                            <label className="block text-xs font-bold text-gray-400 uppercase mb-1">Nome do Grupo</label>
-                            <input name="name" required className="w-full p-3 bg-gray-50 border border-gray-100 rounded-xl outline-none focus:ring-2 focus:ring-[#40916C]" />
-                        </div>
-                        <div className="md:col-span-2">
-                            <label className="block text-xs font-bold text-gray-400 uppercase mb-1">Descrição</label>
-                            <textarea name="description" className="w-full p-3 bg-gray-50 border border-gray-100 rounded-xl outline-none focus:ring-2 focus:ring-[#40916C]" />
-                        </div>
-                        <div>
-                            <label className="block text-xs font-bold text-gray-400 uppercase mb-1">Quota (MZN)</label>
-                            <input name="amount" type="number" required className="w-full p-3 bg-gray-50 border border-gray-100 rounded-xl outline-none focus:ring-2 focus:ring-[#40916C]" />
-                        </div>
-                        <div>
-                            <label className="block text-xs font-bold text-gray-400 uppercase mb-1">Periodicidade</label>
-                            <select name="periodicity" className="w-full p-3 bg-gray-50 border border-gray-100 rounded-xl outline-none focus:ring-2 focus:ring-[#40916C]">
-                                <option value="weekly">Semanal</option>
-                                <option value="monthly">Mensal</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label className="block text-xs font-bold text-gray-400 uppercase mb-1">Data de Início</label>
-                            <input name="startDate" type="date" required className="w-full p-3 bg-gray-50 border border-gray-100 rounded-xl outline-none focus:ring-2 focus:ring-[#40916C]" />
-                        </div>
-                        <div>
-                            <label className="block text-xs font-bold text-gray-400 uppercase mb-1">Limite de Membros</label>
-                            <input name="memberLimit" type="number" className="w-full p-3 bg-gray-50 border border-gray-100 rounded-xl outline-none focus:ring-2 focus:ring-[#40916C]" />
-                        </div>
-                    </div>
-                    <div className="flex justify-end gap-3 pt-4 border-t border-gray-50">
-                        <button type="button" onClick={() => setIsCreateModalOpen(false)} className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg">Cancelar</button>
-                        <button type="submit" className="px-4 py-2 text-sm font-medium text-white bg-[#1B3A2D] rounded-lg">Criar Grupo</button>
-                    </div>
-                </form>
-            </Modal>
         </div>
     );
 }
