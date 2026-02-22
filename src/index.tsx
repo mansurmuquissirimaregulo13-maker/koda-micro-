@@ -13,16 +13,16 @@ if (container) {
         </ErrorBoundary>
     );
 
-    // Register service worker
+    // Unregister any existing service workers to prevent aggressive caching white-screens
     if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {
-            navigator.serviceWorker.register('/sw.js')
-                .then(registration => {
-                    console.log('SW registered:', registration);
-                })
-                .catch(error => {
-                    console.error('SW registration failed:', error);
-                });
+            navigator.serviceWorker.getRegistrations().then(registrations => {
+                for (let registration of registrations) {
+                    registration.unregister().then(boolean => {
+                        console.log('SW unregistered:', boolean);
+                    });
+                }
+            });
         });
     }
 }
