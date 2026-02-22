@@ -117,3 +117,16 @@ export interface SavingsYield {
     notes?: string;
     createdAt?: string;
 }
+
+export interface XitiqueRow {
+    id: string;
+    companyId: string;
+    memberName: string;
+    monthlyContribution: number;
+    interestAccumulated: number;
+    reimbursement: number;
+    previousLoanBalance: number;
+    loanThisMonth: number;
+    createdAt?: string;
+    updatedAt?: string;
+}

@@ -58,6 +58,12 @@ export function Sidebar({ currentPage, onNavigate, isOpen }: SidebarProps) {
       icon: Users,
       path: '/savings-groups',
     },
+    {
+      id: 'xitique',
+      label: 'Xitique',
+      icon: PiggyBank,
+      path: '/xitique',
+    },
   ].filter(item => {
 
     if (isSavings) {

@@ -13,7 +13,8 @@ import {
   SavingsGroup,
   SavingsGroupMember,
   SavingsContribution,
-  SavingsLoan
+  SavingsLoan,
+  XitiqueRow
 } from '../types';
 import { useAuth } from './useAuth';
 import { toast } from 'sonner';
@@ -27,6 +28,7 @@ export function useAppState() {
   const [groupMembers, setGroupMembers] = useState<SavingsGroupMember[]>([]);
   const [contributions, setContributions] = useState<SavingsContribution[]>([]);
   const [savingsLoans, setSavingsLoans] = useState<SavingsLoan[]>([]);
+  const [xitiqueRows, setXitiqueRows] = useState<XitiqueRow[]>([]);
   const [company, setCompany] = useState<any>(null);
   const [allProfiles, setAllProfiles] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -55,6 +57,7 @@ export function useAppState() {
       const loansQuery = supabase.from('savings_loans').select('*');
       let companyQuery = supabase.from('companies').select('*');
       const profilesQuery = supabase.from('user_profiles').select('*');
+      let xitiqueRowsQuery = supabase.from('xitique_data').select('*');
 
       if (!isSystemAdmin) {
         clientsQuery = clientsQuery.eq('company_id', companyId);
@@ -62,6 +65,7 @@ export function useAppState() {
         paymentsQuery = paymentsQuery.eq('company_id', companyId);
         savingsGroupsQuery = savingsGroupsQuery.eq('company_id', companyId);
         companyQuery = companyQuery.eq('id', companyId);
+        xitiqueRowsQuery = xitiqueRowsQuery.eq('company_id', companyId);
         // Members, contributions, etc. are linked via IDs, company filter applies to base group
       }
 
@@ -74,6 +78,7 @@ export function useAppState() {
       const { data: loansData } = await loansQuery;
       const { data: companyData } = await companyQuery;
       const { data: profilesData } = await profilesQuery;
+      const { data: xitiqueData } = await xitiqueRowsQuery;
 
       if (companyData && companyData[0]) {
         setCompany(companyData[0]);
@@ -193,6 +198,21 @@ export function useAppState() {
           approvedBy: l.approved_by,
           totalPayable: l.total_payable,
           remainingAmount: l.remaining_amount
+        })));
+      }
+
+      if (xitiqueData) {
+        setXitiqueRows(xitiqueData.map((x: any) => ({
+          id: x.id,
+          companyId: x.company_id,
+          memberName: x.member_name,
+          monthlyContribution: x.monthly_contribution,
+          interestAccumulated: x.interest_accumulated,
+          reimbursement: x.reimbursement,
+          previousLoanBalance: x.previous_loan_balance,
+          loanThisMonth: x.loan_this_month,
+          createdAt: x.created_at,
+          updatedAt: x.updated_at
         })));
       }
     } catch (error) {
@@ -804,6 +824,86 @@ export function useAppState() {
     }
   };
 
+  const addXitiqueRow = async (data: Omit<XitiqueRow, 'id' | 'companyId' | 'createdAt' | 'updatedAt'>) => {
+    try {
+      const { data: newRow, error } = await supabase
+        .from('xitique_data')
+        .insert([{
+          ...data,
+          member_name: data.memberName,
+          monthly_contribution: data.monthlyContribution,
+          interest_accumulated: data.interestAccumulated,
+          reimbursement: data.reimbursement,
+          previous_loan_balance: data.previousLoanBalance,
+          loan_this_month: data.loanThisMonth,
+          company_id: companyId
+        }])
+        .select()
+        .single();
+
+      if (error) throw error;
+      if (newRow) {
+        setXitiqueRows([...xitiqueRows, {
+          id: newRow.id,
+          companyId: newRow.company_id,
+          memberName: newRow.member_name,
+          monthlyContribution: newRow.monthly_contribution,
+          interestAccumulated: newRow.interest_accumulated,
+          reimbursement: newRow.reimbursement,
+          previousLoanBalance: newRow.previous_loan_balance,
+          loanThisMonth: newRow.loan_this_month,
+          createdAt: newRow.created_at,
+          updatedAt: newRow.updated_at
+        }]);
+        toast.success('Membro adicionado ao Xitique!');
+      }
+    } catch (error) {
+      console.error('Error adding xitique row:', error);
+      toast.error('Erro ao adicionar membro.');
+    }
+  };
+
+  const updateXitiqueRow = async (id: string, data: Partial<XitiqueRow>) => {
+    try {
+      // Map JS camelCase to PG snake_case
+      const dbData: any = {};
+      if (data.memberName !== undefined) dbData.member_name = data.memberName;
+      if (data.monthlyContribution !== undefined) dbData.monthly_contribution = data.monthlyContribution;
+      if (data.interestAccumulated !== undefined) dbData.interest_accumulated = data.interestAccumulated;
+      if (data.reimbursement !== undefined) dbData.reimbursement = data.reimbursement;
+      if (data.previousLoanBalance !== undefined) dbData.previous_loan_balance = data.previousLoanBalance;
+      if (data.loanThisMonth !== undefined) dbData.loan_this_month = data.loanThisMonth;
+      dbData.updated_at = new Date().toISOString();
+
+      const { error } = await supabase
+        .from('xitique_data')
+        .update(dbData)
+        .eq('id', id);
+
+      if (error) throw error;
+      setXitiqueRows(xitiqueRows.map(row => row.id === id ? { ...row, ...data, updatedAt: dbData.updated_at } : row));
+    } catch (error) {
+      console.error('Error updating xitique row:', error);
+      toast.error('Erro ao atualizar dados.');
+    }
+  };
+
+  const deleteXitiqueRow = async (id: string) => {
+    try {
+      const { error } = await supabase
+        .from('xitique_data')
+        .delete()
+        .eq('id', id);
+
+      if (error) throw error;
+      setXitiqueRows(xitiqueRows.filter(row => row.id !== id));
+      toast.info('Membro removido do Xitique.');
+    } catch (error) {
+      console.error('Error deleting xitique row:', error);
+      toast.error('Erro ao remover membro.');
+    }
+  };
+
   const state = {
     clients,
     credits,
@@ -813,6 +913,7 @@ export function useAppState() {
     allProfiles,
     contributions,
     savingsLoans,
+    xitiqueRows,
     loading,
     addClient,
     updateClient,
@@ -831,6 +932,9 @@ export function useAppState() {
     distributeInterest,
     addMemberContribution,
     addMemberLoan,
+    addXitiqueRow,
+    updateXitiqueRow,
+    deleteXitiqueRow,
     getMemberFinancials,
     getClientCredits,
     getClientPayments,

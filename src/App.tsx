@@ -87,6 +87,14 @@ export function App() {
               </ProtectedRoute>
             }
           />
+          <Route
+            path="/xitique"
+            element={
+              <ProtectedRoute>
+                <DashboardLayout />
+              </ProtectedRoute>
+            }
+          />
 
           {/* Admin Routes */}
           <Route

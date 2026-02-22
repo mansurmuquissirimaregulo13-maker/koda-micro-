@@ -11,6 +11,7 @@ import { AdminUsersPage } from '../pages/AdminUsersPage';
 import { SupportPage } from '../pages/SupportPage';
 import { MessagesPage } from '../pages/MessagesPage';
 import { SavingsGroupsPage } from '../pages/SavingsGroupsPage';
+import { XitiquePage } from '../pages/XitiquePage';
 import SuperAdminDashboard from '../pages/SuperAdminDashboard';
 import { LoadingScreen } from './LoadingScreen';
 import { Modal } from './Modal';
@@ -88,6 +89,8 @@ export function DashboardLayout() {
                 return <SuperAdminDashboard />;
             case 'admin/users':
                 return <AdminUsersPage />;
+            case 'xitique':
+                return <XitiquePage />;
             default:
                 return (
                     <DashboardPage
@@ -120,6 +123,8 @@ export function DashboardLayout() {
                 return 'Painel de Gestão Admin';
             case 'admin/users':
                 return 'Gerenciar Usuários';
+            case 'xitique':
+                return 'Xitique Comunitário';
             default:
                 return 'Dashboard';
         }
