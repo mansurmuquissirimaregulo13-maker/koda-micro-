@@ -16,6 +16,7 @@ import {
   SavingsLoan
 } from '../types';
 import { useAuth } from './useAuth';
+import { toast } from 'sonner';
 
 export function useAppState() {
   const { profile, isAdmin, isSystemAdmin } = useAuth();
@@ -700,6 +701,109 @@ export function useAppState() {
       .reduce((sum, l) => sum + l.remainingAmount, 0)
   };
 
+  const getMemberFinancials = (clientId: string) => {
+    // 1. Find the member record for this client
+    const member = groupMembers.find(m => m.userId === clientId || m.id === clientId);
+    if (!member) {
+      return { totalSaved: 0, totalDebt: 0, interestRate: 10 };
+    }
+
+    // 2. Calculate contributions
+    const totalSaved = contributions
+      .filter(c => c.memberId === member.id)
+      .reduce((sum, c) => sum + c.amount, 0) + (member.initialSavings || 0);
+
+    // 3. Calculate debt from loans
+    const totalDebt = savingsLoans
+      .filter(l => l.memberId === member.id && (l.status === 'approved' || l.status === 'overdue'))
+      .reduce((sum, l) => sum + l.remainingAmount, 0);
+
+    return {
+      totalSaved,
+      totalDebt,
+      interestRate: member.customInterestRate || 10
+    };
+  };
+
+  const ensureMemberForClient = async (clientId: string) => {
+    // Check if member already exists
+    const existing = groupMembers.find(m => m.userId === clientId);
+    if (existing) return existing.id;
+
+    // Check if a default group exists
+    let defaultGroup = savingsGroups.find(g => g.name === 'Sistema Koda');
+    if (!defaultGroup) {
+      const newGroup = await addSavingsGroup({
+        name: 'Sistema Koda',
+        description: 'Grupo padrão para gestão individual de poupanças.',
+        contributionAmount: 0,
+        periodicity: 'monthly',
+        startDate: new Date().toISOString().split('T')[0],
+        lateFee: 0,
+        interestRate: 10,
+        maxLoanPerMember: 1000000
+      });
+      defaultGroup = newGroup;
+    }
+
+    if (!defaultGroup) throw new Error("Não foi possível estabelecer um grupo para o membro.");
+
+    const client = clients.find(c => c.id === clientId);
+    const member = await manuallyAddMember({
+      groupId: defaultGroup.id,
+      userId: clientId,
+      name: client?.name || 'Membro Koda',
+      initialSavings: 0,
+      initialDebt: 0
+    });
+
+    return member?.id;
+  };
+
+  const addMemberContribution = async (clientId: string, amount: number, notes?: string) => {
+    try {
+      const memberId = await ensureMemberForClient(clientId);
+      if (!memberId) throw new Error("Erro ao identificar registro de membro.");
+
+      await addContribution({
+        memberId,
+        amount,
+        periodIndex: 1, // Individual management doesn't strictly follow periods
+        lateFeePaid: 0,
+        notes
+      });
+
+      toast.success('Poupança registada com sucesso!');
+    } catch (error) {
+      console.error('Error adding member contribution:', error);
+      toast.error('Erro ao registar poupança.');
+      throw error;
+    }
+  };
+
+  const addMemberLoan = async (clientId: string, amount: number, termMonths: number) => {
+    try {
+      const memberId = await ensureMemberForClient(clientId);
+      if (!memberId) throw new Error("Erro ao identificar registro de membro.");
+
+      const defaultGroup = savingsGroups.find(g => g.name === 'Sistema Koda');
+
+      await requestLoan({
+        groupId: defaultGroup?.id || '',
+        memberId,
+        amount,
+        interestRate: 10, // Default or pull from member customs
+        termMonths
+      });
+
+      toast.success('Empréstimo registado com sucesso!');
+    } catch (error) {
+      console.error('Error adding member loan:', error);
+      toast.error('Erro ao registar empréstimo.');
+      throw error;
+    }
+  };
+
   const state = {
     clients,
     credits,
@@ -725,6 +829,9 @@ export function useAppState() {
     repaySavingsLoan,
     registerYield,
     distributeInterest,
+    addMemberContribution,
+    addMemberLoan,
+    getMemberFinancials,
     getClientCredits,
     getClientPayments,
     getCreditPayments,

@@ -5,7 +5,6 @@ import {
     History,
     ChevronLeft,
     Plus,
-    CheckCircle,
     ArrowUpRight,
     Percent,
     AlertCircle
@@ -20,47 +19,96 @@ interface SavingsMemberDetailsProps {
 }
 
 export function SavingsGroupDetails({ memberId, onBack }: SavingsMemberDetailsProps) {
-    const { clients } = useAppState() as any;
+    const {
+        clients,
+        contributions,
+        savingsLoans,
+        groupMembers,
+        getMemberFinancials,
+        addMemberContribution,
+        addMemberLoan,
+        repaySavingsLoan
+    } = useAppState() as any;
+
     const [activeTab, setActiveTab] = useState<'overview' | 'savings' | 'loans'>('overview');
 
     // Modal states
     const [isSavingModalOpen, setIsSavingModalOpen] = useState(false);
     const [isLoanModalOpen, setIsLoanModalOpen] = useState(false);
+    const [isRepayModalOpen, setIsRepayModalOpen] = useState(false);
+    const [selectedLoanForRepay, setSelectedLoanForRepay] = useState<any>(null);
 
     // Find member from microcredit clients list
     const member = useMemo(() =>
         (clients as any[])?.find((c: any) => c.id === memberId),
         [clients, memberId]);
 
-    // Mock data for now until we build the tables
-    const totalSaved = 12500;
-    const totalDebt = 8000;
-    const interestRate = 10;
+    // Real financial data from state
+    const { totalSaved, totalDebt, interestRate } = useMemo(() =>
+        getMemberFinancials(memberId),
+        [getMemberFinancials, memberId, contributions, savingsLoans, groupMembers]);
 
-    const mockSavingsHistory = [
-        { id: '1', date: '2024-03-01', amount: 5000, type: 'Poupança Mensal', status: 'approved' },
-        { id: '2', date: '2024-02-01', amount: 5000, type: 'Poupança Mensal', status: 'approved' },
-        { id: '3', date: '2024-01-01', amount: 2500, type: 'Poupança Inicial', status: 'approved' },
-    ];
+    // Filter real history from state
+    const internalMember = useMemo(() => {
+        return (groupMembers as any[]).find((m: any) => m.userId === memberId || m.id === memberId);
+    }, [memberId, groupMembers]);
 
-    const mockLoansHistory = [
-        { id: '1', date: '2024-02-15', amount: 10000, amountToRepay: 11000, repaid: 3000, status: 'active', dueDate: '2024-05-15' }
-    ];
+    const filteredSavings = useMemo(() => {
+        if (!internalMember) return [];
+        return (contributions as any[]).filter((c: any) => c.memberId === internalMember.id);
+    }, [contributions, internalMember]);
+
+    const filteredLoans = useMemo(() => {
+        if (!internalMember) return [];
+        return (savingsLoans as any[]).filter((l: any) => l.memberId === internalMember.id);
+    }, [savingsLoans, internalMember]);
 
     if (!member) return <div className="p-8 text-center text-gray-500">Membro não encontrado.</div>;
 
     const handleAddSaving = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         const formData = new FormData(e.currentTarget);
-        console.log("Adding saving:", Object.fromEntries(formData));
-        setIsSavingModalOpen(false);
+        const amount = Number(formData.get('amount'));
+        const notes = formData.get('notes') as string;
+
+        try {
+            await addMemberContribution(memberId, amount, notes);
+            setIsSavingModalOpen(false);
+        } catch (error) {
+            // Error already toasted
+        }
     };
 
     const handleRequestLoan = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         const formData = new FormData(e.currentTarget);
-        console.log("Requesting loan:", Object.fromEntries(formData));
-        setIsLoanModalOpen(false);
+        const amount = Number(formData.get('amount'));
+        const termMonths = Number(formData.get('termMonths') || 1);
+
+        try {
+            await addMemberLoan(memberId, amount, termMonths);
+            setIsLoanModalOpen(false);
+        } catch (error) {
+            // Error already toasted
+        }
+    };
+
+    const handleRepayLoanSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+        e.preventDefault();
+        if (!selectedLoanForRepay) return;
+        const formData = new FormData(e.currentTarget);
+
+        try {
+            await repaySavingsLoan({
+                loanId: selectedLoanForRepay.id,
+                amount: Number(formData.get('amount')),
+                notes: formData.get('notes') as string
+            });
+            setIsRepayModalOpen(false);
+            setSelectedLoanForRepay(null);
+        } catch (error) {
+            // Error already logged
+        }
     };
 
     return (
@@ -155,18 +203,31 @@ export function SavingsGroupDetails({ memberId, onBack }: SavingsMemberDetailsPr
 
                 <div className="p-6">
                     {activeTab === 'overview' && (
-                        <div className="space-y-6">
-                            <h4 className="font-bold text-gray-900 mb-4">Informação de Registo</h4>
-                            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                                <div className="p-4 bg-gray-50 rounded-lg">
-                                    <p className="text-xs text-gray-500 uppercase font-medium mb-1">Bairro</p>
-                                    <p className="font-medium">{member.neighborhood || 'N/A'}</p>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div className="space-y-4">
+                                <h3 className="text-lg font-bold text-gray-900 border-l-4 border-green-500 pl-3">Resumo de Poupança</h3>
+                                <div className="bg-gray-50 p-4 rounded-lg">
+                                    <div className="flex justify-between items-center mb-2">
+                                        <span className="text-sm text-gray-500">Total Poupado</span>
+                                        <span className="font-bold text-green-600">{formatMZN(totalSaved)}</span>
+                                    </div>
+                                    <div className="flex justify-between items-center">
+                                        <span className="text-sm text-gray-500">Último Depósito</span>
+                                        <span className="text-sm font-medium">{filteredSavings.length > 0 ? formatDate(filteredSavings[0].paymentDate) : 'Nunca'}</span>
+                                    </div>
                                 </div>
-                                <div className="p-4 bg-gray-50 rounded-lg">
-                                    <p className="text-xs text-gray-500 uppercase font-medium mb-1">Estado</p>
-                                    <p className="font-medium text-green-600 flex items-center gap-1">
-                                        <CheckCircle className="w-3 h-3" /> Activo
-                                    </p>
+                            </div>
+                            <div className="space-y-4">
+                                <h3 className="text-lg font-bold text-gray-900 border-l-4 border-blue-500 pl-3">Estado de Crédito</h3>
+                                <div className="bg-gray-50 p-4 rounded-lg">
+                                    <div className="flex justify-between items-center mb-2">
+                                        <span className="text-sm text-gray-500">Dívida Actual</span>
+                                        <span className="font-bold text-red-600">{formatMZN(totalDebt)}</span>
+                                    </div>
+                                    <div className="flex justify-between items-center">
+                                        <span className="text-sm text-gray-500">Próxima Amortização</span>
+                                        <span className="text-sm font-medium">--</span>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -175,7 +236,7 @@ export function SavingsGroupDetails({ memberId, onBack }: SavingsMemberDetailsPr
                     {activeTab === 'savings' && (
                         <div className="space-y-4">
                             <h3 className="text-lg font-bold text-gray-900">Entradas de Poupança</h3>
-                            {mockSavingsHistory.length > 0 ? (
+                            {filteredSavings.length > 0 ? (
                                 <div className="border border-gray-200 rounded-lg overflow-hidden">
                                     <table className="min-w-full divide-y divide-gray-200">
                                         <thead className="bg-gray-50">
@@ -187,13 +248,13 @@ export function SavingsGroupDetails({ memberId, onBack }: SavingsMemberDetailsPr
                                             </tr>
                                         </thead>
                                         <tbody className="bg-white divide-y divide-gray-200">
-                                            {mockSavingsHistory.map((saving) => (
+                                            {filteredSavings.map((saving: any) => (
                                                 <tr key={saving.id}>
-                                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{formatDate(saving.date)}</td>
-                                                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{saving.type}</td>
+                                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{formatDate(saving.paymentDate)}</td>
+                                                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{saving.notes || 'Poupança'}</td>
                                                     <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-green-600">+{formatMZN(saving.amount)}</td>
                                                     <td className="px-6 py-4 whitespace-nowrap text-sm">
-                                                        <span className="px-2 py-1 text-xs font-medium rounded-full bg-green-100 text-green-800">Efetuado</span>
+                                                        <span className="px-2 py-1 text-xs font-medium rounded-full bg-green-100 text-green-800 uppercase">{saving.status || 'Pago'}</span>
                                                     </td>
                                                 </tr>
                                             ))}
@@ -215,37 +276,47 @@ export function SavingsGroupDetails({ memberId, onBack }: SavingsMemberDetailsPr
                                 <h3 className="text-lg font-bold text-gray-900">Empréstimos do Membro</h3>
                             </div>
 
-                            {mockLoansHistory.length > 0 ? (
+                            {filteredLoans.length > 0 ? (
                                 <div className="space-y-4">
-                                    {mockLoansHistory.map(loan => (
+                                    {filteredLoans.map((loan: any) => (
                                         <div key={loan.id} className="border border-gray-200 rounded-lg p-5 hover:shadow-md transition-shadow">
                                             <div className="flex justify-between items-start mb-4">
                                                 <div>
                                                     <h4 className="font-bold text-lg text-gray-900">{formatMZN(loan.amount)}</h4>
                                                     <p className="text-sm text-gray-500 flex items-center gap-1">
-                                                        Vence a {formatDate(loan.dueDate)}
+                                                        Solicitado em {formatDate(loan.requestedAt)}
                                                     </p>
                                                 </div>
-                                                <span className="px-3 py-1 text-xs font-bold rounded-full bg-amber-100 text-amber-800 flex items-center gap-1">
-                                                    <AlertCircle className="w-3 h-3" /> Em Curso
+                                                <span className={`px-3 py-1 text-xs font-bold rounded-full flex items-center gap-1 ${loan.status === 'approved' ? 'bg-green-100 text-green-800' :
+                                                    loan.status === 'pending' ? 'bg-amber-100 text-amber-800' :
+                                                        'bg-gray-100 text-gray-800'
+                                                    }`}>
+                                                    <AlertCircle className="w-3 h-3" /> {loan.status === 'approved' ? 'Activo' : 'Pendente'}
                                                 </span>
                                             </div>
 
                                             <div className="grid grid-cols-2 gap-4 text-sm bg-gray-50 p-3 rounded-lg">
                                                 <div>
                                                     <span className="text-gray-500 block text-xs uppercase mb-1">Total a Pagar (c/ Juros)</span>
-                                                    <span className="font-bold text-red-600">{formatMZN(loan.amountToRepay)}</span>
+                                                    <span className="font-bold text-red-600">{formatMZN(loan.totalPayable)}</span>
                                                 </div>
                                                 <div>
                                                     <span className="text-gray-500 block text-xs uppercase mb-1">Já Pago</span>
-                                                    <span className="font-bold text-green-600">{formatMZN(loan.repaid)}</span>
+                                                    <span className="font-bold text-green-600">{formatMZN(loan.totalPayable - loan.remainingAmount)}</span>
                                                 </div>
                                             </div>
 
                                             <div className="mt-4 pt-4 border-t border-gray-100 flex justify-end gap-2">
-                                                <button className="px-3 py-1.5 text-sm font-medium text-white bg-green-600 hover:bg-green-700 rounded-md">
-                                                    Registar Pagamento
-                                                </button>
+                                                {loan.status === 'approved' && (
+                                                    <button
+                                                        onClick={() => {
+                                                            setSelectedLoanForRepay(loan);
+                                                            setIsRepayModalOpen(true);
+                                                        }}
+                                                        className="px-3 py-1.5 text-sm font-medium text-white bg-green-600 hover:bg-green-700 rounded-md">
+                                                        Registar Pagamento
+                                                    </button>
+                                                )}
                                             </div>
                                         </div>
                                     ))}
@@ -346,6 +417,49 @@ export function SavingsGroupDetails({ memberId, onBack }: SavingsMemberDetailsPr
                             type="submit"
                             className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700">
                             Aprovar Empréstimo
+                        </button>
+                    </div>
+                </form>
+            </Modal>
+
+            {/* Repay Loan Modal */}
+            <Modal
+                isOpen={isRepayModalOpen}
+                onClose={() => setIsRepayModalOpen(false)}
+                title="Registar Pagamento de Empréstimo">
+                <form onSubmit={handleRepayLoanSubmit} className="space-y-4">
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Valor do Pagamento (MZN)</label>
+                        <input
+                            type="number"
+                            name="amount"
+                            required
+                            min="1"
+                            max={selectedLoanForRepay?.remainingAmount}
+                            defaultValue={selectedLoanForRepay?.remainingAmount}
+                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#40916C] outline-none"
+                        />
+                        <p className="mt-1 text-xs text-gray-500">Saldo remanescente: {formatMZN(selectedLoanForRepay?.remainingAmount || 0)}</p>
+                    </div>
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Notas</label>
+                        <textarea
+                            name="notes"
+                            rows={3}
+                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#40916C] outline-none"
+                        />
+                    </div>
+                    <div className="flex justify-end gap-3 pt-4">
+                        <button
+                            type="button"
+                            onClick={() => setIsRepayModalOpen(false)}
+                            className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50">
+                            Cancelar
+                        </button>
+                        <button
+                            type="submit"
+                            className="px-4 py-2 text-sm font-medium text-white bg-green-600 rounded-lg hover:bg-green-700">
+                            Confirmar Pagamento
                         </button>
                     </div>
                 </form>
