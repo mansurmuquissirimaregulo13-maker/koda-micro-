@@ -22,10 +22,7 @@ interface SidebarProps {
 
 export function Sidebar({ currentPage, onNavigate, isOpen }: SidebarProps) {
   const { signOut, isSystemAdmin } = useAuth();
-  const { company } = useAppState();
   const navigate = useNavigate();
-
-  const isSavings = company?.type === 'savings';
 
   const menuItems = [
     {
@@ -52,28 +49,7 @@ export function Sidebar({ currentPage, onNavigate, isOpen }: SidebarProps) {
       icon: BarChart3,
       path: '/reports',
     },
-    {
-      id: 'savings-groups',
-      label: 'Membros',
-      icon: Users,
-      path: '/savings-groups',
-    },
-    {
-      id: 'xitique',
-      label: 'Xitique',
-      icon: PiggyBank,
-      path: '/xitique',
-    },
-  ].filter(item => {
-
-    if (isSavings) {
-      // For Savings: show Membros (savings-groups) and hide Clientes/Credits
-      return item.id !== 'credits' && item.id !== 'clients';
-    } else {
-      // For Microcredit: show Clientes (clients) and hide Savings Groups
-      return item.id !== 'savings-groups';
-    }
-  });
+  ];
 
   const otherItems = [
     {
@@ -121,14 +97,14 @@ export function Sidebar({ currentPage, onNavigate, isOpen }: SidebarProps) {
         {/* Logo Area */}
         <div className="p-8 flex items-center gap-4">
           <div className="w-10 h-10 bg-white/10 rounded-xl flex items-center justify-center shadow-inner">
-            {isSavings ? <PiggyBank className="w-6 h-6 text-white" /> : <CreditCard className="w-6 h-6 text-white" />}
+            <CreditCard className="w-6 h-6 text-white" />
           </div>
           <div>
             <span className="text-xl font-bold font-montserrat tracking-tight block">
               <span>Koda</span>
             </span>
-            <span className={`text-[10px] ${isSavings ? 'text-emerald-300' : 'text-green-300'} font-medium uppercase tracking-[0.2em]`}>
-              <span>{isSavings ? 'Poupança' : 'Microcrédito'}</span>
+            <span className="text-[10px] text-green-300 font-medium uppercase tracking-[0.2em]">
+              <span>Microcrédito</span>
             </span>
           </div>
         </div>

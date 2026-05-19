@@ -12,7 +12,6 @@ export function SignUpPage() {
     const [confirmPassword, setConfirmPassword] = useState('');
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
-    const [accountType, setAccountType] = useState<'microcredit' | 'savings'>('microcredit');
     const navigate = useNavigate();
     const { signUp } = useAuth();
 
@@ -50,7 +49,7 @@ export function SignUpPage() {
 
         try {
             const toastId = toast.loading('Criando sua conta...');
-            await signUp(email, password, fullName, companyName, accountType);
+            await signUp(email, password, fullName, companyName);
             toast.success('🎉 Conta criada com sucesso!', { id: toastId });
             navigate('/pending-approval');
         } catch (err: any) {
@@ -81,7 +80,7 @@ export function SignUpPage() {
                         Criar Conta
                     </h1>
                     <p className="text-green-100 text-sm mt-2">
-                        Junte-se à Koda {accountType === 'microcredit' ? 'Microcrédito' : 'Poupança'}
+                        Junte-se à Koda Microcrédito
                     </p>
                 </div>
 
@@ -105,34 +104,6 @@ export function SignUpPage() {
                         </div>
 
                         <div className="space-y-2">
-                            <label className="text-sm font-medium text-gray-700 block">
-                                Tipo de Sistema (Módulo)
-                            </label>
-                            <div className="grid grid-cols-2 gap-3">
-                                <button
-                                    type="button"
-                                    onClick={() => setAccountType('microcredit')}
-                                    className={`p-3 rounded-xl border-2 transition-all flex flex-col items-center gap-2 ${accountType === 'microcredit'
-                                        ? 'border-[#1B3A2D] bg-[#1B3A2D]/5 ring-1 ring-[#1B3A2D]'
-                                        : 'border-gray-100 bg-gray-50 hover:border-gray-200'
-                                        }`}>
-                                    <CreditCard className={`w-6 h-6 ${accountType === 'microcredit' ? 'text-[#1B3A2D]' : 'text-gray-400'}`} />
-                                    <span className={`text-xs font-bold ${accountType === 'microcredit' ? 'text-[#1B3A2D]' : 'text-gray-500'}`}>Microcrédito</span>
-                                </button>
-                                <button
-                                    type="button"
-                                    onClick={() => setAccountType('savings')}
-                                    className={`p-3 rounded-xl border-2 transition-all flex flex-col items-center gap-2 ${accountType === 'savings'
-                                        ? 'border-[#40916C] bg-[#40916C]/5 ring-1 ring-[#40916C]'
-                                        : 'border-gray-100 bg-gray-50 hover:border-gray-200'
-                                        }`}>
-                                    <Building2 className={`w-6 h-6 ${accountType === 'savings' ? 'text-[#40916C]' : 'text-gray-400'}`} />
-                                    <span className={`text-xs font-bold ${accountType === 'savings' ? 'text-[#40916C]' : 'text-gray-500'}`}>Poupança</span>
-                                </button>
-                            </div>
-                        </div>
-
-                        <div className="space-y-2">
                             <label className="text-sm font-medium text-gray-700">
                                 Nome da Empresa / Instituição
                             </label>
@@ -142,7 +113,7 @@ export function SignUpPage() {
                                     type="text"
                                     className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#40916C] focus:border-transparent outline-none appearance-none text-base bg-white"
                                     style={{ fontSize: '16px' }}
-                                    placeholder={accountType === 'microcredit' ? 'Ex: Koda Microfinanças' : 'Ex: Grupo de Poupança'}
+                                    placeholder="Ex: Koda Microfinanças"
                                     value={companyName}
                                     onChange={(e) => setCompanyName(e.target.value)}
                                 />

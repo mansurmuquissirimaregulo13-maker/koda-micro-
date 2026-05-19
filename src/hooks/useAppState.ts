@@ -211,6 +211,8 @@ export function useAppState() {
           reimbursement: x.reimbursement,
           previousLoanBalance: x.previous_loan_balance,
           loanThisMonth: x.loan_this_month,
+          period: x.period,
+          isClosed: x.is_closed,
           createdAt: x.created_at,
           updatedAt: x.updated_at
         })));
@@ -836,6 +838,7 @@ export function useAppState() {
           reimbursement: data.reimbursement,
           previous_loan_balance: data.previousLoanBalance,
           loan_this_month: data.loanThisMonth,
+          period: data.period,
           company_id: companyId
         }])
         .select()
@@ -852,6 +855,8 @@ export function useAppState() {
           reimbursement: newRow.reimbursement,
           previousLoanBalance: newRow.previous_loan_balance,
           loanThisMonth: newRow.loan_this_month,
+          period: newRow.period,
+          isClosed: newRow.is_closed,
           createdAt: newRow.created_at,
           updatedAt: newRow.updated_at
         }]);
@@ -873,6 +878,8 @@ export function useAppState() {
       if (data.reimbursement !== undefined) dbData.reimbursement = data.reimbursement;
       if (data.previousLoanBalance !== undefined) dbData.previous_loan_balance = data.previousLoanBalance;
       if (data.loanThisMonth !== undefined) dbData.loan_this_month = data.loanThisMonth;
+      if (data.period !== undefined) dbData.period = data.period;
+      if (data.isClosed !== undefined) dbData.is_closed = data.isClosed;
       dbData.updated_at = new Date().toISOString();
 
       const { error } = await supabase

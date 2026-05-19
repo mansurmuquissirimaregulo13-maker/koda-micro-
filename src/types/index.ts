@@ -127,6 +127,8 @@ export interface XitiqueRow {
     reimbursement: number;
     previousLoanBalance: number;
     loanThisMonth: number;
+    period: string;
+    isClosed?: boolean;
     createdAt?: string;
     updatedAt?: string;
 }

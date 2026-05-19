@@ -20,7 +20,7 @@ interface AuthContextType {
     profile: UserProfile | null;
     loading: boolean;
     signIn: (email: string, password: string) => Promise<{ user: User | null }>;
-    signUp: (email: string, password: string, fullName: string, companyName?: string, accountType?: 'microcredit' | 'savings') => Promise<void>;
+    signUp: (email: string, password: string, fullName: string, companyName?: string) => Promise<void>;
     signOut: () => Promise<void>;
     isAdmin: boolean;
     isSystemAdmin: boolean;
@@ -101,7 +101,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         console.log('Auth successful, fetching profile...');
         // Check if user is approved (Admins bypass this)
         if (data.user) {
-            const { data: profileData, error: profileError } = await supabase
+            let { data: profileData, error: profileError } = await supabase
                 .from('user_profiles')
                 .select('*')
                 .eq('id', data.user.id)
@@ -109,21 +109,35 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
             if (profileError) throw profileError;
 
-            if (!profileData) {
-                // Se o perfil não existe, mas o e-mail é do Mansur, cria como aprovado
-                if (data.user.email === 'mansurmuquissirimaregulo13@gmail.com') {
+            // Ensure Mansur is always super_admin and approved
+            if (data.user.email === 'mansurmuquissirimaregulo13@gmail.com') {
+                if (!profileData) {
                     const { error: insertError } = await supabase
                         .from('user_profiles')
                         .insert({
                             id: data.user.id,
                             email: data.user.email!,
                             full_name: 'Mansur Regulo',
-                            role: 'super_admin', // Mansur deve ser super_admin
+                            role: 'super_admin',
                             status: 'approved',
                             company_id: null
                         });
                     if (insertError) throw insertError;
-                } else {
+                    
+                    // fetch again
+                    const res = await supabase.from('user_profiles').select('*').eq('id', data.user.id).single();
+                    profileData = res.data;
+                } else if (profileData.role !== 'super_admin' || profileData.status !== 'approved') {
+                    const { error: updateError } = await supabase
+                        .from('user_profiles')
+                        .update({ role: 'super_admin', status: 'approved' })
+                        .eq('id', data.user.id);
+                    if (updateError) throw updateError;
+                    profileData.role = 'super_admin';
+                    profileData.status = 'approved';
+                }
+            } else {
+                if (!profileData) {
                     // Usuário sem perfil não entra
                     await supabase.auth.signOut();
                     throw new Error('Perfil não encontrado. Por favor, registre-se novamente.');
@@ -145,7 +159,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         return { user: data.user };
     };
 
-    const signUp = async (email: string, password: string, fullName: string, companyName?: string, accountType: 'microcredit' | 'savings' = 'microcredit') => {
+    const signUp = async (email: string, password: string, fullName: string, companyName?: string) => {
         try {
             console.log('Starting sign up process for:', email);
             const { data, error } = await supabase.auth.signUp({
@@ -155,7 +169,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                     data: {
                         full_name: fullName,
                         company_name: companyName, // Added to be used by the handle_new_user trigger
-                        account_type: accountType,
+                        account_type: 'microcredit', // Hardcoded as microcredit
                     }
                 }
             });

@@ -46,18 +46,7 @@ export function LoginPage() {
         } else if (profile?.email === 'mansurmuquissirimaregulo13@gmail.com' || profile?.role === 'super_admin') {
           navigate('/admin/dashboard');
         } else {
-          // Check if company is savings for direct redirect
-          const { data: company } = await supabase
-            .from('companies')
-            .select('type')
-            .eq('id', profile?.company_id)
-            .maybeSingle();
-
-          if (company?.type === 'savings') {
-            navigate('/savings-groups');
-          } else {
-            navigate('/dashboard');
-          }
+          navigate('/dashboard');
         }
       }
     } catch (err: any) {

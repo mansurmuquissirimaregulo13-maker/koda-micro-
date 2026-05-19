@@ -7,12 +7,27 @@ import {
     DollarSign,
     TrendingUp,
     ArrowDownRight,
-    Calculator
+    Calculator,
+    Calendar,
+    FileDown,
+    Copy
 } from 'lucide-react';
 import { formatMZN } from '../utils/helpers';
 import { toast } from 'sonner';
-
+import { jsPDF } from 'jspdf';
+import 'jspdf-autotable';
 import { useAppState } from '../hooks/useAppState';
+import { XitiqueRow } from '../types';
+
+interface ProcessedXitiqueMember extends XitiqueRow {
+    name: string;
+    accumulatedUntilMonth: number;
+    totalAccumulatedDate: number;
+    capitalReturned: number;
+    interestReturned: number;
+    accumulatedLoanBalance: number;
+    loanInterestNextMonth: number;
+}
 
 export function XitiquePage() {
     const {
@@ -24,6 +39,7 @@ export function XitiquePage() {
 
     const [interestRate, setInterestRate] = useState(5); // % Juros acumulados
     const [loanInterestRate, setLoanInterestRate] = useState(10); // % Juros empréstimo
+    const [selectedPeriod, setSelectedPeriod] = useState(new Date().toISOString().slice(0, 7)); // YYYY-MM
 
     // Member Name for New Member
     const [newMemberName, setNewMemberName] = useState('');
@@ -39,9 +55,87 @@ export function XitiquePage() {
             interestAccumulated: 0,
             reimbursement: 0,
             loanThisMonth: 0,
-            previousLoanBalance: 0
+            previousLoanBalance: 0,
+            period: selectedPeriod
         });
         setNewMemberName('');
+    };
+
+    const handleClonePreviousPeriod = () => {
+        const [year, month] = selectedPeriod.split('-').map(Number);
+        const prevDate = new Date(year, month - 2);
+        const prevPeriod = prevDate.toISOString().slice(0, 7);
+
+        const prevRows = xitiqueRows.filter((r: XitiqueRow) => r.period === prevPeriod);
+
+        if (prevRows.length === 0) {
+            toast.error(`Nenhum dado encontrado no mês anterior (${prevPeriod}).`);
+            return;
+        }
+
+        if (xitiqueRows.some((r: XitiqueRow) => r.period === selectedPeriod)) {
+            toast.warning('O mês atual já contém dados. A clonagem pode criar duplicados.');
+        }
+
+        prevRows.forEach((r: XitiqueRow) => {
+            const newPrevBalance = r.previousLoanBalance + r.loanThisMonth - r.reimbursement;
+            addXitiqueRow({
+                memberName: r.memberName,
+                monthlyContribution: 0,
+                interestAccumulated: 0,
+                reimbursement: 0,
+                loanThisMonth: 0,
+                previousLoanBalance: newPrevBalance,
+                period: selectedPeriod
+            });
+        });
+
+        toast.success(`Clonados ${prevRows.length} membros do período ${prevPeriod}`);
+    };
+
+    const downloadPDF = () => {
+        const doc = new jsPDF('l', 'pt', 'a4');
+        const title = `Relatório de Xitique - ${selectedPeriod}`;
+
+        doc.setFontSize(18);
+        doc.text(title, 40, 40);
+
+        const headers = [['Membro', 'Contr.', 'Jur. Acum', 'Tot. Acum', 'Reemb.', 'Jur. Dev', 'Sal. Ant', 'Emp. Mês', 'Sal. Final']];
+        const data = processedMembers.map((m: ProcessedXitiqueMember) => [
+            m.memberName,
+            formatMZN(m.monthlyContribution),
+            formatMZN(m.interestAccumulated),
+            formatMZN(m.totalAccumulatedDate),
+            formatMZN(m.reimbursement),
+            formatMZN(m.interestReturned),
+            formatMZN(m.previousLoanBalance),
+            formatMZN(m.loanThisMonth),
+            formatMZN(m.accumulatedLoanBalance)
+        ]);
+
+        (doc as any).autoTable({
+            head: headers,
+            body: data,
+            startY: 60,
+            styles: { fontSize: 8, cellPadding: 5 },
+            headStyles: { fillColor: [59, 130, 246] }
+        });
+
+        doc.save(`xitique_${selectedPeriod}.pdf`);
+        toast.success('Relatório PDF gerado!');
+    };
+
+    const handleCloseMonth = () => {
+        if (processedMembers.length === 0) {
+            toast.error('Não é possível fechar um mês sem dados.');
+            return;
+        }
+        if (window.confirm('Cuidado: Fechar o mês irá bloquear todas as edições para este período. Desejas continuar?')) {
+            processedMembers.forEach((m: ProcessedXitiqueMember) => {
+                updateXitiqueRow(m.id, { isClosed: true });
+            });
+            toast.success('Mês fechado com sucesso!');
+        }
     };
 
     const handleRemoveMember = (id: string) => {
@@ -52,9 +146,13 @@ export function XitiquePage() {
         updateXitiqueRow(id, { [field]: value });
     };
 
-    // Calculations per member
-    const processedMembers = useMemo(() => {
-        return xitiqueRows.map(m => {
+    // Calculations and Filtering per period
+    const filteredMembers = useMemo((): XitiqueRow[] => {
+        return xitiqueRows.filter((r: XitiqueRow) => r.period === selectedPeriod);
+    }, [xitiqueRows, selectedPeriod]);
+
+    const processedMembers = useMemo((): ProcessedXitiqueMember[] => {
+        return filteredMembers.map((m: XitiqueRow): ProcessedXitiqueMember => {
             const accumulatedUntilMonth = m.monthlyContribution; // Simplified for now
             const totalAccumulatedDate = m.monthlyContribution + m.interestAccumulated;
 
@@ -77,11 +175,11 @@ export function XitiquePage() {
                 loanInterestNextMonth
             };
         });
-    }, [xitiqueRows, interestRate, loanInterestRate]);
+    }, [filteredMembers, interestRate, loanInterestRate]);
 
     // Global Totals
     const totals = useMemo(() => {
-        return processedMembers.reduce((acc, m) => ({
+        return processedMembers.reduce((acc, m: ProcessedXitiqueMember) => ({
             contributions: acc.contributions + m.monthlyContribution,
             interest: acc.interest + m.interestAccumulated,
             accumulated: acc.accumulated + m.totalAccumulatedDate,
@@ -102,7 +200,62 @@ export function XitiquePage() {
 
     return (
         <div className="space-y-6">
-            {/* Controls */}
+            {/* Period Selection & Actions */}
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-white p-4 rounded-xl border border-gray-100 shadow-sm">
+                <div className="flex items-center gap-3">
+                    <div className="p-2 bg-blue-50 rounded-lg text-blue-600">
+                        <Calendar className="w-5 h-5" />
+                    </div>
+                    <div>
+                        <h2 className="text-sm font-black text-gray-900 uppercase tracking-tight">Período de Referência</h2>
+                        <div className="flex items-center gap-2 mt-1">
+                            <input
+                                type="month"
+                                value={selectedPeriod}
+                                onChange={(e) => setSelectedPeriod(e.target.value)}
+                                className="text-lg font-bold text-blue-600 border-none p-0 focus:ring-0 cursor-pointer outline-none bg-transparent"
+                            />
+                        </div>
+                    </div>
+                </div>
+
+                <div className="flex gap-2 w-full md:w-auto">
+                    <button
+                        onClick={handleCloseMonth}
+                        disabled={processedMembers.length === 0 || processedMembers.some(m => m.isClosed)}
+                        className="flex-1 md:flex-none flex items-center justify-center gap-2 px-4 py-2 bg-amber-50 hover:bg-amber-100 text-amber-700 rounded-lg text-sm font-bold transition-all border border-amber-200 disabled:opacity-50"
+                    >
+                        <AlertCircle className="w-4 h-4" />
+                        Fechar Mês
+                    </button>
+                    <button
+                        onClick={handleClonePreviousPeriod}
+                        disabled={processedMembers.some(m => m.isClosed)}
+                        className="flex-1 md:flex-none flex items-center justify-center gap-2 px-4 py-2 bg-gray-50 hover:bg-gray-100 text-gray-700 rounded-lg text-sm font-bold transition-all border border-gray-200 disabled:opacity-50"
+                    >
+                        <Copy className="w-4 h-4" />
+                        Clonar Anterior
+                    </button>
+                    <button
+                        onClick={downloadPDF}
+                        disabled={processedMembers.length === 0}
+                        className="flex-1 md:flex-none flex items-center justify-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-bold transition-all shadow-sm disabled:opacity-50"
+                    >
+                        <FileDown className="w-4 h-4" />
+                        PDF
+                    </button>
+                </div>
+            </div>
+
+            {/* Period Status Notification */}
+            {processedMembers.some(m => m.isClosed) && (
+                <div className="bg-amber-50 border border-amber-100 p-3 rounded-xl flex items-center gap-3 text-amber-800 text-sm font-medium">
+                    <AlertCircle className="w-5 h-5" />
+                    Este período está bloqueado (Fechado). Edições não são permitidas.
+                </div>
+            )}
+
+            {/* Stats Controls */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm flex items-center gap-4">
                     <div className="p-3 bg-blue-50 rounded-lg">
@@ -114,11 +267,16 @@ export function XitiquePage() {
                             <input
                                 type="text"
                                 value={newMemberName}
+                                disabled={processedMembers.some(m => m.isClosed)}
                                 onChange={(e) => setNewMemberName(e.target.value)}
                                 placeholder="Nome..."
-                                className="w-full text-sm border-b border-gray-200 focus:border-blue-500 outline-none py-1"
+                                className="w-full text-sm border-b border-gray-200 focus:border-blue-500 outline-none py-1 disabled:opacity-50"
                             />
-                            <button onClick={handleAddMember} className="p-1 hover:bg-blue-50 text-blue-600 rounded">
+                            <button
+                                onClick={handleAddMember}
+                                disabled={processedMembers.some(m => m.isClosed)}
+                                className="p-1 hover:bg-blue-50 text-blue-600 rounded disabled:text-gray-300"
+                            >
                                 <Plus className="w-5 h-5" />
                             </button>
                         </div>
@@ -137,8 +295,9 @@ export function XitiquePage() {
                                 <input
                                     type="number"
                                     value={interestRate}
+                                    disabled={processedMembers.some(m => m.isClosed)}
                                     onChange={(e) => setInterestRate(Number(e.target.value))}
-                                    className="w-12 text-sm border-b border-gray-200 outline-none"
+                                    className="w-12 text-sm border-b border-gray-200 outline-none disabled:opacity-50"
                                 />
                             </div>
                             <div>
@@ -146,8 +305,9 @@ export function XitiquePage() {
                                 <input
                                     type="number"
                                     value={loanInterestRate}
+                                    disabled={processedMembers.some(m => m.isClosed)}
                                     onChange={(e) => setLoanInterestRate(Number(e.target.value))}
-                                    className="w-12 text-sm border-b border-gray-200 outline-none"
+                                    className="w-12 text-sm border-b border-gray-200 outline-none disabled:opacity-50"
                                 />
                             </div>
                         </div>
@@ -189,14 +349,15 @@ export function XitiquePage() {
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-100">
-                            {processedMembers.map((m) => (
+                            {processedMembers.map((m: ProcessedXitiqueMember) => (
                                 <tr key={m.id} className="hover:bg-gray-50 transition-colors group">
                                     <td className="px-4 py-3 font-medium text-gray-900 border-r border-gray-50">
                                         <input
                                             type="text"
                                             value={m.memberName}
+                                            disabled={m.isClosed}
                                             onChange={(e) => handleUpdateMember(m.id, 'memberName', e.target.value)}
-                                            className="w-full bg-transparent outline-none focus:text-blue-600"
+                                            className="w-full bg-transparent outline-none focus:text-blue-600 disabled:text-gray-400"
                                         />
                                     </td>
                                     <td className="px-4 py-3 border-r border-gray-50">
@@ -204,8 +365,9 @@ export function XitiquePage() {
                                             type="number"
                                             value={m.monthlyContribution || ''}
                                             placeholder="0"
+                                            disabled={m.isClosed}
                                             onChange={(e) => handleUpdateMember(m.id, 'monthlyContribution', Math.max(0, Number(e.target.value)))}
-                                            className="w-full bg-transparent outline-none font-bold text-blue-600"
+                                            className="w-full bg-transparent outline-none font-bold text-blue-600 disabled:text-gray-400"
                                         />
                                     </td>
                                     <td className="px-4 py-3 border-r border-gray-50">
@@ -213,8 +375,9 @@ export function XitiquePage() {
                                             type="number"
                                             value={m.interestAccumulated || ''}
                                             placeholder="0"
+                                            disabled={m.isClosed}
                                             onChange={(e) => handleUpdateMember(m.id, 'interestAccumulated', Math.max(0, Number(e.target.value)))}
-                                            className="w-full bg-transparent outline-none text-gray-600"
+                                            className="w-full bg-transparent outline-none text-gray-600 disabled:text-gray-400"
                                         />
                                     </td>
                                     <td className="px-4 py-3 border-r border-gray-50 text-gray-500 font-medium">
@@ -228,8 +391,9 @@ export function XitiquePage() {
                                             type="number"
                                             value={m.reimbursement || ''}
                                             placeholder="0"
+                                            disabled={m.isClosed}
                                             onChange={(e) => handleUpdateMember(m.id, 'reimbursement', Math.max(0, Number(e.target.value)))}
-                                            className="w-full bg-transparent outline-none font-bold text-orange-600"
+                                            className="w-full bg-transparent outline-none font-bold text-orange-600 disabled:text-gray-400"
                                         />
                                     </td>
                                     <td className="px-4 py-3 border-r border-gray-50 text-gray-500 italic text-sm">
@@ -240,8 +404,9 @@ export function XitiquePage() {
                                             type="number"
                                             value={m.previousLoanBalance || ''}
                                             placeholder="0"
+                                            disabled={m.isClosed}
                                             onChange={(e) => handleUpdateMember(m.id, 'previousLoanBalance', Math.max(0, Number(e.target.value)))}
-                                            className="w-full bg-transparent outline-none text-gray-600"
+                                            className="w-full bg-transparent outline-none text-gray-600 disabled:text-gray-400"
                                         />
                                     </td>
                                     <td className="px-4 py-3 border-r border-gray-50">
@@ -249,8 +414,9 @@ export function XitiquePage() {
                                             type="number"
                                             value={m.loanThisMonth || ''}
                                             placeholder="0"
+                                            disabled={m.isClosed}
                                             onChange={(e) => handleUpdateMember(m.id, 'loanThisMonth', Math.max(0, Number(e.target.value)))}
-                                            className="w-full bg-transparent outline-none font-bold text-red-600"
+                                            className="w-full bg-transparent outline-none font-bold text-red-600 disabled:text-gray-400"
                                         />
                                     </td>
                                     <td className="px-4 py-3 border-r border-gray-50 bg-red-50/20 font-black text-red-700">
@@ -262,7 +428,8 @@ export function XitiquePage() {
                                     <td className="px-2 py-3">
                                         <button
                                             onClick={() => handleRemoveMember(m.id)}
-                                            className="p-1.5 text-gray-300 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity">
+                                            disabled={m.isClosed}
+                                            className="p-1.5 text-gray-300 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity disabled:hidden">
                                             <Trash2 className="w-4 h-4" />
                                         </button>
                                     </td>
